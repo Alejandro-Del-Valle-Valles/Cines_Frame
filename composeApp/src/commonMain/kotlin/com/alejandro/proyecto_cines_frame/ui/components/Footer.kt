@@ -10,10 +10,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
+/** Pie de página con información de la app y enlaces. */
 @Composable
 @Preview
 fun Footer() {
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -22,9 +22,7 @@ fun Footer() {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-
         Text("CINES FRAMES", color = Color.White)
-
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             Text("Ayuda", color = Color.Gray)
             Text("Privacidad", color = Color.Gray)

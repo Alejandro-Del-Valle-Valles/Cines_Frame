@@ -5,15 +5,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.*
+import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -35,19 +31,17 @@ fun Header() {
             .padding(horizontal = 24.dp, vertical = 12.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxWidth()
         ) {
             Image(
                 painter = painterResource(Res.drawable.logo_frames),
-                contentDescription = "Logo",
+                contentDescription = "Logo de Cines Frames",
                 modifier = Modifier.size(45.dp),
                 contentScale = ContentScale.Fit
             )
-
             Spacer(Modifier.width(12.dp))
-
             Text(
                 text = "CINES FRAMES",
                 color = Color.White,
@@ -57,12 +51,10 @@ fun Header() {
                 )
             )
         }
-
         Spacer(Modifier.height(16.dp))
-
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
         ) {
             Surface(
                 color = Color(0xFF1A1A1A),
@@ -104,25 +96,13 @@ fun Header() {
                     textStyle = MaterialTheme.typography.bodyMedium
                 )
             }
-
             Spacer(Modifier.width(24.dp))
-
-            TextButton(onClick = {}) {
-                Text(
-                    "Cartelera",
-                    color = Color.White,
-                    style = MaterialTheme.typography.bodyMedium
-                )
+            TextButton(onClick = { /* Acción de cartelera */ }) {
+                Text("Cartelera", color = Color.White, style = MaterialTheme.typography.bodyMedium)
             }
-
             Spacer(Modifier.width(16.dp))
-
-            TextButton(onClick = {}) {
-                Text(
-                    "Mi cuenta",
-                    color = Color.White,
-                    style = MaterialTheme.typography.bodyMedium
-                )
+            TextButton(onClick = { /* Acción de cuenta */ }) {
+                Text("Mi cuenta", color = Color.White, style = MaterialTheme.typography.bodyMedium)
             }
         }
     }

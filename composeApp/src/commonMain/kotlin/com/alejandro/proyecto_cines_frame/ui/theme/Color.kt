@@ -1,3 +1,4 @@
+// ui/theme/Color.kt
 package com.alejandro.proyecto_cines_frame.ui.theme
 
 import androidx.compose.ui.graphics.Color
