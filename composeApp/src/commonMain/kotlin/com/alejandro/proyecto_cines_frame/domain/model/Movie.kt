@@ -7,5 +7,6 @@ data class Movie(
     val title: String,
     val status: MovieStatus,
     val posterResName: String? = null,
-    val sessions: List<Session> = emptyList()
+    val sessions: List<Session> = emptyList(),
+    val genres: List<MovieGenre> = emptyList()
 )

@@ -1,7 +1,12 @@
-// ui/components/MovieSection.kt
 package com.alejandro.proyecto_cines_frame.ui.components.features.movies
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -13,16 +18,20 @@ import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
 
 @Composable
 fun MovieSection(title: String, movies: List<Movie>) {
-    Column(modifier = Modifier
-        .fillMaxWidth()
-        .padding(vertical = 8.dp)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .padding(vertical = 8.dp)
     ) {
         Text(
             text = title,
             style = MaterialTheme.typography.titleLarge,
             color = TextWhite
         )
+
         Spacer(Modifier.height(8.dp))
+
         MovieGrid(movies = movies)
     }
 }
