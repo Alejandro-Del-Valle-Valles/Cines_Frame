@@ -18,7 +18,7 @@ fun MovieGrid(
     modifier: Modifier = Modifier
 ) {
     BoxWithConstraints(
-        modifier = modifier.fillMaxWidth() // 🔥 IMPORTANTE
+        modifier = modifier.fillMaxWidth()
     ) {
 
         val cardSize = calculateCardSize(maxWidth)
