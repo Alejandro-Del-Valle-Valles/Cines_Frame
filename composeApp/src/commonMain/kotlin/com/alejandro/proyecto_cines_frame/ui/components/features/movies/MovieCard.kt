@@ -18,8 +18,7 @@ import androidx.compose.ui.unit.dp
 import com.alejandro.proyecto_cines_frame.domain.model.Movie
 import com.alejandro.proyecto_cines_frame.domain.model.MovieStatus
 import com.alejandro.proyecto_cines_frame.ui.components.session.SessionRow
-
-
+//// Tarjeta de pelicula, vamos el coso gris ese por ahora
 @Composable
 fun MovieCard(
     movie: Movie,

@@ -11,7 +11,7 @@ import com.alejandro.proyecto_cines_frame.domain.model.Movie
 import com.alejandro.proyecto_cines_frame.ui.components.features.movies.MovieCard
 import com.alejandro.proyecto_cines_frame.ui.theme.TextGray
 import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
-
+// Grid de películas que reparte las cards en filas según el espacio disponible, para carol, Esto decide el tamaño de la malla
 @Composable
 fun MovieGrid(
     movies: List<Movie>,

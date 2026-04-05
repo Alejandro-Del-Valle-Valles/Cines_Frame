@@ -11,8 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.alejandro.proyecto_cines_frame.domain.model.Session
-
-
+//Chip individual de sesión con la hora, vamos donde esta la hora de las pelis
 @Composable
 fun SessionChip(
     session: Session,

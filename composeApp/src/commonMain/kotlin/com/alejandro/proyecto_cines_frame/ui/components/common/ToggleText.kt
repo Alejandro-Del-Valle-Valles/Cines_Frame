@@ -9,7 +9,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.alejandro.proyecto_cines_frame.ui.theme.*
-
+// Texto alternativo para activar o desactivar filtros
 @Composable
 fun ToggleText(
     text: String,

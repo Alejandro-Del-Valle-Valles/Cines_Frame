@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import com.alejandro.proyecto_cines_frame.domain.model.Session
-
+//Lista de sesiones en forma de fila flexible
 @Composable
 fun SessionRow(
     sessions: List<Session>,

@@ -14,7 +14,7 @@ import com.alejandro.proyecto_cines_frame.ui.components.header.HeaderActions
 import com.alejandro.proyecto_cines_frame.ui.components.header.HeaderBrand
 import com.alejandro.proyecto_cines_frame.ui.components.header.HeaderSearchField
 import com.alejandro.proyecto_cines_frame.ui.components.header.HeaderUtils
-
+//Header de escritorio
 @Composable
 fun HeaderEscritorio(
     alClickCartelera: () -> Unit,

@@ -21,7 +21,7 @@ import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
 import org.jetbrains.compose.resources.painterResource
 import proyecto_cines_frame.composeapp.generated.resources.Res
 import proyecto_cines_frame.composeapp.generated.resources.search
-
+//Para buscar pelis pelosas
 @Composable
 fun HeaderSearchField(
     valor: String,

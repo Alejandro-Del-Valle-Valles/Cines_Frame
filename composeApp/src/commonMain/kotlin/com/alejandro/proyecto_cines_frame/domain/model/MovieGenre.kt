@@ -1,5 +1,5 @@
 package com.alejandro.proyecto_cines_frame.domain.model
-
+//asi queda mas fino, més clar
 enum class MovieGenre(val label: String) {
     ACCION("Acción"),
     AVENTURA("Aventura"),

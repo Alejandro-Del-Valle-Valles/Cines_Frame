@@ -2,7 +2,7 @@ package com.alejandro.proyecto_cines_frame.ui.components.header
 
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-
+//Utilidades, me siento idiota escribiendo esto, creo que es obvio.
 object HeaderUtils {
     val PuntoCorteEscritorio: Dp = 900.dp
     val AnchoMaximoBuscadorEscritorio: Dp = 460.dp

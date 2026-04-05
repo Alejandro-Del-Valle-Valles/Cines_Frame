@@ -9,7 +9,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.alejandro.proyecto_cines_frame.ui.theme.TextGray
 import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
-
+// Mensaje de vacío para cuando no hay pelis :(
 @Composable
 fun EmptyMoviesMessage() {
     Box(

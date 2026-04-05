@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import com.alejandro.proyecto_cines_frame.domain.model.Movie
 import com.alejandro.proyecto_cines_frame.ui.components.grid.MovieGrid
 import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
-
+// Seccion de películas con título y grid debajo, como un mini apartado de catalogo bien ordenadito :3 
 @Composable
 fun MovieSection(title: String, movies: List<Movie>) {
     Column(

@@ -3,7 +3,8 @@ package com.alejandro.proyecto_cines_frame.ui.components.filter
 import com.alejandro.proyecto_cines_frame.domain.model.Movie
 import kotlinx.datetime.*
 import kotlin.time.Clock
-
+//Utils normaluchos para filtros
+// Genera los días visibles de cartelera
 fun buildCarteleraDays(): List<FilterDay> {
     val today = Clock.System.now()
         .toLocalDateTime(TimeZone.currentSystemDefault())
@@ -35,7 +36,7 @@ fun buildCalendarDays(): List<FilterDay> {
         )
     }
 }
-
+//Sin esto el usuario ve 1, 2, 3 XD
 private fun weekdayShort(date: LocalDate): String {
     return when (date.dayOfWeek) {
         DayOfWeek.MONDAY -> "Lun"

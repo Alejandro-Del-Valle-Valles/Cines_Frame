@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.dp
 import com.alejandro.proyecto_cines_frame.ui.components.header.HeaderActions
 import com.alejandro.proyecto_cines_frame.ui.components.header.HeaderBrand
 import com.alejandro.proyecto_cines_frame.ui.components.header.HeaderSearchField
-
+//header movil
 @Composable
 fun HeaderMovil(
     alClickCartelera: () -> Unit,

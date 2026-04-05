@@ -14,7 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 import com.alejandro.proyecto_cines_frame.domain.model.MovieStatus
-import com.alejandro.proyecto_cines_frame.ui.components.Footer
+import com.alejandro.proyecto_cines_frame.ui.components.footer.Footer
 import com.alejandro.proyecto_cines_frame.ui.components.banner.Banner
 import com.alejandro.proyecto_cines_frame.ui.components.features.movies.MovieMockData
 import com.alejandro.proyecto_cines_frame.ui.components.features.movies.MovieSection

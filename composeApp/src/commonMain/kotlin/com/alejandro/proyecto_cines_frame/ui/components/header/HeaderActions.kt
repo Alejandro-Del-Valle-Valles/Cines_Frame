@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-
+//agrupa las acciones del header, como “Cartelera” y “Mi cuenta”, para no dejarlas sueltas por ahi, conclusion "Que me quedo sin comer"
 @Composable
 fun HeaderActions(
     alClickCartelera: () -> Unit,
