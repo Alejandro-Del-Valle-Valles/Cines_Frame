@@ -1,4 +1,4 @@
-package com.alejandro.proyecto_cines_frame.ui.components.header
+package com.alejandro.proyecto_cines_frame.ui.components.common
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.alejandro.proyecto_cines_frame.ui.components.header.HeaderUtils
 import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
 import org.jetbrains.compose.resources.painterResource
 import proyecto_cines_frame.composeapp.generated.resources.Res
@@ -33,7 +34,7 @@ fun HeaderBrand(
         Image(
             painter = painterResource(Res.drawable.logo_frames),
             contentDescription = "Logo de Cines Frames",
-            modifier = Modifier.width(HeaderUtils.tamanioLogo(esEscritorio)),
+            modifier = Modifier.Companion.width(HeaderUtils.tamanioLogo(esEscritorio)),
             contentScale = ContentScale.Fit
         )
 

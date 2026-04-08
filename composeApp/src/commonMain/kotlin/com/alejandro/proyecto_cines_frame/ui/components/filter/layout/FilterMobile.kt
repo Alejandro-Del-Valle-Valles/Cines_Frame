@@ -16,7 +16,7 @@ import com.alejandro.proyecto_cines_frame.ui.components.filter.FilterDay
 import com.alejandro.proyecto_cines_frame.ui.components.filter.FilterState
 import com.alejandro.proyecto_cines_frame.ui.components.filter.components.CalendarButton
 import com.alejandro.proyecto_cines_frame.ui.theme.TextGray
-// Filtro compacto para movil
+//Filtro compacto para movil
 @Composable
 fun FilterMobile(
     state: FilterState,

@@ -7,7 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 @Composable
-// Un agujerito del borde del banner
+//Un agujerito del borde del banner
 fun FilmHole(config: BannerBorderConfig) {
     Box(
         modifier = Modifier

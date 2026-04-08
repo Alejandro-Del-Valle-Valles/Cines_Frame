@@ -2,7 +2,7 @@ package com.alejandro.proyecto_cines_frame.ui.components.filter
 
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-// Utilidades para los layout filtros, porfa no seais cochino y me lieis
+//Utilidades para los layout filtros, porfa no seais cochino y me lieis
 object FilterLayoutUtils {
 
     val PuntoCorteEscritorio: Dp = 400.dp
