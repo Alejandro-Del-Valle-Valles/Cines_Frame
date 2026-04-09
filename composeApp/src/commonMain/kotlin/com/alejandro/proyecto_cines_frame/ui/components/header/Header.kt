@@ -2,6 +2,7 @@ package com.alejandro.proyecto_cines_frame.ui.components.header
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -11,22 +12,25 @@ import com.alejandro.proyecto_cines_frame.ui.components.header.layout.HeaderEscr
 import com.alejandro.proyecto_cines_frame.ui.components.header.layout.HeaderMovil
 import com.alejandro.proyecto_cines_frame.ui.theme.ColorFondoHeader
 //Elige o movil o escritorio para poner la cabecera.
+
 @Composable
-@Preview
 fun Header(
-    modifier: Modifier = Modifier,
-    alClickCartelera: () -> Unit = {},
-    alClickCuenta: () -> Unit = {},
-    alCambiarEstadoBusqueda: (Boolean) -> Unit = {}
+    searchQuery: String,
+    onSearchChange: (String) -> Unit,
+    onSearchSubmit: (String) -> Unit,
+    onFocusChange: (Boolean) -> Unit,
+    onEntradasClick: () -> Unit,
+    onLoginClick: () -> Unit,
+    onRegisterClick: () -> Unit,
+    onLogoutClick: () -> Unit
 ) {
     BoxWithConstraints(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
             .background(ColorFondoHeader)
     ) {
         val esEscritorio = HeaderUtils.PuntoCorteEscritorio <= maxWidth
-
-        androidx.compose.foundation.layout.Column(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(
@@ -36,15 +40,25 @@ fun Header(
         ) {
             if (esEscritorio) {
                 HeaderEscritorio(
-                    alClickCartelera = alClickCartelera,
-                    alClickCuenta = alClickCuenta,
-                    alCambiarEstadoBusqueda = alCambiarEstadoBusqueda
+                    searchQuery = searchQuery,
+                    onSearchChange = onSearchChange,
+                    onSearchSubmit = onSearchSubmit,
+                    onFocusChange = onFocusChange,
+                    onEntradasClick = onEntradasClick,
+                    onLoginClick = onLoginClick,
+                    onRegisterClick = onRegisterClick,
+                    onLogoutClick = onLogoutClick
                 )
             } else {
                 HeaderMovil(
-                    alClickCartelera = alClickCartelera,
-                    alClickCuenta = alClickCuenta,
-                    alCambiarEstadoBusqueda = alCambiarEstadoBusqueda
+                    searchQuery = searchQuery,
+                    onSearchChange = onSearchChange,
+                    onSearchSubmit = onSearchSubmit,
+                    onFocusChange = onFocusChange,
+                    onEntradasClick = onEntradasClick,
+                    onLoginClick = onLoginClick,
+                    onRegisterClick = onRegisterClick,
+                    onLogoutClick = onLogoutClick
                 )
             }
         }

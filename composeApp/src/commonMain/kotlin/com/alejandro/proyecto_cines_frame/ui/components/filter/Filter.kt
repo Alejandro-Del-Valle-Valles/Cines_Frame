@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 import com.alejandro.proyecto_cines_frame.ui.components.filter.layouts.FilterDesktop
 import com.alejandro.proyecto_cines_frame.ui.components.filter.layouts.FilterMobile
 import com.alejandro.proyecto_cines_frame.ui.theme.ColorFondoHeader
-// Contenedor principal de filtros que decide si pinta versión movil o escritorio, segun el ancho disponible
+//Contenedor principal de filtros que decide si pinta versión movil o escritorio, segun el ancho disponible
 @Composable
 fun Filter(
     state: FilterState,

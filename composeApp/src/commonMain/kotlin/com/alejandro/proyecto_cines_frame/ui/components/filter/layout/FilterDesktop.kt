@@ -14,7 +14,7 @@ import com.alejandro.proyecto_cines_frame.ui.components.filter.FilterDay
 import com.alejandro.proyecto_cines_frame.ui.components.filter.FilterState
 import com.alejandro.proyecto_cines_frame.ui.components.filter.components.CalendarButton
 import com.alejandro.proyecto_cines_frame.ui.theme.TextGray
-// Filtro compacto para escritorio
+//Filtro compacto para escritorio
 @Composable
 fun FilterDesktop(
     state: FilterState,

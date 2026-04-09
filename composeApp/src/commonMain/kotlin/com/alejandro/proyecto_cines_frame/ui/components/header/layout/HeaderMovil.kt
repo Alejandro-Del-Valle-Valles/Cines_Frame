@@ -12,44 +12,42 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.alejandro.proyecto_cines_frame.ui.components.header.HeaderActions
-import com.alejandro.proyecto_cines_frame.ui.components.header.HeaderBrand
-import com.alejandro.proyecto_cines_frame.ui.components.header.HeaderSearchField
+import com.alejandro.proyecto_cines_frame.ui.components.common.HeaderBrand
+import com.alejandro.proyecto_cines_frame.ui.components.header.filter.HeaderSearchField
+
 //header movil
 @Composable
 fun HeaderMovil(
-    alClickCartelera: () -> Unit,
-    alClickCuenta: () -> Unit,
-    alCambiarEstadoBusqueda: (Boolean) -> Unit
+    searchQuery: String,
+    onSearchChange: (String) -> Unit,
+    onSearchSubmit: (String) -> Unit,
+    onFocusChange: (Boolean) -> Unit,
+
+    onEntradasClick: () -> Unit,
+    onLoginClick: () -> Unit,
+    onRegisterClick: () -> Unit,
+    onLogoutClick: () -> Unit
 ) {
-    Column(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        HeaderBrand(
-            esEscritorio = false,
-            modifier = Modifier.fillMaxWidth()
-        )
+    Column(modifier = Modifier.fillMaxWidth()) {
+        HeaderBrand(esEscritorio = false)
         Spacer(Modifier.height(14.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Start
-        ) {
-            Box(
-                modifier = Modifier.weight(1f)
-            ) {
+        Row {
+            Box(modifier = Modifier.weight(1f)) {
                 HeaderSearchField(
-                    valor = "",
-                    alCambiarValor = {},
-                    alCambiarFoco = alCambiarEstadoBusqueda,
+                    valor = searchQuery,
+                    alCambiarValor = onSearchChange,
+                    alBuscar = onSearchSubmit,
+                    alCambiarFoco = onFocusChange,
                     placeholder = "Buscar",
                     esCompacto = true
                 )
             }
-
             Spacer(Modifier.width(16.dp))
-
             HeaderActions(
-                alClickCartelera = alClickCartelera,
-                alClickCuenta = alClickCuenta
+                onEntradasClick,
+                onLoginClick,
+                onRegisterClick,
+                onLogoutClick
             )
         }
     }
