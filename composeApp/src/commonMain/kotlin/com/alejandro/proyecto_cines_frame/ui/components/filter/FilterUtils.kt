@@ -1,6 +1,6 @@
 package com.alejandro.proyecto_cines_frame.ui.components.filter
 
-import com.alejandro.proyecto_cines_frame.domain.model.Movie
+import com.alejandro.proyecto_cines_frame.domain.model.Pelicula
 import kotlinx.datetime.*
 import kotlin.time.Clock
 //Utils normaluchos para filtros
@@ -48,14 +48,15 @@ private fun weekdayShort(date: LocalDate): String {
         DayOfWeek.SUNDAY -> "Dom"
     }
 }
-
-fun List<Movie>.applyFilters(state: FilterState): List<Movie> {
+/*
+fun List<Pelicula>.applyFilters(state: FilterState): List<Pelicula> {
     return mapNotNull { movie ->
 
-        val sessions = movie.sessions.filter { s ->
+
+        val sessions = movie.sesiones.filter { s ->
 
             val matchDay = state.selectedDay?.let {
-                s.dateTime.date == it.date
+                s.horario.date == it.date
             } ?: true
 
             val match3D = state.is3D?.let {
@@ -67,6 +68,6 @@ fun List<Movie>.applyFilters(state: FilterState): List<Movie> {
             matchDay && match3D && matchVOSE
         }
 
-        if (sessions.isEmpty()) null else movie.copy(sessions = sessions)
+        if (sessions.isEmpty()) null else movie.copy(sesiones = sessions)
     }
-}
+}*/

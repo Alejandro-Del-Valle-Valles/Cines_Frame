@@ -14,18 +14,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.alejandro.proyecto_cines_frame.domain.model.Movie
-import com.alejandro.proyecto_cines_frame.domain.model.MovieStatus
+import com.alejandro.proyecto_cines_frame.domain.enums.PeliculaEstado
 import com.alejandro.proyecto_cines_frame.ui.components.banner.Banner
 import com.alejandro.proyecto_cines_frame.ui.components.features.movies.MovieMockData
 import com.alejandro.proyecto_cines_frame.ui.components.features.movies.MovieSection
 import com.alejandro.proyecto_cines_frame.ui.components.filter.*
 import com.alejandro.proyecto_cines_frame.ui.components.footer.Footer
-import com.alejandro.proyecto_cines_frame.ui.components.grid.EmptyMoviesMessage
-import com.alejandro.proyecto_cines_frame.ui.components.grid.MovieGrid
 import com.alejandro.proyecto_cines_frame.ui.components.header.Header
 import com.alejandro.proyecto_cines_frame.ui.components.header.HeaderUtils
-import com.alejandro.proyecto_cines_frame.ui.components.header.filter.applySearch
 import com.alejandro.proyecto_cines_frame.ui.theme.BackgroundDark
 import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
 import org.jetbrains.compose.resources.painterResource
@@ -36,10 +32,10 @@ import proyecto_cines_frame.composeapp.generated.resources.calendar
 @Composable
 fun MainScreen() {
 
-    val allMovies = MovieMockData.getMovies()
+    val allSesions = MovieMockData.getSesiones()
 
-    val carteleraBase = allMovies.filter { it.status == MovieStatus.CARTELERA }
-    val estrenosMovies = allMovies.filter { it.status == MovieStatus.ESTRENO }
+    val carteleraBase = allSesions.filter { it.pelicula.estado == PeliculaEstado.CARTELERA }
+    val estrenosMovies = allSesions.filter { it.pelicula.estado == PeliculaEstado.ESTRENO }
 
     //SEARCH
     var searchQuery by rememberSaveable { mutableStateOf("") }
@@ -53,12 +49,12 @@ fun MainScreen() {
     val availableDays = remember { buildCarteleraDays() }
     val calendarDays = remember { buildCalendarDays() }
 
-    //FILTRO
-    val filteredCartelera = remember<List<Movie>>(filterState, carteleraBase, searchQuery) {
+    /*FILTRO
+    val filteredCartelera = remember<List<Pelicula>>(filterState, carteleraBase, searchQuery) {
         carteleraBase
             .applyFilters(filterState)
             .applySearch(searchQuery)
-    }
+    }*/
 
     //HEADER
     var buscadorEnfocado by rememberSaveable { mutableStateOf(false) }
@@ -140,6 +136,7 @@ fun MainScreen() {
                     )
                 }
                 item {
+                    /*
                     if (filteredCartelera.isEmpty()) {
                         EmptyMoviesMessage()
                     } else {
@@ -147,12 +144,12 @@ fun MainScreen() {
                             movies = filteredCartelera,
                             modifier = Modifier.fillMaxWidth()
                         )
-                    }
+                    }*/
                 }
                 item {
                     MovieSection(
                         title = "PRÓXIMOS ESTRENOS",
-                        movies = estrenosMovies
+                        movies = estrenosMovies.map { it.pelicula }
                     )
                 }
                 item {

@@ -1,12 +1,12 @@
 package com.alejandro.proyecto_cines_frame.ui.components.header.filter
 
-import com.alejandro.proyecto_cines_frame.domain.model.Movie
+import com.alejandro.proyecto_cines_frame.domain.model.Pelicula
 
 //Utils Search
-fun List<Movie>.applySearch(query: String): List<Movie> {
+fun List<Pelicula>.applySearch(query: String): List<Pelicula> {
     if (query.length < 3) return this
 
     return filter {
-        it.title.contains(query.trim(), ignoreCase = true)
+        it.nombre.contains(query.trim(), ignoreCase = true)
     }
 }

@@ -15,13 +15,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.alejandro.proyecto_cines_frame.domain.model.Movie
-import com.alejandro.proyecto_cines_frame.domain.model.MovieStatus
-import com.alejandro.proyecto_cines_frame.ui.components.session.SessionRow
-//Tarjeta de pelicula, vamos el coso gris ese por ahora
+import com.alejandro.proyecto_cines_frame.domain.enums.PeliculaEstado
+import com.alejandro.proyecto_cines_frame.domain.enums.PeliculaGenero
+import com.alejandro.proyecto_cines_frame.domain.model.Pelicula
+import kotlinx.datetime.LocalTime
+
+/**
+ * Tarjeta de película. Por el momento es solo el equeleto
+ */
 @Composable
 fun MovieCard(
-    movie: Movie,
+    movie: Pelicula,
     modifier: Modifier = Modifier,
     cardWidth: Dp = 110.dp,
     posterHeight: Dp = 160.dp,
@@ -54,7 +58,7 @@ fun MovieCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = movie.title,
+                        text = movie.nombre,
                         color = Color.White,
                         style = MaterialTheme.typography.labelMedium
                     )
@@ -64,12 +68,14 @@ fun MovieCard(
 
         Spacer(modifier = Modifier.height(6.dp * sessionScale))
 
-        if (movie.sessions.isNotEmpty()) {
+        /*
+        if (movie.sesiones.isNotEmpty()) {
             SessionRow(
-                sessions = movie.sessions,
+                sesions = movie.sesiones,
                 scale = sessionScale
             )
         }
+         */
     }
 }
 
@@ -77,10 +83,13 @@ fun MovieCard(
 @Composable
 fun MovieCardPreview() {
     MovieCard(
-        movie = Movie(
-            id = 1,
-            title = "Movie Title",
-            status = MovieStatus.CARTELERA
+        movie = Pelicula(
+            id = "ejemplo",
+            nombre = "Movie Title",
+            descripcion = "Example",
+            estado = PeliculaEstado.CARTELERA,
+            duracion = LocalTime(1, 30),
+            genero = PeliculaGenero.AVENTURA
         )
     )
 }

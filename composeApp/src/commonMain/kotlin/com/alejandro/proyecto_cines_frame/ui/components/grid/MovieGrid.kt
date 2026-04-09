@@ -1,20 +1,15 @@
 package com.alejandro.proyecto_cines_frame.ui.components.grid
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.alejandro.proyecto_cines_frame.domain.model.Movie
-import com.alejandro.proyecto_cines_frame.ui.components.features.movies.MovieCard
-import com.alejandro.proyecto_cines_frame.ui.theme.TextGray
-import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
+import com.alejandro.proyecto_cines_frame.domain.model.Pelicula
+
 // Grid de películas que reparte las cards en filas según el espacio disponible, para carol, Esto decide el tamaño de la malla
 @Composable
 fun MovieGrid(
-    movies: List<Movie>,
+    movies: List<Pelicula>,
     modifier: Modifier = Modifier
 ) {
     BoxWithConstraints(
