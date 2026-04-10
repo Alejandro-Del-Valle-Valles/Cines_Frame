@@ -11,11 +11,7 @@ import kotlinx.coroutines.delay
 
 
 @Composable
-fun Banner(
-    images: List<Painter>,
-    modifier: Modifier = Modifier,
-    autoSlideDuration: Long = 4000L
-) {
+fun Banner(images: List<Painter>, modifier: Modifier = Modifier, autoSlideDuration: Long = 4000L) {
     var currentIndex by remember { mutableStateOf(0) }
 
     if (images.size > 1) {

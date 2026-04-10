@@ -4,6 +4,7 @@ import com.alejandro.proyecto_cines_frame.domain.model.Pelicula
 import com.alejandro.proyecto_cines_frame.domain.enums.PeliculaGenero
 import com.alejandro.proyecto_cines_frame.domain.enums.PeliculaEstado
 import com.alejandro.proyecto_cines_frame.domain.model.Sesion
+import com.alejandro.proyecto_cines_frame.domain.model.Sala
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
@@ -28,13 +29,17 @@ object MovieMockData {
             genero = PeliculaGenero.ACCION
         )
 
+        val sala1 = Sala(numero = 1, aforo = 100)
+        val sala2 = Sala(numero = 2, aforo = 80)
+        val sala3 = Sala(numero = 3, aforo = 120)
+
         return listOf(
-            Sesion(numSala = 1, pelicula = peliculaBase, horario = LocalDateTime(date.year, date.month, date.day, 10, 0)),
-            Sesion(numSala = 1, pelicula = peliculaBase, horario = LocalDateTime(date.year, date.month, date.day, 12, 30)),
-            Sesion(numSala = 2, pelicula = peliculaBase, horario = LocalDateTime(date.year, date.month, date.day, 15, 0)),
-            Sesion(numSala = 2, pelicula = peliculaBase, horario = LocalDateTime(date.year, date.month, date.day, 17, 30)),
-            Sesion(numSala = 3, pelicula = peliculaBase, horario = LocalDateTime(date.year, date.month, date.day, 20, 0)),
-            Sesion(numSala = 3, pelicula = peliculaBase, horario = LocalDateTime(date.year, date.month, date.day, 22, 30)),
+            Sesion(sala = sala1, pelicula = peliculaBase, horario = LocalDateTime(date.year, date.month, date.day, 10, 0)),
+            Sesion(sala = sala1, pelicula = peliculaBase, horario = LocalDateTime(date.year, date.month, date.day, 12, 30)),
+            Sesion(sala = sala2, pelicula = peliculaBase, horario = LocalDateTime(date.year, date.month, date.day, 15, 0)),
+            Sesion(sala = sala2, pelicula = peliculaBase, horario = LocalDateTime(date.year, date.month, date.day, 17, 30)),
+            Sesion(sala = sala3, pelicula = peliculaBase, horario = LocalDateTime(date.year, date.month, date.day, 20, 0)),
+            Sesion(sala = sala3, pelicula = peliculaBase, horario = LocalDateTime(date.year, date.month, date.day, 22, 30)),
         )
     }
 }
