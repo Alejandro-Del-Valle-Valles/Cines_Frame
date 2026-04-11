@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.*
 import androidx.compose.ui.graphics.Color
-//Borde decorativo del banner con huequitos bien guays
+//Borde decorativo del banner, usa el hueco blanco de FilmHole repetidas veces sobre un fondo negro
 @Composable
 fun BannerBorder(
     modifier: Modifier = Modifier

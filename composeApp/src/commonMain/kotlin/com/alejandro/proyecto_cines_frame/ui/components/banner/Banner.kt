@@ -14,6 +14,7 @@ import kotlinx.coroutines.delay
 fun Banner(images: List<Painter>, modifier: Modifier = Modifier, autoSlideDuration: Long = 4000L) {
     var currentIndex by remember { mutableStateOf(0) }
 
+    //Esto crea la animación de pasar de imagen en el banner
     if (images.size > 1) {
         LaunchedEffect(images) {
             while (true) {
@@ -22,8 +23,13 @@ fun Banner(images: List<Painter>, modifier: Modifier = Modifier, autoSlideDurati
             }
         }
     }
+
+    //El banner en sí mismo está construido aquí
     Column(modifier = modifier.fillMaxWidth()) {
+        //Borde de arriba
         BannerBorder()
+
+        //Imagen del banner
         Box(modifier = Modifier.fillMaxWidth()) {
             AnimatedContent(targetState = currentIndex, label = "banner") { index ->
                 Image(
@@ -34,6 +40,7 @@ fun Banner(images: List<Painter>, modifier: Modifier = Modifier, autoSlideDurati
                 )
             }
         }
+        //Borde de abajo
         BannerBorder()
     }
 }
