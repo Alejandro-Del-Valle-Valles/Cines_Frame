@@ -12,20 +12,18 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.alejandro.proyecto_cines_frame.domain.enums.PeliculaEstado
-import com.alejandro.proyecto_cines_frame.domain.enums.PeliculaGenero
 import com.alejandro.proyecto_cines_frame.domain.model.Pelicula
-import kotlinx.datetime.LocalTime
-
+import com.alejandro.proyecto_cines_frame.domain.model.Sesion
+import com.alejandro.proyecto_cines_frame.ui.components.session.SessionRow
 /**
  * Tarjeta de película. Por el momento es solo el equeleto
  */
 @Composable
 fun MovieCard(
     movie: Pelicula,
+    sessions: List<Sesion>,
     modifier: Modifier = Modifier,
     cardWidth: Dp = 110.dp,
     posterHeight: Dp = 160.dp,
@@ -34,6 +32,9 @@ fun MovieCard(
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
 
+    val movieSessions = remember(sessions, movie.id) {
+        sessions.filter { it.pelicula.id == movie.id }
+    }
     Column(
         modifier = modifier.width(cardWidth)
     ) {
@@ -43,11 +44,20 @@ fun MovieCard(
                 .height(posterHeight)
                 .hoverable(interactionSource)
         ) {
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .background(Color.Gray, RoundedCornerShape(12.dp))
-            )
+            //placeholder o imagen futura
+            if (!movie.portada.isNullOrBlank()) {
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .background(Color.DarkGray, RoundedCornerShape(12.dp))
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .background(Color.Gray, RoundedCornerShape(12.dp))
+                )
+            }
 
             if (isHovered) {
                 Box(
@@ -65,31 +75,13 @@ fun MovieCard(
                 }
             }
         }
-
         Spacer(modifier = Modifier.height(6.dp * sessionScale))
 
-        /*
-        if (movie.sesiones.isNotEmpty()) {
+        if (movieSessions.isNotEmpty()) {
             SessionRow(
-                sesions = movie.sesiones,
-                scale = sessionScale
+                sessions = movieSessions,
+                scale = sessionScale,
             )
         }
-         */
     }
-}
-
-@Preview
-@Composable
-fun MovieCardPreview() {
-    MovieCard(
-        movie = Pelicula(
-            id = "ejemplo",
-            nombre = "Movie Title",
-            descripcion = "Example",
-            estado = PeliculaEstado.CARTELERA,
-            duracion = LocalTime(1, 30),
-            genero = PeliculaGenero.AVENTURA
-        )
-    )
 }

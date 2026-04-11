@@ -1,4 +1,3 @@
-
 package com.alejandro.proyecto_cines_frame.ui.components.grid
 
 import androidx.compose.ui.unit.Dp

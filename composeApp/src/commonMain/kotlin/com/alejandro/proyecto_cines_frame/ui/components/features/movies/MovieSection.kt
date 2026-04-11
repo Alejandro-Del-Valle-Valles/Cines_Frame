@@ -12,11 +12,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.alejandro.proyecto_cines_frame.domain.model.Pelicula
+import com.alejandro.proyecto_cines_frame.domain.model.Sesion
+import com.alejandro.proyecto_cines_frame.ui.components.grid.EmptyMoviesMessage
 import com.alejandro.proyecto_cines_frame.ui.components.grid.MovieGrid
 import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
 //Seccion de películas con título y grid debajo, como un mini apartado de catalogo bien ordenadito :3
 @Composable
-fun MovieSection(title: String, movies: List<Pelicula>) {
+fun MovieSection(
+    title: String,
+    movies: List<Pelicula>,
+    sessions: List<Sesion>
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -31,6 +37,14 @@ fun MovieSection(title: String, movies: List<Pelicula>) {
 
         Spacer(Modifier.height(8.dp))
 
-        MovieGrid(movies = movies)
+        //mensaje vacio
+        if (movies.isEmpty()) {
+            EmptyMoviesMessage()
+        } else {
+            MovieGrid(
+                movies = movies,
+                sessions = sessions
+            )
+        }
     }
 }
