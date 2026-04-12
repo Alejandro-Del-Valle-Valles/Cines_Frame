@@ -11,17 +11,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.alejandro.proyecto_cines_frame.domain.model.Sesion
+
 //Chip individual de sesión con la hora, vamos donde esta la hora de las pelis
 @Composable
 fun SessionChip(
-    sesion: Sesion,
+    text: String,
     scale: Float = 1f
 ) {
-    val timeText = "%02d:%02d".format(
-        sesion.horario.hour,
-        sesion.horario.minute
-    )
-
     val textStyle = if (scale > 1.1f) {
         MaterialTheme.typography.labelMedium
     } else {
@@ -37,7 +33,7 @@ fun SessionChip(
             )
     ) {
         Text(
-            text = timeText,
+            text = text,
             color = Color.White,
             style = textStyle
         )

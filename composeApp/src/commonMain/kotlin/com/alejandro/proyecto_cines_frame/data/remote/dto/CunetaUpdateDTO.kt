@@ -1,0 +1,11 @@
+package com.alejandro.proyecto_cines_frame.data.remote.dto
+
+import com.alejandro.proyecto_cines_frame.domain.enums.CuentaRol
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class CunetaUpdateDTO(
+    val nombre: String,
+    val contrasena: String,
+    val rol: CuentaRol
+)

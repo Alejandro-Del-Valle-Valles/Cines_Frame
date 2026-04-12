@@ -5,11 +5,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.alejandro.proyecto_cines_frame.domain.model.Pelicula
+import com.alejandro.proyecto_cines_frame.domain.model.Sesion
 
 // Grid de películas que reparte las cards en filas según el espacio disponible, para carol, Esto decide el tamaño de la malla
 @Composable
 fun MovieGrid(
     movies: List<Pelicula>,
+    sessions: List<Sesion>,
     modifier: Modifier = Modifier
 ) {
     BoxWithConstraints(
@@ -30,6 +32,7 @@ fun MovieGrid(
 
                 MovieRow(
                     movies = rowMovies,
+                    sessions = sessions,
                     columns = columns,
                     cardWidth = cardSize.width,
                     posterHeight = cardSize.posterHeight,

@@ -1,8 +1,11 @@
 package com.alejandro.proyecto_cines_frame.domain.enums
 
+import kotlinx.serialization.Serializable
+
 /**
  * Géneros de las películas y su nombre en String
  */
+@Serializable
 enum class PeliculaGenero(val label: String) {
     ACCION("Acción"),
     TERROR("Terror"),
