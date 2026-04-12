@@ -16,7 +16,7 @@ import proyecto_cines_frame.composeapp.generated.resources.Res
 import proyecto_cines_frame.composeapp.generated.resources.facebook
 import proyecto_cines_frame.composeapp.generated.resources.instagram
 import proyecto_cines_frame.composeapp.generated.resources.x
-//Pata escritorio
+//Footer para escritorio
 @Composable
 fun FooterDesktop() {
     Row(

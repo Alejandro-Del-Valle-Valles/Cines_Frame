@@ -2,6 +2,7 @@ package com.alejandro.proyecto_cines_frame.ui.screen
 
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -21,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.alejandro.proyecto_cines_frame.ui.components.common.BackButton
 import com.alejandro.proyecto_cines_frame.ui.theme.BackgroundDark
 import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
 
@@ -42,7 +44,11 @@ fun LoginScreen(
             .background(BackgroundDark),
         contentAlignment = Alignment.Center
     ) {
-
+        BackButton(
+            onClick = {
+                onLoginSuccess() // vuelve al main
+            }
+        )
         Card(
             modifier = Modifier.fillMaxWidth(0.9f),
             shape = RoundedCornerShape(16.dp),
@@ -56,7 +62,7 @@ fun LoginScreen(
 
                 Text(
                     text = "Iniciar sesión",
-                    color = Color.White,
+                    color = TextWhite,
                     style = MaterialTheme.typography.headlineMedium
                 )
 
@@ -66,15 +72,15 @@ fun LoginScreen(
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
-                    label = { Text("Email", color = Color.White) },
-                    textStyle = LocalTextStyle.current.copy(color = Color.White),
+                    label = { Text("Email", color = TextWhite) },
+                    textStyle = LocalTextStyle.current.copy(color = TextWhite),
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
+                        focusedTextColor = TextWhite,
+                        unfocusedTextColor = TextWhite,
                         focusedBorderColor = Color.Gray,
                         unfocusedBorderColor = Color.DarkGray,
-                        cursorColor = Color.White
+                        cursorColor = TextWhite
                     )
                 )
 
@@ -84,16 +90,16 @@ fun LoginScreen(
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
-                    label = { Text("Contraseña", color = Color.White) },
+                    label = { Text("Contraseña", color = TextWhite) },
                     visualTransformation = PasswordVisualTransformation(),
-                    textStyle = LocalTextStyle.current.copy(color = Color.White),
+                    textStyle = LocalTextStyle.current.copy(color = TextWhite),
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
+                        focusedTextColor = TextWhite,
+                        unfocusedTextColor = TextWhite,
                         focusedBorderColor = Color.Gray,
                         unfocusedBorderColor = Color.DarkGray,
-                        cursorColor = Color.White
+                        cursorColor = TextWhite
                     )
                 )
 
@@ -143,7 +149,7 @@ fun LoginScreen(
                     enabled = !isLoading,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFFE50914),
-                        contentColor = Color.White
+                        contentColor = TextWhite
                     )
                 ) {
                     Text(
@@ -166,6 +172,8 @@ fun validateLogin(
         else -> null
     }
 }
+
+
 
 @Preview(showBackground = true, backgroundColor = 0xFF121212)
 @Composable
