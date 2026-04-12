@@ -8,11 +8,13 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.alejandro.proyecto_cines_frame.domain.enums.PeliculaEstado
 import com.alejandro.proyecto_cines_frame.ui.components.banner.Banner
@@ -36,6 +38,9 @@ fun MainScreen() {
 
     val carteleraBase = allSesions.filter { it.pelicula.estado == PeliculaEstado.CARTELERA }
     val estrenosMovies = allSesions.filter { it.pelicula.estado == PeliculaEstado.ESTRENO }
+
+    //Para poder cambia de pantalla
+    var currentScreen by remember { mutableStateOf("main") }
 
     //SEARCH
     var searchQuery by rememberSaveable { mutableStateOf("") }
@@ -64,6 +69,24 @@ fun MainScreen() {
         animationSpec = tween(HeaderUtils.DuracionTransicionOscurecimientoMs),
         label = "opacidadOscurecimiento"
     )
+
+    if (currentScreen == "login") {
+        LoginScreen(
+            onLoginSuccess = {
+                currentScreen = "main"
+            }
+        )
+        return
+    }
+
+    if (currentScreen == "register") {
+        RegisterScreen(
+            onRegisterSuccess = {
+                currentScreen = "main"
+            }
+        )
+        return
+    }
 
     Column(
         modifier = Modifier
@@ -94,11 +117,11 @@ fun MainScreen() {
             },
 
             onLoginClick = {
-
+                currentScreen = "login"
             },
 
             onRegisterClick = {
-
+                currentScreen = "register"
             },
 
             onLogoutClick = {
@@ -172,5 +195,13 @@ fun MainScreen() {
                 )
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewRegisterScreenMain() {
+    MaterialTheme {
+        MainScreen()
     }
 }

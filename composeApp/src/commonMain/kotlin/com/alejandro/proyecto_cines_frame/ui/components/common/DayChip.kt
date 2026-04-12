@@ -13,7 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.alejandro.proyecto_cines_frame.ui.theme.*
-//Chip visual para marcar un día
+//Seleccionable para marcar un día y buscar las sesiones y películas del día marcado
 @Composable
 fun DayChip(
     text: String,

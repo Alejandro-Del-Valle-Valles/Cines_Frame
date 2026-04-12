@@ -2,24 +2,46 @@ package com.alejandro.proyecto_cines_frame.ui.components.session
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.alejandro.proyecto_cines_frame.domain.enums.PeliculaEstado
 import com.alejandro.proyecto_cines_frame.domain.model.Sesion
-//Lista de sesiones en forma de fila flexible
+
 @Composable
 fun SessionRow(
-    sesions: List<Sesion>,
-    scale: Float = 1f
+    sessions: List<Sesion>,
+    scale: Float,
+    formatTime: (Sesion) -> String = {
+        "%02d:%02d".format(it.horario.hour, it.horario.minute)
+    }
 ) {
+    if (sessions.isEmpty()) return
+
+    val isEstreno = sessions.first().pelicula.estado == PeliculaEstado.ESTRENO
+
     FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(4.dp * scale),
-        verticalArrangement = Arrangement.spacedBy(4.dp * scale)
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy((6 * scale).dp),
+        verticalArrangement = Arrangement.spacedBy((6 * scale).dp)
     ) {
-        sesions.forEach { session ->
+
+        if (isEstreno) {
+            val firstSession = sessions.minBy { it.horario }
+
             SessionChip(
-                sesion = session,
+                text = formatDate(firstSession.horario),
                 scale = scale
             )
+
+        } else {
+            sessions.forEach { session ->
+                SessionChip(
+                    text = formatTime(session),
+                    scale = scale
+                )
+            }
         }
     }
 }

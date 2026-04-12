@@ -20,7 +20,8 @@ import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
 import org.jetbrains.compose.resources.painterResource
 import proyecto_cines_frame.composeapp.generated.resources.Res
 import proyecto_cines_frame.composeapp.generated.resources.logo_frames
-//marca visual de la marca: logo + nombre de la app
+
+//Marca visual de la empresa: logo + nombre de la app
 @Composable
 fun HeaderBrand(
     esEscritorio: Boolean,

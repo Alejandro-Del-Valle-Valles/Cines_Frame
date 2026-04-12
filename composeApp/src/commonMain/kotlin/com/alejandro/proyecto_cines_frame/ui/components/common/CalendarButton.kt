@@ -13,7 +13,8 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.unit.dp
 import com.alejandro.proyecto_cines_frame.ui.components.filter.FilterDay
 import com.alejandro.proyecto_cines_frame.ui.components.filter.FilterState
-//Boton del calendario que abre un desplegable para elegir día dioso
+
+//Boton del calendario que abre un desplegable para elegir día, de momento esta imagen es provisional
 @Composable
 fun CalendarButton(
     painter: Painter,
