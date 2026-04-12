@@ -12,6 +12,9 @@ import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.put
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
 
 class KtorPeliculaApi(
     private val httpClient: HttpClient
@@ -35,10 +38,16 @@ class KtorPeliculaApi(
         httpClient.get("$baseUrl/id/$id").body()
 
     override suspend fun createPelicula(pelicula: PeliculaCreateDTO): PeliculaCompletoDTO =
-        httpClient.post(baseUrl).body()
+        httpClient.post(baseUrl) {
+            contentType(ContentType.Application.Json)
+            setBody(pelicula)
+        }.body()
 
     override suspend fun updatePelicula(id: String, pelicula: PeliculaCreateDTO): PeliculaCompletoDTO =
-        httpClient.put("$baseUrl/$id").body()
+        httpClient.put("$baseUrl/$id"){
+            contentType(ContentType.Application.Json)
+            setBody(pelicula)
+        }.body()
 
     override suspend fun deletePelicula(id: String): PeliculaDTO =
         httpClient.delete("$baseUrl/$id").body()

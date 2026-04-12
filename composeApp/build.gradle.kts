@@ -23,6 +23,7 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.activity.compose)
+            implementation(libs.ktor.client.okhttp)
             implementation("io.ktor:ktor-client-okhttp:3.4.2")
         }
         commonMain.dependencies {
@@ -35,6 +36,7 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(libs.kotlinx.datetime)
+            implementation(libs.ktor.client.auth)
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
             implementation("io.ktor:ktor-client-core:3.4.2")
             implementation("io.ktor:ktor-client-content-negotiation:3.4.2")
@@ -46,6 +48,7 @@ kotlin {
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
+            implementation(libs.ktor.client.okhttp)
             implementation("io.ktor:ktor-client-cio:3.4.2")
         }
     }
