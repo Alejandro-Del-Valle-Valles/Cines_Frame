@@ -1,0 +1,19 @@
+package com.alejandro.proyecto_cines_frame.data.adapter
+
+import com.alejandro.proyecto_cines_frame.data.remote.dto.SesionCompletaDTO
+import com.alejandro.proyecto_cines_frame.domain.model.Sesion
+import kotlinx.datetime.LocalDateTime
+
+object SesionAdapter {
+
+    fun toSesion(sesion: SesionCompletaDTO) : Sesion {
+        val horario = LocalDateTime.parse(sesion.horario)
+        return Sesion(
+            numSala = sesion.numSala,
+            pelicula = PeliculaAdapter.toPelicula(sesion.pelicula),
+            horario = horario,
+            tresD = sesion.tresD,
+            vose = sesion.vose
+        )
+    }
+}

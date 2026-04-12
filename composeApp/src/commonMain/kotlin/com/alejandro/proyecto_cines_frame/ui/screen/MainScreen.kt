@@ -172,7 +172,8 @@ fun MainScreen() {
                 item {
                     MovieSection(
                         title = "PRÓXIMOS ESTRENOS",
-                        movies = estrenosMovies.map { it.pelicula }
+                        movies = estrenosMovies.map { it.pelicula },
+                        sessions = listOf()
                     )
                 }
                 item {

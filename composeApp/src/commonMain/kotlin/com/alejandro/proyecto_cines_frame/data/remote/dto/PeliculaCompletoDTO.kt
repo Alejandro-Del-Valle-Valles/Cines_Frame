@@ -5,15 +5,14 @@ import com.alejandro.proyecto_cines_frame.domain.enums.PeliculaGenero
 import kotlinx.serialization.Serializable
 
 @Serializable
-class PeliculaCompletoDTO(
-    id: String,
-    nombre: String,
-    descripcion: String?,
-    genero: PeliculaGenero,
-    url: String?,
-    duracion: String,
-    edad: Int?,
-    enCartelera: Boolean?,
+data class PeliculaCompletoDTO(
+    val id: String,
+    val nombre: String,
+    val descripcion: String?,
+    val genero: PeliculaGenero,
+    val url: String?,
+    val duracion: String,
+    val edad: Int?,
+    val enCartelera: Boolean?,
     val participantes: List<ParticipanteCompletoDTO> = mutableListOf()
-) : PeliculaDTO(id, nombre, descripcion, genero, url, duracion, edad, enCartelera){
-}
+)

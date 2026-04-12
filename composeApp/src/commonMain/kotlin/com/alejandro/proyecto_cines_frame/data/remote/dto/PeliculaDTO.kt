@@ -4,7 +4,7 @@ import com.alejandro.proyecto_cines_frame.domain.enums.PeliculaGenero
 import kotlinx.serialization.Serializable
 
 @Serializable
-open class PeliculaDTO(
+data class PeliculaDTO(
     val id: String,
     val nombre: String,
     val descripcion: String?,
@@ -13,6 +13,4 @@ open class PeliculaDTO(
     val duracion: String,
     val edad: Int?,
     val enCartelera: Boolean?
-) {
-
-}
+)

@@ -11,7 +11,7 @@ class Pelicula(
     val estado: PeliculaEstado,
     val portada: String?,
     val duracion: LocalTime,
-    val calificacionEdad: Int = 0,
+    val calificacionEdad: Int? = 0,
     val genero: PeliculaGenero,
     val creditos: List<Credito> = listOf()
 ) {
