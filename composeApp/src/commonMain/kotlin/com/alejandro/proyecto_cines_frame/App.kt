@@ -14,15 +14,14 @@
     import kotlinx.datetime.toLocalDateTime
     import kotlin.time.Clock
 
-    /*
-        @Composable
-        @Preview
-        fun App() {
-            AppTheme {
-                MainScreen()
-            }
+    @Composable
+    @Preview
+    fun App() {
+        AppTheme {
+            MainScreen()
         }
-    */
+    }
+    /*
     @Composable
     @Preview
     fun App() {
@@ -50,7 +49,7 @@
                 )
 
                 val sesion = com.alejandro.proyecto_cines_frame.domain.model.Sesion(
-                    sala = sala,
+                    numSala = sala.numero,
                     pelicula = pelicula,
                     horario = Clock.System.now()
                         .toLocalDateTime(TimeZone.currentSystemDefault()),
@@ -75,4 +74,4 @@
                 )
             }
         }
-    }
+    }*/
