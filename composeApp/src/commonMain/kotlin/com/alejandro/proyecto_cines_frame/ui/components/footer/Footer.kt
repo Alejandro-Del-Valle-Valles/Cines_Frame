@@ -13,7 +13,7 @@ import com.alejandro.proyecto_cines_frame.ui.components.footer.layout.FooterDesk
 import com.alejandro.proyecto_cines_frame.ui.components.footer.layout.FooterMobile
 import com.alejandro.proyecto_cines_frame.ui.theme.ColorFondoHeader
 
-/* Pata grande principal, que elige que pata usar*/
+// Footer principal en el que se elije si usa el específico para móvil o para escritorio
 @Composable
 fun Footer() {
 

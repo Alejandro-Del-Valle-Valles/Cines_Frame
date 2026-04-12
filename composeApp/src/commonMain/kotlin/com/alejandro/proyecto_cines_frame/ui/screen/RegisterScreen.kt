@@ -1,8 +1,7 @@
 package com.alejandro.proyecto_cines_frame.ui.screen
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -21,7 +20,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.alejandro.proyecto_cines_frame.ui.components.common.BackButton
 import com.alejandro.proyecto_cines_frame.ui.theme.BackgroundDark
+import com.alejandro.proyecto_cines_frame.ui.theme.OtroRojo
 import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
 
 @Composable
@@ -44,7 +45,11 @@ fun RegisterScreen(
             .background(BackgroundDark),
         contentAlignment = Alignment.Center
     ) {
-
+        BackButton(
+            onClick = {
+                onRegisterSuccess() // vuelve al main
+            }
+        )
         Card(
             modifier = Modifier.fillMaxWidth(0.9f),
             shape = RoundedCornerShape(16.dp),
@@ -58,7 +63,7 @@ fun RegisterScreen(
 
                 Text(
                     text = "Crear cuenta",
-                    color = Color.White,
+                    color = TextWhite,
                     style = MaterialTheme.typography.headlineMedium
                 )
 
@@ -67,8 +72,8 @@ fun RegisterScreen(
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Nombre", color = Color.White) },
-                    textStyle = LocalTextStyle.current.copy(color = Color.White),
+                    label = { Text("Nombre", color = TextWhite) },
+                    textStyle = LocalTextStyle.current.copy(color = TextWhite),
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -77,8 +82,8 @@ fun RegisterScreen(
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
-                    label = { Text("Email", color = Color.White) },
-                    textStyle = LocalTextStyle.current.copy(color = Color.White),
+                    label = { Text("Email", color = TextWhite) },
+                    textStyle = LocalTextStyle.current.copy(color = TextWhite),
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -87,9 +92,9 @@ fun RegisterScreen(
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
-                    label = { Text("Contraseña", color = Color.White) },
+                    label = { Text("Contraseña", color = TextWhite) },
                     visualTransformation = PasswordVisualTransformation(),
-                    textStyle = LocalTextStyle.current.copy(color = Color.White),
+                    textStyle = LocalTextStyle.current.copy(color = TextWhite),
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -98,9 +103,9 @@ fun RegisterScreen(
                 OutlinedTextField(
                     value = confirmPassword,
                     onValueChange = { confirmPassword = it },
-                    label = { Text("Confirmar contraseña", color = Color.White) },
+                    label = { Text("Confirmar contraseña", color = TextWhite) },
                     visualTransformation = PasswordVisualTransformation(),
-                    textStyle = LocalTextStyle.current.copy(color = Color.White),
+                    textStyle = LocalTextStyle.current.copy(color = TextWhite),
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -128,8 +133,8 @@ fun RegisterScreen(
                     modifier = Modifier.fillMaxWidth(),
                     enabled = !isLoading,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFBF0000), // rojo
-                        contentColor = Color.White
+                        containerColor = OtroRojo, // rojo
+                        contentColor = TextWhite
                     )
                 ) {
                     Text(
@@ -156,6 +161,7 @@ fun validateRegister(
         else -> null
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable

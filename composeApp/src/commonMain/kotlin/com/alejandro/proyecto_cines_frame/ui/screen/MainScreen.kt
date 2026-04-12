@@ -39,9 +39,6 @@ fun MainScreen() {
     val carteleraBase = allSesions.filter { it.pelicula.estado == PeliculaEstado.CARTELERA }
     val estrenosMovies = allSesions.filter { it.pelicula.estado == PeliculaEstado.ESTRENO }
 
-    //Para poder cambia de pantalla
-    var currentScreen by remember { mutableStateOf("main") }
-
     //SEARCH
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var isSearching by remember { mutableStateOf(false) }
@@ -69,6 +66,9 @@ fun MainScreen() {
         animationSpec = tween(HeaderUtils.DuracionTransicionOscurecimientoMs),
         label = "opacidadOscurecimiento"
     )
+
+    //Para poder cambia de pantalla
+    var currentScreen by remember { mutableStateOf("main") }
 
     if (currentScreen == "login") {
         LoginScreen(
