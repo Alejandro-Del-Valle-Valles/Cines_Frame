@@ -1,6 +1,6 @@
 package com.alejandro.proyecto_cines_frame.data.remote.api
 
-import com.alejandro.proyecto_cines_frame.core.TokenStore
+import com.alejandro.proyecto_cines_frame.core.session.TokenStore
 import com.alejandro.proyecto_cines_frame.core.network.getUrl
 import com.alejandro.proyecto_cines_frame.data.remote.api.interfaces.CuentaApi
 import com.alejandro.proyecto_cines_frame.data.remote.dto.CuentaDTO

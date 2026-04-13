@@ -25,6 +25,7 @@ kotlin {
             implementation(libs.androidx.activity.compose)
             implementation(libs.ktor.client.okhttp)
             implementation("io.ktor:ktor-client-okhttp:3.4.2")
+            implementation(libs.androidx.security.crypto)
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)

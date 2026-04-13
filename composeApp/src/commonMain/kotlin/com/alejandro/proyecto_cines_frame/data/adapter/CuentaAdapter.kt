@@ -9,7 +9,7 @@ object CuentaAdapter {
     /**
      * No settea Token
      */
-    fun toCuenta(cuenta: CuentaDTO) : Cuenta =
+    fun toCuenta(cuenta: CuentaDTO) =
         Cuenta(
             usuario = UsuarioAdapter.toUsuario(cuenta.correo),
             contrasena = cuenta.contrasena,
@@ -20,7 +20,7 @@ object CuentaAdapter {
     /**
      * Settea token pero no contraseña
      */
-    fun toCuenta(cuenta: CuentaLoginDTO) : Cuenta =
+    fun toCuenta(cuenta: CuentaLoginDTO) =
         Cuenta(
             usuario = UsuarioAdapter.toUsuario(cuenta.correo),
             contrasena = "",
