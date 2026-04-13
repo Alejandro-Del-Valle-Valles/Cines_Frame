@@ -1,8 +1,10 @@
 package com.alejandro.proyecto_cines_frame.data.repository
 
+import com.alejandro.proyecto_cines_frame.core.error.ApiResult
 import com.alejandro.proyecto_cines_frame.data.adapter.PeliculaAdapter
 import com.alejandro.proyecto_cines_frame.data.remote.api.interfaces.PeliculaApi
 import com.alejandro.proyecto_cines_frame.data.remote.dto.PeliculaCreateDTO
+import com.alejandro.proyecto_cines_frame.data.remote.error.toAppError
 import com.alejandro.proyecto_cines_frame.domain.model.Pelicula
 import com.alejandro.proyecto_cines_frame.domain.repository.PeliculaRepository
 
@@ -10,30 +12,78 @@ class PeliculaRepositoryImpl(
     private val api: PeliculaApi
 ) : PeliculaRepository{
 
-    override suspend fun getAllBasic(): List<Pelicula> =
-        api.getAllBasic().map { PeliculaAdapter.toPelicula(it) }
+    override suspend fun getAllBasic(): ApiResult<List<Pelicula>> {
+        return try {
+            val dtos = api.getAllBasic() // si status 4xx/5xx => excepción
+            ApiResult.Success(dtos.map { PeliculaAdapter.toPelicula(it)})
+        } catch (t: Throwable) {
+            ApiResult.Error(t.toAppError())
+        }
+    }
 
-    override suspend fun getAllCompleto(): List<Pelicula> =
-        api.getAllCompleto().map { PeliculaAdapter.toPelicula(it) }
+    override suspend fun getAllCompleto(): ApiResult<List<Pelicula>> {
+        return try {
+            val dtos = api.getAllCompleto()
+            ApiResult.Success(dtos.map { PeliculaAdapter.toPelicula(it) })
+        } catch (t: Throwable) {
+            ApiResult.Error(t.toAppError())
+        }
+    }
 
-    override suspend fun getAllBasicByNombre(nombre: String): List<Pelicula> =
-        api.getAllBasicByNombre(nombre).map { PeliculaAdapter.toPelicula(it) }
+    override suspend fun getAllBasicByNombre(nombre: String): ApiResult<List<Pelicula>> {
+        return try {
+            val dtos = api.getAllBasicByNombre(nombre)
+            ApiResult.Success(dtos.map { PeliculaAdapter.toPelicula(it) })
+        } catch (t: Throwable) {
+            ApiResult.Error(t.toAppError())
+        }
+    }
 
-    override suspend fun getAllCompletoByNombre(nombre: String): List<Pelicula> =
-        api.getAllCompletoByNombre(nombre).map { PeliculaAdapter.toPelicula(it) }
+    override suspend fun getAllCompletoByNombre(nombre: String): ApiResult<List<Pelicula>> {
+        return try {
+            val dtos = api.getAllCompletoByNombre(nombre)
+            ApiResult.Success(dtos.map { PeliculaAdapter.toPelicula(it) })
+        } catch (t: Throwable) {
+            ApiResult.Error(t.toAppError())
+        }
+    }
 
-    override suspend fun getById(id: String): Pelicula =
-        PeliculaAdapter.toPelicula(api.getById(id))
+    override suspend fun getById(id: String): ApiResult<Pelicula> {
+        return try {
+            val dto = api.getById(id)
+            ApiResult.Success(PeliculaAdapter.toPelicula(dto))
+        } catch (t: Throwable) {
+            ApiResult.Error(t.toAppError())
+        }
+    }
 
-    override suspend fun createPelicula(pelicula: PeliculaCreateDTO): Pelicula =
-        PeliculaAdapter.toPelicula(api.createPelicula(pelicula))
+    override suspend fun createPelicula(pelicula: PeliculaCreateDTO): ApiResult<Pelicula> {
+        return try {
+            val dto = api.createPelicula(pelicula)
+            ApiResult.Success(PeliculaAdapter.toPelicula(dto))
+        } catch (t: Throwable) {
+            ApiResult.Error(t.toAppError())
+        }
+    }
 
     override suspend fun updatePelicula(
         id: String,
         pelicula: PeliculaCreateDTO
-    ): Pelicula =
-        PeliculaAdapter.toPelicula(api.updatePelicula(id, pelicula))
+    ): ApiResult<Pelicula> {
+        return try {
+            val dto = api.updatePelicula(id, pelicula)
+            ApiResult.Success(PeliculaAdapter.toPelicula(dto))
+        } catch (t: Throwable) {
+            ApiResult.Error(t.toAppError())
+        }
+    }
 
-    override suspend fun deletePelicula(id: String): Pelicula =
-        PeliculaAdapter.toPelicula(api.deletePelicula(id))
+    override suspend fun deletePelicula(id: String): ApiResult<Pelicula> {
+        return try {
+            val dto = api.deletePelicula(id)
+            ApiResult.Success(PeliculaAdapter.toPelicula(dto))
+        } catch (t: Throwable) {
+            ApiResult.Error(t.toAppError())
+        }
+    }
 }
