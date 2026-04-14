@@ -22,9 +22,7 @@ class CuentaRepositoryImpl(
             val loginDto = api.login(LoginDTO(correo = correo, contrasena = password))
             TokenStore.accessToken = loginDto.token
             val cuenta = CuentaAdapter.toCuenta(loginDto)
-            if (rememberMe)
-                secureStore.save(correo, password)
-
+            if (rememberMe) secureStore.save(correo, password)
             ApiResult.Success(cuenta)
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
@@ -108,7 +106,6 @@ class CuentaRepositoryImpl(
     override suspend fun deleteCuenta(): ApiResult<Cuenta> {
         return try {
             val dto = api.deleteCuenta()
-            // al borrar cuenta, limpia sesión local siempre
             TokenStore.accessToken = null
             secureStore.clear()
 
