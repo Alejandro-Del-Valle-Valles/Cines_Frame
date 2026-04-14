@@ -6,6 +6,7 @@ import com.alejandro.proyecto_cines_frame.data.repository.PeliculaRepositoryImpl
 import com.alejandro.proyecto_cines_frame.domain.model.Pelicula
 import com.alejandro.proyecto_cines_frame.domain.model.Sala
 import com.alejandro.proyecto_cines_frame.domain.model.Sesion
+import com.alejandro.proyecto_cines_frame.core.error.ApiResult
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDateTime
@@ -25,7 +26,10 @@ object MovieMockData {
     private val repo = PeliculaRepositoryImpl(peliculaApi)
 
     fun getPeliculas(): List<Pelicula> = runBlocking {
-        repo.getAllBasic()
+        when (val result = repo.getAllBasic()) {
+            is ApiResult.Success -> result.data
+            is ApiResult.Error -> emptyList() // Fallback to an empty list on error
+        }
     }
 
     /**
