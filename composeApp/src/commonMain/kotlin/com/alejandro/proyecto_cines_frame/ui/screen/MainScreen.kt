@@ -8,15 +8,12 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.alejandro.proyecto_cines_frame.domain.enums.PeliculaEstado
 import com.alejandro.proyecto_cines_frame.ui.components.banner.Banner
 import com.alejandro.proyecto_cines_frame.ui.components.features.movies.MovieMockData
 import com.alejandro.proyecto_cines_frame.ui.components.features.movies.MovieSection
@@ -24,6 +21,7 @@ import com.alejandro.proyecto_cines_frame.ui.components.filter.*
 import com.alejandro.proyecto_cines_frame.ui.components.footer.Footer
 import com.alejandro.proyecto_cines_frame.ui.components.header.Header
 import com.alejandro.proyecto_cines_frame.ui.components.header.HeaderUtils
+import com.alejandro.proyecto_cines_frame.ui.logic.MovieUiMapper
 import com.alejandro.proyecto_cines_frame.ui.theme.BackgroundDark
 import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
 import org.jetbrains.compose.resources.painterResource
@@ -34,29 +32,34 @@ import proyecto_cines_frame.composeapp.generated.resources.calendar
 @Composable
 fun MainScreen() {
 
-    val allSesions = MovieMockData.getSesiones()
+    val allSessions = remember { MovieMockData.getSesiones() }
 
-    val carteleraBase = allSesions.filter { it.pelicula.estado == PeliculaEstado.CARTELERA }
-    val estrenosMovies = allSesions.filter { it.pelicula.estado == PeliculaEstado.ESTRENO }
+    val listState = rememberLazyListState()
 
     //SEARCH
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var isSearching by remember { mutableStateOf(false) }
 
-    val listState = rememberLazyListState()
-
     //FILTER
-    var filterState by remember { mutableStateOf(FilterState()) }
-
     val availableDays = remember { buildCarteleraDays() }
+
+    var filterState by remember {
+        mutableStateOf(
+            FilterState(
+                selectedDay = availableDays.firstOrNull()
+            )
+        )
+    }
     val calendarDays = remember { buildCalendarDays() }
 
-    /*FILTRO
-    val filteredCartelera = remember<List<Pelicula>>(filterState, carteleraBase, searchQuery) {
-        carteleraBase
-            .applyFilters(filterState)
-            .applySearch(searchQuery)
-    }*/
+    //LÓGICA (fuera de UI)
+    val (carteleraMovies, carteleraSessions) = remember(filterState) {
+        MovieUiMapper.getFilteredCartelera(allSessions, filterState)
+    }
+
+    val (estrenoMovies, estrenoSessions) = remember {
+        MovieUiMapper.getEstrenos(allSessions)
+    }
 
     //HEADER
     var buscadorEnfocado by rememberSaveable { mutableStateOf(false) }
@@ -112,9 +115,7 @@ fun MainScreen() {
                 buscadorEnfocado = it
             },
 
-            onEntradasClick = {
-
-            },
+            onEntradasClick = {},
 
             onLoginClick = {
                 currentScreen = "login"
@@ -124,10 +125,9 @@ fun MainScreen() {
                 currentScreen = "register"
             },
 
-            onLogoutClick = {
-
-            }
+            onLogoutClick = {}
         )
+
         Box(modifier = Modifier.fillMaxSize()) {
 
             LazyColumn(
@@ -135,6 +135,7 @@ fun MainScreen() {
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+
                 item {
                     Banner(
                         images = listOf(
@@ -142,6 +143,7 @@ fun MainScreen() {
                         )
                     )
                 }
+
                 item {
                     Text(
                         text = "ENTRADAS",
@@ -149,6 +151,7 @@ fun MainScreen() {
                         modifier = Modifier.padding(horizontal = 12.dp)
                     )
                 }
+
                 item {
                     Filter(
                         state = filterState,
@@ -159,21 +162,18 @@ fun MainScreen() {
                     )
                 }
                 item {
-                    /*
-                    if (filteredCartelera.isEmpty()) {
-                        EmptyMoviesMessage()
-                    } else {
-                        MovieGrid(
-                            movies = filteredCartelera,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }*/
+                    // 🔹 CARTELERA FILTRADA
+                    MovieSection(
+                        title = "CARTELERA",
+                        movies = carteleraMovies,
+                        sessions = carteleraSessions
+                    )
                 }
                 item {
                     MovieSection(
                         title = "PRÓXIMOS ESTRENOS",
-                        movies = estrenosMovies.map { it.pelicula },
-                        sessions = listOf()
+                        movies = estrenoMovies,
+                        sessions = estrenoSessions
                     )
                 }
                 item {
@@ -196,13 +196,5 @@ fun MainScreen() {
                 )
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewRegisterScreenMain() {
-    MaterialTheme {
-        MainScreen()
     }
 }

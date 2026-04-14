@@ -1,6 +1,6 @@
 package com.alejandro.proyecto_cines_frame.data.remote.client
 
-import com.alejandro.proyecto_cines_frame.core.TokenStore
+import com.alejandro.proyecto_cines_frame.core.session.TokenStore
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
@@ -13,6 +13,7 @@ object HttpClientFactory {
 
     fun create(): HttpClient =
         HttpClient {
+            expectSuccess = true
             install(ContentNegotiation) {
                 json(
                     Json {

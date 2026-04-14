@@ -4,5 +4,5 @@ import com.alejandro.proyecto_cines_frame.domain.model.Usuario
 
 object UsuarioAdapter {
 
-    fun toUsuario(correo: String) : Usuario = Usuario(correo)
+    fun toUsuario(correo: String) = Usuario(correo)
 }

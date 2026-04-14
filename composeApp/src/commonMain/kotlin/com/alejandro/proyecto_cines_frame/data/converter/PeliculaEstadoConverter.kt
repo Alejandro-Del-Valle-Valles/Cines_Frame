@@ -11,7 +11,7 @@ object PeliculaEstadoConverter {
      * Trasnforma un valor boolean a un estado de película
      * null = Inactiva, true = Cartelera, false = Etsreno
      */
-    fun toPeliculaEstado(estado: Boolean?) : PeliculaEstado =
+    fun toPeliculaEstado(estado: Boolean?) =
         if(estado == null) PeliculaEstado.INACTIVA
         else if(estado) PeliculaEstado.CARTELERA
         else PeliculaEstado.ESTRENO
@@ -20,7 +20,7 @@ object PeliculaEstadoConverter {
      * Trasnforma un estado de PeliculaEstado en booleano
      * null si es incativa, true si es Cartelera, false si es otro
      */
-    fun toBooleanEstado(estado: PeliculaEstado) : Boolean? =
+    fun toBooleanEstado(estado: PeliculaEstado) =
         when (estado) {
             PeliculaEstado.INACTIVA -> null
             PeliculaEstado.CARTELERA -> true
