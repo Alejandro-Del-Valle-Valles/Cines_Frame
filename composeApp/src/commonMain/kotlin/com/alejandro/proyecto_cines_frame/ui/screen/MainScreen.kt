@@ -14,14 +14,21 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.alejandro.proyecto_cines_frame.core.error.AppError
+import com.alejandro.proyecto_cines_frame.core.error.ApiResult
+import com.alejandro.proyecto_cines_frame.data.remote.api.KtorSesionApi
+import com.alejandro.proyecto_cines_frame.data.remote.client.HttpClientFactory
+import com.alejandro.proyecto_cines_frame.data.repository.SesionRepositoryImpl
+import com.alejandro.proyecto_cines_frame.domain.repository.SesionRepository
 import com.alejandro.proyecto_cines_frame.ui.components.banner.Banner
-import com.alejandro.proyecto_cines_frame.ui.components.features.movies.MovieMockData
 import com.alejandro.proyecto_cines_frame.ui.components.features.movies.MovieSection
 import com.alejandro.proyecto_cines_frame.ui.components.filter.*
 import com.alejandro.proyecto_cines_frame.ui.components.footer.Footer
 import com.alejandro.proyecto_cines_frame.ui.components.header.Header
 import com.alejandro.proyecto_cines_frame.ui.components.header.HeaderUtils
 import com.alejandro.proyecto_cines_frame.ui.logic.MovieUiMapper
+import com.alejandro.proyecto_cines_frame.ui.logic.formatters.SessionRangeFormatter
+import com.alejandro.proyecto_cines_frame.ui.logic.state.MainSessionsUiState
 import com.alejandro.proyecto_cines_frame.ui.theme.BackgroundDark
 import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
 import org.jetbrains.compose.resources.painterResource
@@ -30,9 +37,15 @@ import proyecto_cines_frame.composeapp.generated.resources.banner
 import proyecto_cines_frame.composeapp.generated.resources.calendar
 
 @Composable
-fun MainScreen() {
+fun MainScreen(
+    sesionRepository: SesionRepository? = null
+) {
 
-    val allSessions = remember { MovieMockData.getSesiones() }
+    val repository = sesionRepository ?: remember {
+        SesionRepositoryImpl(
+            api = KtorSesionApi(HttpClientFactory.create())
+        )
+    }
 
     val listState = rememberLazyListState()
 
@@ -52,12 +65,52 @@ fun MainScreen() {
     }
     val calendarDays = remember { buildCalendarDays() }
 
+    var sessionState by remember {
+        mutableStateOf(MainSessionsUiState(isLoading = true))
+    }
+
+    val fetchRange = remember(calendarDays) {
+        SessionRangeFormatter.buildRangeForCalendarDays(calendarDays)
+    }
+
+    LaunchedEffect(repository, fetchRange) {
+        if (fetchRange == null) {
+            sessionState = MainSessionsUiState(
+                isLoading = false,
+                errorMessage = "No hay dias disponibles para filtrar sesiones."
+            )
+            return@LaunchedEffect
+        }
+
+        sessionState = MainSessionsUiState(isLoading = true)
+
+        when (val result = repository.getByRangoHorario(fetchRange.first, fetchRange.second)) {
+            is ApiResult.Success -> {
+                sessionState = MainSessionsUiState(
+                    sessions = result.data,
+                    isLoading = false,
+                    errorMessage = null
+                )
+            }
+
+            is ApiResult.Error -> {
+                sessionState = MainSessionsUiState(
+                    sessions = emptyList(),
+                    isLoading = false,
+                    errorMessage = toMainScreenErrorMessage(result.error)
+                )
+            }
+        }
+    }
+
+    val allSessions = sessionState.sessions
+
     //LÓGICA (fuera de UI)
-    val (carteleraMovies, carteleraSessions) = remember(filterState) {
+    val (carteleraMovies, carteleraSessions) = remember(filterState, allSessions) {
         MovieUiMapper.getFilteredCartelera(allSessions, filterState)
     }
 
-    val (estrenoMovies, estrenoSessions) = remember {
+    val (estrenoMovies, estrenoSessions) = remember(allSessions) {
         MovieUiMapper.getEstrenos(allSessions)
     }
 
@@ -169,6 +222,27 @@ fun MainScreen() {
                         sessions = carteleraSessions
                     )
                 }
+
+                if (sessionState.isLoading) {
+                    item {
+                        Text(
+                            text = "Cargando sesiones...",
+                            color = TextWhite,
+                            modifier = Modifier.padding(horizontal = 12.dp)
+                        )
+                    }
+                }
+
+                if (sessionState.errorMessage != null) {
+                    item {
+                        Text(
+                            text = "Error al cargar sesiones: ${sessionState.errorMessage}",
+                            color = TextWhite,
+                            modifier = Modifier.padding(horizontal = 12.dp)
+                        )
+                    }
+                }
+
                 item {
                     MovieSection(
                         title = "PRÓXIMOS ESTRENOS",
@@ -198,3 +272,16 @@ fun MainScreen() {
         }
     }
 }
+
+private fun toMainScreenErrorMessage(error: AppError): String =
+    when (error) {
+        is AppError.Network -> error.message ?: "Error de red"
+        is AppError.Unknown -> error.message ?: "Error desconocido"
+        is AppError.Validation -> "Error de validacion"
+        is AppError.Unauthorized -> "No autorizado"
+        is AppError.Forbidden -> "Acceso denegado"
+        is AppError.NotFound -> "No se encontraron sesiones"
+        is AppError.Conflict -> "Conflicto en la peticion"
+        is AppError.Server -> "Error del servidor (${error.code})"
+    }
+
