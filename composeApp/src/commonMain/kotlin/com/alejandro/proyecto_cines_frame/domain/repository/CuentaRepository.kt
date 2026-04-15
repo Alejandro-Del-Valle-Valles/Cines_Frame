@@ -3,7 +3,6 @@ package com.alejandro.proyecto_cines_frame.domain.repository
 import com.alejandro.proyecto_cines_frame.core.error.ApiResult
 import com.alejandro.proyecto_cines_frame.data.remote.dto.CuentaDTO
 import com.alejandro.proyecto_cines_frame.data.remote.dto.CuentaUpdateDTO
-import com.alejandro.proyecto_cines_frame.data.remote.dto.LoginDTO
 import com.alejandro.proyecto_cines_frame.domain.model.Cuenta
 
 interface CuentaRepository {

@@ -36,19 +36,51 @@ class ParticipanteRepositoryImpl(
         }
     }
 
-    override suspend fun getById(id: Int): ApiResult<ParticipanteDTO> {
-        TODO("Not yet implemented")
+    /**
+     * Obtiene un participante por su ID
+     */
+    override suspend fun getById(id: Int): ApiResult<Participante> {
+        return try {
+            val dto = api.getById(id)
+            ApiResult.Success(ParticipanteAdpater.toParticipante(dto))
+        } catch (t: Throwable) {
+            ApiResult.Error(t.toAppError())
+        }
     }
 
-    override suspend fun createParticipante(nombre: String): ApiResult<ParticipanteDTO> {
-        TODO("Not yet implemented")
+    /**
+     * Crea un nuevo participante
+     */
+    override suspend fun createParticipante(nombre: String): ApiResult<Participante> {
+        return try {
+            val dto = api.createParticipante(nombre)
+            ApiResult.Success(ParticipanteAdpater.toParticipante(dto))
+        } catch (t: Throwable) {
+            ApiResult.Error(t.toAppError())
+        }
     }
 
-    override suspend fun updateParticipante(participante: ParticipanteDTO): ApiResult<ParticipanteDTO> {
-        TODO("Not yet implemented")
+    /**
+     * Actualiza los datos del participante
+     */
+    override suspend fun updateParticipante(participante: ParticipanteDTO): ApiResult<Participante> {
+        return try {
+            val dto = api.updateParticipante(participante)
+            ApiResult.Success(ParticipanteAdpater.toParticipante(dto))
+        } catch (t: Throwable) {
+            ApiResult.Error(t.toAppError())
+        }
     }
 
-    override suspend fun deleteParticipante(id: Int): ApiResult<ParticipanteDTO> {
-        TODO("Not yet implemented")
+    /**
+     * Elimina el participante
+     */
+    override suspend fun deleteParticipante(id: Int): ApiResult<Participante> {
+        return try {
+            val dto = api.deleteParticipante(id)
+            ApiResult.Success(ParticipanteAdpater.toParticipante(dto))
+        } catch (t: Throwable) {
+            ApiResult.Error(t.toAppError())
+        }
     }
 }

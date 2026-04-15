@@ -17,6 +17,10 @@ class CuentaRepositoryImpl(
     private val secureStore: SecureCredentialStore
 ) : CuentaRepository {
 
+    /**
+     * Loguea al usuario y guarda el token que le da acceso a la API.
+     * Tambien guarda de forma segura sus credenciales para autologuearse.
+     */
     override suspend fun login(correo: String, password: String, rememberMe: Boolean): ApiResult<Cuenta> {
         return try {
             val loginDto = api.login(LoginDTO(correo = correo, contrasena = password))
@@ -29,6 +33,9 @@ class CuentaRepositoryImpl(
         }
     }
 
+    /**
+     * Loguea al usuario de forma automatica si ya se ha logueado antes.
+     */
     override suspend fun autoLoginIfPossible(): ApiResult<Cuenta?> {
         return try {
             val creds = secureStore.read()
@@ -47,6 +54,9 @@ class CuentaRepositoryImpl(
         }
     }
 
+    /**
+     * Registra una nueva cuenta para el ususario
+     */
     override suspend fun createCuenta(cuenta: CuentaDTO): ApiResult<Cuenta> {
         return try {
             val dto = api.createCuenta(cuenta)
@@ -56,6 +66,9 @@ class CuentaRepositoryImpl(
         }
     }
 
+    /**
+     * Actualiza la cuenta del usuario
+     */
     override suspend fun updateCuenta(
         cuentaUpdate: CuentaUpdateDTO,
         correoActual: String,
@@ -86,6 +99,9 @@ class CuentaRepositoryImpl(
         }
     }
 
+    /**
+     * Cierra sesón y borra el token y las credenciales.
+     */
     override suspend fun logout(clearRememberedCredentials: Boolean): ApiResult<Unit> {
         return try {
             api.logout()
@@ -103,6 +119,9 @@ class CuentaRepositoryImpl(
         }
     }
 
+    /**
+     * Elimina la cuenta del usuario y borra el token y sus credenciales
+     */
     override suspend fun deleteCuenta(): ApiResult<Cuenta> {
         return try {
             val dto = api.deleteCuenta()
