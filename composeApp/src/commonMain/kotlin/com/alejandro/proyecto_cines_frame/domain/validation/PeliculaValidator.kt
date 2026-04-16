@@ -8,55 +8,59 @@ import com.alejandro.proyecto_cines_frame.domain.model.input.PeliculaCreateInput
 object PeliculaValidator {
 
     /**
-     * Valida los datos de la película, y los que sean erróneos, genera un mensaje
+     * Valida los datos de la película, y los que sean erróneos, genera un mapa de errores
      */
-    fun validateCreate(input: PeliculaCreateInput): ValidationResult {
-        val errors = mutableListOf<ValidationError>()
+    fun validateCreate(input: PeliculaCreateInput): FieldErrors {
+        val errors = mutableMapOf<String, List<FieldError>>()
 
         // nombre
+        val nombreErrors = mutableListOf<FieldError>()
         val nombre = input.nombre.trim()
-        if (nombre.isBlank())
-            errors += ValidationError("nombre", "El nombre no puede estar vacío.")
+        if (nombre.isBlank()) nombreErrors.add(FieldError.Required("nombre"))
         else if (nombre.length > 50)
-            errors += ValidationError("nombre", "El nombre no puede tener más de 50 caracteres.")
+            nombreErrors.add(FieldError.TooLong("nombre", 50))
+        if (nombreErrors.isNotEmpty()) errors["nombre"] = nombreErrors
 
         // descripcion
+        val descripcionErrors = mutableListOf<FieldError>()
         val descripcion = input.descripcion?.trim()
         if (descripcion != null && descripcion.length > 511)
-            errors += ValidationError("descripcion", "La descripción no puede tener más de 511 caracteres.")
-
+            descripcionErrors.add(FieldError.TooLong("descripcion", 511))
+        if (descripcionErrors.isNotEmpty()) errors["descripcion"] = descripcionErrors
 
         // genero
         if (input.genero == null)
-            errors += ValidationError("genero", "Debes seleccionar un género.")
+            errors["genero"] = listOf(FieldError.Required("genero"))
 
         // url (opcional)
+        val urlErrors = mutableListOf<FieldError>()
         val url = input.url?.trim()
-        if (url != null && url.length > 511)
-            errors += ValidationError("url", "La URL no puede tener más de 511 caracteres.")
-
-        // (opcional) validación simple de formato
-        if (url != null && url.isNotEmpty() && !url.startsWith("http://") && !url.startsWith("https://"))
-            errors += ValidationError("url", "La URL debe empezar por http:// o https://")
+        if (url != null) {
+            if (url.length > 511) urlErrors.add(FieldError.TooLong("url", 511))
+            if (url.isNotEmpty() && !url.startsWith("http://") && !url.startsWith("https://"))
+                urlErrors.add(FieldError.InvalidFormat("url", "http:// o https://"))
+        }
+        if (urlErrors.isNotEmpty()) errors["url"] = urlErrors
 
         // duracion: HH:mm
         if (!isValidHourMinute(input.duracion))
-            errors += ValidationError("duracion", "La duración debe tener formato HH:mm (por ejemplo 01:34).")
+            errors["duracion"] = listOf(FieldError.InvalidFormat("duracion", "HH:mm"))
 
         // edad
-        val edad = input.edad
-        if (edad != null && edad < 0)
-            errors += ValidationError("edad", "La edad debe ser 0 o mayor.")
+        if (input.edad != null && input.edad < 0)
+            errors["edad"] = listOf(FieldError.Custom("La edad debe ser 0 o mayor."))
 
-        // participantes (si quieres exigirlos)
+        // participantes
         input.participantes.forEachIndexed { index, p ->
+            val pIdKey = "participantes[$index].id"
             if (p.id == null || p.id <= 0)
-                errors += ValidationError("participantes[$index].id", "El ID del participante debe ser positivo.")
+                errors[pIdKey] = listOf(FieldError.Custom("El ID del participante debe ser positivo."))
+            val pRolesKey = "participantes[$index].roles"
             if (p.roles.isEmpty())
-                errors += ValidationError("participantes[$index].roles", "El participante debe tener al menos un rol.")
+                errors[pRolesKey] = listOf(FieldError.Custom("El participante debe tener al menos un rol."))
         }
 
-        return ValidationResult(errors)
+        return errors
     }
 
     /**

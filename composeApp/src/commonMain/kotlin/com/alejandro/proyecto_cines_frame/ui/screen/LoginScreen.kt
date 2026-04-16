@@ -2,39 +2,37 @@ package com.alejandro.proyecto_cines_frame.ui.screen
 
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.LocalTextStyle
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.alejandro.proyecto_cines_frame.ui.components.common.BackButton
+import com.alejandro.proyecto_cines_frame.ui.logic.presenter.LoginPresenter
 import com.alejandro.proyecto_cines_frame.ui.theme.BackgroundDark
 import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
+import kotlinx.coroutines.delay
 
 @Composable
 fun LoginScreen(
-    onLoginSuccess: () -> Unit
+    onLoginSuccess: () -> Unit,
+    presenter: LoginPresenter
 ) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    val state by presenter.state.collectAsState()
+    var showSuccessMessage by remember { mutableStateOf(false) }
 
-    var error by remember { mutableStateOf<String?>(null) }
-    var isLoading by remember { mutableStateOf(false) }
+    LaunchedEffect(state.loginSuccess) {
+        if (state.loginSuccess) {
+            showSuccessMessage = true
+            delay(1000)
+            presenter.consumeLoginSuccess()
+            onLoginSuccess()
+        }
+    }
 
     val cardColor = Color(0xFF1E1E1E)
 
@@ -70,9 +68,14 @@ fun LoginScreen(
 
                 // Email
                 OutlinedTextField(
-                    value = email,
-                    onValueChange = { email = it },
+                    value = state.correo,
+                    onValueChange = presenter::onCorreoChange,
                     label = { Text("Email", color = TextWhite) },
+                    isError = state.fieldErrors.containsKey("correo"),
+                    supportingText = {
+                        val err = state.fieldErrors["correo"]
+                        if(err != null) Text(err, color = Color.Red)
+                    },
                     textStyle = LocalTextStyle.current.copy(color = TextWhite),
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -88,9 +91,14 @@ fun LoginScreen(
 
                 // Password
                 OutlinedTextField(
-                    value = password,
-                    onValueChange = { password = it },
+                    value = state.contrasena,
+                    onValueChange = presenter::onContrasenaChange,
                     label = { Text("Contraseña", color = TextWhite) },
+                    isError = state.fieldErrors.containsKey("contrasena"),
+                    supportingText = {
+                        val err = state.fieldErrors["contrasena"]
+                        if(err != null) Text(err, color = Color.Red)
+                    },
                     visualTransformation = PasswordVisualTransformation(),
                     textStyle = LocalTextStyle.current.copy(color = TextWhite),
                     modifier = Modifier.fillMaxWidth(),
@@ -105,10 +113,17 @@ fun LoginScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                error?.let {
+                if (state.generalError != null) {
                     Text(
-                        text = it,
+                        text = state.generalError!!,
                         color = Color.Red
+                    )
+                }
+
+                if (showSuccessMessage) {
+                    Text(
+                        text = "Inicio de sesion correcto",
+                        color = Color(0xFF4CAF50)
                     )
                 }
 
@@ -116,69 +131,19 @@ fun LoginScreen(
 
                 // Botón de login
                 Button(
-                    onClick = {
-                        error = validateLogin(email, password)
-
-                        if (error == null) {
-
-                            // Falta la conexión con la api en éste metodo
-
-                            isLoading = true
-
-                            /*
-                             👉 FUTURO:
-
-                             coroutineScope.launch {
-                                 try {
-                                     api.login(email, password)
-                                     onLoginSuccess()
-                                 } catch (e: Exception) {
-                                     error = "Credenciales incorrectas"
-                                 } finally {
-                                     isLoading = false
-                                 }
-                             }
-                            */
-
-                            // ⚠️ TEMPORAL
-                            isLoading = false
-                            onLoginSuccess()
-                        }
-                    },
+                    onClick = { presenter.submit(rememberMe = false) },
+                    enabled = !state.isLoading,
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = !isLoading,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFFE50914),
                         contentColor = TextWhite
                     )
                 ) {
                     Text(
-                        text = if (isLoading) "Cargando..." else "Iniciar sesión"
+                        text = if (state.isLoading) "Cargando..." else "Iniciar sesión"
                     )
                 }
             }
         }
-    }
-}
-
-fun validateLogin(
-    email: String,
-    password: String
-): String? {
-    return when {
-        email.isBlank() -> "El email es obligatorio"
-        !email.contains("@") -> "Email inválido"
-        password.isBlank() -> "La contraseña es obligatoria"
-        else -> null
-    }
-}
-
-
-
-@Preview(showBackground = true, backgroundColor = 0xFF121212)
-@Composable
-fun PreviewLoginScreen() {
-    MaterialTheme() {
-        LoginScreen {}
     }
 }

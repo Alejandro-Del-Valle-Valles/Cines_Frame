@@ -16,8 +16,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.alejandro.proyecto_cines_frame.core.error.AppError
 import com.alejandro.proyecto_cines_frame.core.error.ApiResult
+import com.alejandro.proyecto_cines_frame.core.security.CredentialStoreFactory
+import com.alejandro.proyecto_cines_frame.data.remote.api.KtorCuentaApi
 import com.alejandro.proyecto_cines_frame.data.remote.api.KtorSesionApi
 import com.alejandro.proyecto_cines_frame.data.remote.client.HttpClientFactory
+import com.alejandro.proyecto_cines_frame.data.repository.CuentaRepositoryImpl
 import com.alejandro.proyecto_cines_frame.data.repository.SesionRepositoryImpl
 import com.alejandro.proyecto_cines_frame.domain.repository.SesionRepository
 import com.alejandro.proyecto_cines_frame.ui.components.banner.Banner
@@ -28,6 +31,7 @@ import com.alejandro.proyecto_cines_frame.ui.components.header.Header
 import com.alejandro.proyecto_cines_frame.ui.components.header.HeaderUtils
 import com.alejandro.proyecto_cines_frame.ui.logic.MovieUiMapper
 import com.alejandro.proyecto_cines_frame.ui.logic.formatters.SessionRangeFormatter
+import com.alejandro.proyecto_cines_frame.ui.logic.presenter.LoginPresenter
 import com.alejandro.proyecto_cines_frame.ui.logic.state.MainSessionsUiState
 import com.alejandro.proyecto_cines_frame.ui.theme.BackgroundDark
 import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
@@ -40,12 +44,31 @@ import proyecto_cines_frame.composeapp.generated.resources.calendar
 fun MainScreen(
     sesionRepository: SesionRepository? = null
 ) {
-
     val repository = sesionRepository ?: remember {
         SesionRepositoryImpl(
             api = KtorSesionApi(HttpClientFactory.create())
         )
     }
+
+    //Para poder cambia de pantalla
+    var currentScreen by remember { mutableStateOf("main") }
+
+    val scope = rememberCoroutineScope()
+
+    val cuentaRepository = remember {
+        CuentaRepositoryImpl(
+            api = KtorCuentaApi(HttpClientFactory.create()),
+            secureStore = CredentialStoreFactory.create()
+        )
+    }
+
+    val loginPresenter = remember(cuentaRepository, scope) {
+        LoginPresenter(
+            cuentaRepo = cuentaRepository,
+            scope = scope
+        )
+    }
+
 
     val listState = rememberLazyListState()
 
@@ -123,14 +146,13 @@ fun MainScreen(
         label = "opacidadOscurecimiento"
     )
 
-    //Para poder cambia de pantalla
-    var currentScreen by remember { mutableStateOf("main") }
 
     if (currentScreen == "login") {
         LoginScreen(
             onLoginSuccess = {
                 currentScreen = "main"
-            }
+            },
+            presenter = loginPresenter
         )
         return
     }
@@ -273,6 +295,9 @@ fun MainScreen(
     }
 }
 
+/**
+ * Muestra mensajes de error en la pantalla principal si falla algo.
+ */
 private fun toMainScreenErrorMessage(error: AppError): String =
     when (error) {
         is AppError.Network -> error.message ?: "Error de red"
