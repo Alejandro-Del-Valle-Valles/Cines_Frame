@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import com.alejandro.proyecto_cines_frame.core.error.AppError
 import com.alejandro.proyecto_cines_frame.core.error.ApiResult
 import com.alejandro.proyecto_cines_frame.core.security.CredentialStoreFactory
+import com.alejandro.proyecto_cines_frame.core.session.TokenStore
 import com.alejandro.proyecto_cines_frame.data.remote.api.KtorCuentaApi
 import com.alejandro.proyecto_cines_frame.data.remote.api.KtorSesionApi
 import com.alejandro.proyecto_cines_frame.data.remote.client.HttpClientFactory
@@ -39,6 +40,7 @@ import org.jetbrains.compose.resources.painterResource
 import proyecto_cines_frame.composeapp.generated.resources.Res
 import proyecto_cines_frame.composeapp.generated.resources.banner
 import proyecto_cines_frame.composeapp.generated.resources.calendar
+import kotlinx.coroutines.launch
 
 @Composable
 fun MainScreen(
@@ -75,6 +77,10 @@ fun MainScreen(
     //SEARCH
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var isSearching by remember { mutableStateOf(false) }
+
+    var isSessionActive by remember {
+        mutableStateOf(!TokenStore.accessToken.isNullOrBlank())
+    }
 
     //FILTER
     val availableDays = remember { buildCarteleraDays() }
@@ -150,6 +156,7 @@ fun MainScreen(
     if (currentScreen == "login") {
         LoginScreen(
             onLoginSuccess = {
+                isSessionActive = true
                 currentScreen = "main"
             },
             presenter = loginPresenter
@@ -200,7 +207,14 @@ fun MainScreen(
                 currentScreen = "register"
             },
 
-            onLogoutClick = {}
+            onLogoutClick = {
+                scope.launch {
+                    cuentaRepository.logout(clearRememberedCredentials = false)
+                    isSessionActive = false
+                }
+            },
+
+            isSessionActive = isSessionActive
         )
 
         Box(modifier = Modifier.fillMaxSize()) {

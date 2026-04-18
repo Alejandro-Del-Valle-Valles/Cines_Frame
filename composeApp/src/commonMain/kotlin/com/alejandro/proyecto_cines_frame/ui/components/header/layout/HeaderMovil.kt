@@ -26,7 +26,8 @@ fun HeaderMovil(
     onEntradasClick: () -> Unit,
     onLoginClick: () -> Unit,
     onRegisterClick: () -> Unit,
-    onLogoutClick: () -> Unit
+    onLogoutClick: () -> Unit,
+    isSessionActive: Boolean
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         HeaderBrand(esEscritorio = false)
@@ -47,7 +48,8 @@ fun HeaderMovil(
                 onEntradasClick,
                 onLoginClick,
                 onRegisterClick,
-                onLogoutClick
+                onLogoutClick,
+                isSessionActive
             )
         }
     }
