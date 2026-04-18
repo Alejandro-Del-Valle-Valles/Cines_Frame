@@ -11,14 +11,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import com.alejandro.proyecto_cines_frame.domain.model.Pelicula
 import com.alejandro.proyecto_cines_frame.domain.model.Sesion
 import com.alejandro.proyecto_cines_frame.ui.components.session.SessionRow
+
 /**
- * Tarjeta de película. Por el momento es solo el equeleto
+ * Tarjeta de película.
  */
 @Composable
 fun MovieCard(
@@ -44,19 +48,30 @@ fun MovieCard(
                 .height(posterHeight)
                 .hoverable(interactionSource)
         ) {
-            //placeholder o imagen futura
             if (!movie.portada.isNullOrBlank()) {
-                Box(
+                AsyncImage(
+                    model = movie.portada,
+                    contentDescription = "Portada de la película ${movie.nombre}",
                     modifier = Modifier
                         .matchParentSize()
-                        .background(Color.DarkGray, RoundedCornerShape(12.dp))
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color.DarkGray),
+                    contentScale = ContentScale.Crop
                 )
             } else {
                 Box(
                     modifier = Modifier
                         .matchParentSize()
                         .background(Color.Gray, RoundedCornerShape(12.dp))
-                )
+                        .clip(RoundedCornerShape(12.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Sin imagen",
+                        color = Color.White,
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                }
             }
 
             if (isHovered) {

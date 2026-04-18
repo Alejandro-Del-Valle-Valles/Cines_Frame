@@ -38,6 +38,8 @@ kotlin {
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(libs.kotlinx.datetime)
             implementation(libs.ktor.client.auth)
+            implementation(libs.coil.compose)
+            implementation(libs.coil.network.ktor)
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
             implementation("io.ktor:ktor-client-core:3.4.2")
             implementation("io.ktor:ktor-client-content-negotiation:3.4.2")
