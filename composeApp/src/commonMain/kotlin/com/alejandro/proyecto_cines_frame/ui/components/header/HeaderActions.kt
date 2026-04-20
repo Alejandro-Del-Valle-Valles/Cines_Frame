@@ -20,6 +20,7 @@ fun HeaderActions(
     onEntradasClick: () -> Unit,
     onLoginClick: () -> Unit,
     onRegisterClick: () -> Unit,
+    onMyAccountClick: () -> Unit,
     onLogoutClick: () -> Unit,
     isSessionActive: Boolean
 ) {
@@ -57,6 +58,13 @@ fun HeaderActions(
                         }
                     )
                 } else {
+                    DropdownMenuItem(
+                        text = { Text("Mi Cuenta") },
+                        onClick = {
+                            expanded = false
+                            onMyAccountClick()
+                        }
+                    )
                     DropdownMenuItem(
                         text = { Text("Cerrar sesión") },
                         onClick = {

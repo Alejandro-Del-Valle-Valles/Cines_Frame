@@ -23,6 +23,7 @@ fun LoginScreen(
     presenter: LoginPresenter
 ) {
     val state by presenter.state.collectAsState()
+    //TODO: Cambiar esto por un toast/snackbar o lo que sea
     var showSuccessMessage by remember { mutableStateOf(false) }
 
     LaunchedEffect(state.loginSuccess) {

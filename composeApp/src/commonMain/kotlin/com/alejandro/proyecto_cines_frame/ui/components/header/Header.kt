@@ -22,6 +22,7 @@ fun Header(
     onEntradasClick: () -> Unit,
     onLoginClick: () -> Unit,
     onRegisterClick: () -> Unit,
+    onMyAccountClick: () -> Unit,
     onLogoutClick: () -> Unit,
     isSessionActive: Boolean
 ) {
@@ -48,6 +49,7 @@ fun Header(
                     onEntradasClick = onEntradasClick,
                     onLoginClick = onLoginClick,
                     onRegisterClick = onRegisterClick,
+                    onMyAccountClick = onMyAccountClick,
                     onLogoutClick = onLogoutClick,
                     isSessionActive = isSessionActive
                 )
@@ -60,6 +62,7 @@ fun Header(
                     onEntradasClick = onEntradasClick,
                     onLoginClick = onLoginClick,
                     onRegisterClick = onRegisterClick,
+                    onMyAccountClick = onMyAccountClick,
                     onLogoutClick = onLogoutClick,
                     isSessionActive = isSessionActive
                 )

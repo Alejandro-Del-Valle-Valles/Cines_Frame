@@ -10,6 +10,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
@@ -20,21 +21,29 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.alejandro.proyecto_cines_frame.ui.components.common.BackButton
+import com.alejandro.proyecto_cines_frame.ui.logic.presenter.RegisterPresenter
 import com.alejandro.proyecto_cines_frame.ui.theme.BackgroundDark
 import com.alejandro.proyecto_cines_frame.ui.theme.OtroRojo
 import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
+import kotlinx.coroutines.delay
 
 @Composable
 fun RegisterScreen(
-    onRegisterSuccess: () -> Unit
+    onRegisterSuccess: () -> Unit,
+    presenter: RegisterPresenter
 ) {
-    var name by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
+    val state by presenter.state.collectAsState()
+    //TODO: Cambiar esto por un toast/snackbar o lo que sea
+    var showSuccessMessage by remember { mutableStateOf(false) }
 
-    var error by remember { mutableStateOf<String?>(null) }
-    var isLoading by remember { mutableStateOf(false) }
+    LaunchedEffect(state.registerSuccess) {
+        if (state.registerSuccess) {
+            showSuccessMessage = true
+            delay(1000)
+            presenter.consumeRegisterSuccess()
+            onRegisterSuccess()
+        }
+    }
 
     val cardColor = Color(0xFF1E1E1E)
 
@@ -68,52 +77,104 @@ fun RegisterScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                //Nombre
                 OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
+                    value = state.nombre,
+                    onValueChange = presenter::onNombreChange,
                     label = { Text("Nombre", color = TextWhite) },
+                    isError = state.fieldErrors.containsKey("nombre"),
+                    supportingText = {
+                        val err = state.fieldErrors["nombre"]
+                        if(err != null) Text(err, color = Color.Red)
+                    },
                     textStyle = LocalTextStyle.current.copy(color = TextWhite),
                     modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
+                //Email
                 OutlinedTextField(
-                    value = email,
-                    onValueChange = { email = it },
+                    value = state.correo,
+                    onValueChange = presenter::onCorreoChange,
                     label = { Text("Email", color = TextWhite) },
+                    isError = state.fieldErrors.containsKey("correo"),
+                    supportingText = {
+                        val err = state.fieldErrors["correo"]
+                        if(err != null) Text(err, color = Color.Red)
+                    },
                     textStyle = LocalTextStyle.current.copy(color = TextWhite),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = TextWhite,
+                        unfocusedTextColor = TextWhite,
+                        focusedBorderColor = Color.Gray,
+                        unfocusedBorderColor = Color.DarkGray,
+                        cursorColor = TextWhite
+                    )
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
+                // Password
                 OutlinedTextField(
-                    value = password,
-                    onValueChange = { password = it },
+                    value = state.contrasena,
+                    onValueChange = presenter::onContrasenaChange,
                     label = { Text("Contraseña", color = TextWhite) },
+                    isError = state.fieldErrors.containsKey("contrasena"),
+                    supportingText = {
+                        val err = state.fieldErrors["contrasena"]
+                        if(err != null) Text(err, color = Color.Red)
+                    },
                     visualTransformation = PasswordVisualTransformation(),
                     textStyle = LocalTextStyle.current.copy(color = TextWhite),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = TextWhite,
+                        unfocusedTextColor = TextWhite,
+                        focusedBorderColor = Color.Gray,
+                        unfocusedBorderColor = Color.DarkGray,
+                        cursorColor = TextWhite
+                    )
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
+                // Password
                 OutlinedTextField(
-                    value = confirmPassword,
-                    onValueChange = { confirmPassword = it },
-                    label = { Text("Confirmar contraseña", color = TextWhite) },
+                    value = state.confirmarContrasena,
+                    onValueChange = presenter::onConfirmarContrasenaChange,
+                    label = { Text("Confirmar Contraseña", color = TextWhite) },
+                    isError = state.fieldErrors.containsKey("confirmarContrasena"),
+                    supportingText = {
+                        val err = state.fieldErrors["confirmarContrasena"]
+                        if(err != null) Text(err, color = Color.Red)
+                    },
                     visualTransformation = PasswordVisualTransformation(),
                     textStyle = LocalTextStyle.current.copy(color = TextWhite),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = TextWhite,
+                        unfocusedTextColor = TextWhite,
+                        focusedBorderColor = Color.Gray,
+                        unfocusedBorderColor = Color.DarkGray,
+                        cursorColor = TextWhite
+                    )
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                error?.let {
+                if (state.generalError != null) {
                     Text(
-                        text = it,
+                        text = state.generalError!!,
                         color = Color.Red
+                    )
+                }
+
+                if (showSuccessMessage) {
+                    Text(
+                        text = "Registro correcto",
+                        color = Color(0xFF4CAF50)
                     )
                 }
 
@@ -121,53 +182,19 @@ fun RegisterScreen(
 
                 //Botón para registrarse
                 Button(
-                    onClick = {
-                        error = validateRegister(name, email, password, confirmPassword)
-
-                        if (error == null) {
-                            // Falta la conexión con la api en éste metodo
-                            onRegisterSuccess()
-                        }
-                    },
+                    onClick = { presenter.submit(rememberMe = false) },
+                    enabled = !state.isLoading,
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = !isLoading,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = OtroRojo, // rojo
+                        containerColor = Color(0xFFE50914),
                         contentColor = TextWhite
                     )
                 ) {
                     Text(
-                        text = if (isLoading) "Cargando..." else "Registrarse"
+                        text = if (state.isLoading) "Cargando..." else "Registrarse"
                     )
                 }
             }
         }
-    }
-}
-
-fun validateRegister(
-    name: String,
-    email: String,
-    password: String,
-    confirmPassword: String
-): String? {
-    return when {
-        name.isBlank() -> "El nombre es obligatorio"
-        email.isBlank() -> "El email es obligatorio"
-        !email.contains("@") -> "Email inválido"
-        password.length < 6 -> "Mínimo 6 caracteres"
-        password != confirmPassword -> "Las contraseñas no coinciden"
-        else -> null
-    }
-}
-
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewRegisterScreen() {
-    MaterialTheme {
-        RegisterScreen(
-            onRegisterSuccess = {}
-        )
     }
 }

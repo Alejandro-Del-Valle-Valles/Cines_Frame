@@ -26,6 +26,7 @@ fun HeaderMovil(
     onEntradasClick: () -> Unit,
     onLoginClick: () -> Unit,
     onRegisterClick: () -> Unit,
+    onMyAccountClick: () -> Unit,
     onLogoutClick: () -> Unit,
     isSessionActive: Boolean
 ) {
@@ -48,6 +49,7 @@ fun HeaderMovil(
                 onEntradasClick,
                 onLoginClick,
                 onRegisterClick,
+                onMyAccountClick,
                 onLogoutClick,
                 isSessionActive
             )

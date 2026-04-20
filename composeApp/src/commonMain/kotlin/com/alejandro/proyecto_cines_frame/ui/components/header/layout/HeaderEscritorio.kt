@@ -26,6 +26,7 @@ fun HeaderEscritorio(
     onEntradasClick: () -> Unit,
     onLoginClick: () -> Unit,
     onRegisterClick: () -> Unit,
+    onMyAccountClick: () -> Unit,
     onLogoutClick: () -> Unit,
     isSessionActive: Boolean
 ) {
@@ -51,6 +52,7 @@ fun HeaderEscritorio(
             onEntradasClick,
             onLoginClick,
             onRegisterClick,
+            onMyAccountClick,
             onLogoutClick,
             isSessionActive
         )

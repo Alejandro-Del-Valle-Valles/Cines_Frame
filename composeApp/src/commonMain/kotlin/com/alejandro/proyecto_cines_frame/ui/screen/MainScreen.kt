@@ -33,6 +33,7 @@ import com.alejandro.proyecto_cines_frame.ui.components.header.HeaderUtils
 import com.alejandro.proyecto_cines_frame.ui.logic.MovieUiMapper
 import com.alejandro.proyecto_cines_frame.ui.logic.formatters.SessionRangeFormatter
 import com.alejandro.proyecto_cines_frame.ui.logic.presenter.LoginPresenter
+import com.alejandro.proyecto_cines_frame.ui.logic.presenter.RegisterPresenter
 import com.alejandro.proyecto_cines_frame.ui.logic.state.MainSessionsUiState
 import com.alejandro.proyecto_cines_frame.ui.theme.BackgroundDark
 import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
@@ -66,6 +67,13 @@ fun MainScreen(
 
     val loginPresenter = remember(cuentaRepository, scope) {
         LoginPresenter(
+            cuentaRepo = cuentaRepository,
+            scope = scope
+        )
+    }
+
+    val registerPresenter = remember(cuentaRepository, scope) {
+        RegisterPresenter(
             cuentaRepo = cuentaRepository,
             scope = scope
         )
@@ -167,8 +175,9 @@ fun MainScreen(
     if (currentScreen == "register") {
         RegisterScreen(
             onRegisterSuccess = {
-                currentScreen = "main"
-            }
+                currentScreen = "login"
+            },
+            presenter = registerPresenter
         )
         return
     }
@@ -212,6 +221,10 @@ fun MainScreen(
                     cuentaRepository.logout(clearRememberedCredentials = false)
                     isSessionActive = false
                 }
+            },
+
+            onMyAccountClick = {
+                //TODO: Lanzar vista de "MiCuenta" con los datos de la cuenta y permitir modificación
             },
 
             isSessionActive = isSessionActive
