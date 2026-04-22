@@ -1,46 +1,49 @@
 package com.alejandro.proyecto_cines_frame.ui.components.banner
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import kotlinx.coroutines.delay
 
-
 @Composable
-fun Banner(images: List<Painter>, modifier: Modifier = Modifier, autoSlideDuration: Long = 4000L) {
-    var currentIndex by remember { mutableStateOf(0) }
+fun Banner(
+    images: List<String>,
+    modifier: Modifier = Modifier,
+    autoSlideDuration: Long = 4000L
+) {
+    if (images.isEmpty()) {
+        Box(modifier.fillMaxWidth().height(560.dp)) {
 
-    //Esto crea la animación de pasar de imagen en el banner
-    if (images.size > 1) {
-        LaunchedEffect(images) {
-            while (true) {
-                delay(autoSlideDuration)
-                currentIndex = getNextIndex(currentIndex, images.size)
-            }
         }
     }
 
-    //El banner en sí mismo está construido aquí
+    var currentIndex by remember(images) { mutableStateOf(0) }
+    LaunchedEffect(images, autoSlideDuration) {
+        if (images.size <= 1) return@LaunchedEffect
+        while (true) {
+            delay(autoSlideDuration)
+            currentIndex = (currentIndex + 1) % images.size
+        }
+    }
+
     Column(modifier = modifier.fillMaxWidth()) {
-        //Borde de arriba
         BannerBorder()
 
-        //Imagen del banner
         Box(modifier = Modifier.fillMaxWidth()) {
             AnimatedContent(targetState = currentIndex, label = "banner") { index ->
-                Image(
-                    painter = images[index],
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxWidth(),
+                AsyncImage(
+                    model = images[index],
+                    contentDescription = "Banner image ${index + 1}",
+                    modifier = Modifier.fillMaxWidth().height(560.dp),
                     contentScale = ContentScale.FillWidth
                 )
             }
         }
-        //Borde de abajo
+
         BannerBorder()
     }
 }

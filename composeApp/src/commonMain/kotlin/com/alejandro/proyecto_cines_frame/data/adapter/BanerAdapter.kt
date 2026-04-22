@@ -8,7 +8,7 @@ object BanerAdapter {
     fun toBaner(dto: BanerDTO) : Baner = Baner(
         peliculaId = dto.peliculaId,
         url = dto.url,
-        empeiza = DateAdater.toLocalDate(dto.empeiza),
+        empeiza = DateAdater.toLocalDate(dto.empieza),
         termina = DateAdater.toLocalDate(dto.termina)
     )
 

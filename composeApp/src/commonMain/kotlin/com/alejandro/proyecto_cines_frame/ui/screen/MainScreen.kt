@@ -18,9 +18,11 @@ import com.alejandro.proyecto_cines_frame.core.error.AppError
 import com.alejandro.proyecto_cines_frame.core.error.ApiResult
 import com.alejandro.proyecto_cines_frame.core.security.CredentialStoreFactory
 import com.alejandro.proyecto_cines_frame.core.session.TokenStore
+import com.alejandro.proyecto_cines_frame.data.remote.api.KtorBanerApi
 import com.alejandro.proyecto_cines_frame.data.remote.api.KtorCuentaApi
 import com.alejandro.proyecto_cines_frame.data.remote.api.KtorSesionApi
 import com.alejandro.proyecto_cines_frame.data.remote.client.HttpClientFactory
+import com.alejandro.proyecto_cines_frame.data.repository.BanerRepositoryImpl
 import com.alejandro.proyecto_cines_frame.data.repository.CuentaRepositoryImpl
 import com.alejandro.proyecto_cines_frame.data.repository.SesionRepositoryImpl
 import com.alejandro.proyecto_cines_frame.domain.repository.SesionRepository
@@ -34,6 +36,7 @@ import com.alejandro.proyecto_cines_frame.ui.logic.MovieUiMapper
 import com.alejandro.proyecto_cines_frame.ui.logic.formatters.SessionRangeFormatter
 import com.alejandro.proyecto_cines_frame.ui.logic.presenter.LoginPresenter
 import com.alejandro.proyecto_cines_frame.ui.logic.presenter.RegisterPresenter
+import com.alejandro.proyecto_cines_frame.ui.logic.state.BannersUiState
 import com.alejandro.proyecto_cines_frame.ui.logic.state.MainSessionsUiState
 import com.alejandro.proyecto_cines_frame.ui.theme.BackgroundDark
 import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
@@ -45,11 +48,18 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun MainScreen(
-    sesionRepository: SesionRepository? = null
+    sesionRepository: SesionRepository? = null,
+    bannerRepository: SesionRepository? = null
 ) {
-    val repository = sesionRepository ?: remember {
+    val moviesRepository = sesionRepository ?: remember {
         SesionRepositoryImpl(
             api = KtorSesionApi(HttpClientFactory.create())
+        )
+    }
+
+    val bannerRepository = remember {
+        BanerRepositoryImpl(
+            api = KtorBanerApi(HttpClientFactory.create())
         )
     }
 
@@ -64,6 +74,7 @@ fun MainScreen(
             secureStore = CredentialStoreFactory.create()
         )
     }
+
 
     val loginPresenter = remember(cuentaRepository, scope) {
         LoginPresenter(
@@ -106,11 +117,15 @@ fun MainScreen(
         mutableStateOf(MainSessionsUiState(isLoading = true))
     }
 
+    var bannerState by remember {
+        mutableStateOf(BannersUiState(isLoading = true))
+    }
+
     val fetchRange = remember(calendarDays) {
         SessionRangeFormatter.buildRangeForCalendarDays(calendarDays)
     }
 
-    LaunchedEffect(repository, fetchRange) {
+    LaunchedEffect(moviesRepository, fetchRange) {
         if (fetchRange == null) {
             sessionState = MainSessionsUiState(
                 isLoading = false,
@@ -121,7 +136,7 @@ fun MainScreen(
 
         sessionState = MainSessionsUiState(isLoading = true)
 
-        when (val result = repository.getByRangoHorario(fetchRange.first, fetchRange.second)) {
+        when (val result = moviesRepository.getByRangoHorario(fetchRange.first, fetchRange.second)) {
             is ApiResult.Success -> {
                 sessionState = MainSessionsUiState(
                     sessions = result.data,
@@ -140,7 +155,30 @@ fun MainScreen(
         }
     }
 
+    LaunchedEffect(bannerRepository) {
+
+        bannerState = BannersUiState(isLoading = true)
+
+        when (val result = bannerRepository.getBanersToday()) {
+            is ApiResult.Success -> {
+                bannerState = BannersUiState(
+                    banners = result.data,
+                    isLoading = false,
+                    errorMessage = null
+                )
+            }
+            is ApiResult.Error -> {
+                bannerState = BannersUiState(
+                    banners = emptyList(),
+                    isLoading = false,
+                    errorMessage = toMainScreenErrorMessage(result.error)
+                )
+            }
+        }
+    }
+
     val allSessions = sessionState.sessions
+    val allBaners = bannerState.banners
 
     //LÓGICA (fuera de UI)
     val (carteleraMovies, carteleraSessions) = remember(filterState, allSessions) {
@@ -238,12 +276,29 @@ fun MainScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
 
-                item {
-                    Banner(
-                        images = listOf(
-                            painterResource(Res.drawable.banner)
+                if(bannerState.isLoading){
+                    item {
+                        Text(
+                            text = "Cargando banners...",
+                            color = TextWhite,
+                            modifier = Modifier.padding(horizontal = 12.dp)
                         )
-                    )
+                    }
+                }
+
+                if(bannerState.errorMessage != null){
+                    item {
+                        Text(
+                            text = "Error al cargar banners: ${bannerState.errorMessage}",
+                            color = TextWhite,
+                            modifier = Modifier.padding(horizontal = 12.dp)
+                        )
+                    }
+                }
+                if (allBaners.isNotEmpty()) {
+                    item {
+                        Banner(images = allBaners.map { it.url })
+                    }
                 }
 
                 item {
