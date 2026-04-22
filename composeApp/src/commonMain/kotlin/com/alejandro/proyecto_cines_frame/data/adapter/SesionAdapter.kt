@@ -7,11 +7,10 @@ import kotlinx.datetime.LocalDateTime
 object SesionAdapter {
 
     fun toSesion(sesion: SesionCompletaDTO) : Sesion {
-        val horario = LocalDateTime.parse(sesion.horario)
         return Sesion(
             numSala = sesion.numSala,
             pelicula = PeliculaAdapter.toPelicula(sesion.pelicula),
-            horario = horario,
+            horario = DateAdater.toLocalDateTime(sesion.horario),
             tresD = sesion.tresD,
             vose = sesion.vose
         )

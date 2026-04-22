@@ -9,28 +9,26 @@ import kotlinx.datetime.LocalTime
 object PeliculaAdapter {
 
     fun toPelicula(peliculaDTO: PeliculaDTO) : Pelicula {
-        val duracion = LocalTime.parse(peliculaDTO.duracion, )
         return Pelicula(
             id = peliculaDTO.id,
             nombre = peliculaDTO.nombre,
             descripcion = peliculaDTO.descripcion ?: "Sin descripción",
             estado = PeliculaEstadoConverter.toPeliculaEstado(peliculaDTO.enCartelera),
             portada = peliculaDTO.url,
-            duracion = duracion,
+            duracion = DateAdater.toLocalTime(peliculaDTO.duracion),
             calificacionEdad = peliculaDTO.edad ?: 0,
             genero = peliculaDTO.genero
         )
     }
 
     fun toPelicula(peliculaCompletoDTO: PeliculaCompletoDTO) : Pelicula {
-        val duracion = LocalTime.parse(peliculaCompletoDTO.duracion, )
         return Pelicula(
             id = peliculaCompletoDTO.id,
             nombre = peliculaCompletoDTO.nombre,
             descripcion = peliculaCompletoDTO.descripcion ?: "Sin descripción",
             estado = PeliculaEstadoConverter.toPeliculaEstado(peliculaCompletoDTO.enCartelera),
             portada = peliculaCompletoDTO.url,
-            duracion = duracion,
+            duracion = DateAdater.toLocalTime(peliculaCompletoDTO.duracion),
             calificacionEdad = peliculaCompletoDTO.edad ?: 0,
             genero = peliculaCompletoDTO.genero,
             creditos = peliculaCompletoDTO.participantes.map { CreditoAdapter.toCredito(it) }
