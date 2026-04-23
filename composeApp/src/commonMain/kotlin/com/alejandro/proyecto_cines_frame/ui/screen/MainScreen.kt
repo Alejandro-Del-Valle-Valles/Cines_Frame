@@ -27,6 +27,7 @@ import com.alejandro.proyecto_cines_frame.data.repository.CuentaRepositoryImpl
 import com.alejandro.proyecto_cines_frame.data.repository.SesionRepositoryImpl
 import com.alejandro.proyecto_cines_frame.domain.repository.SesionRepository
 import com.alejandro.proyecto_cines_frame.ui.components.banner.Banner
+import com.alejandro.proyecto_cines_frame.ui.components.banner.OfflineBannerScreen
 import com.alejandro.proyecto_cines_frame.ui.components.features.movies.MovieSection
 import com.alejandro.proyecto_cines_frame.ui.components.filter.*
 import com.alejandro.proyecto_cines_frame.ui.components.footer.Footer
@@ -113,6 +114,10 @@ fun MainScreen(
     }
     val calendarDays = remember { buildCalendarDays() }
 
+    var isApiBlocked by remember {
+        mutableStateOf(false)
+    }
+
     var sessionState by remember {
         mutableStateOf(MainSessionsUiState(isLoading = true))
     }
@@ -146,6 +151,7 @@ fun MainScreen(
             }
 
             is ApiResult.Error -> {
+                isApiBlocked = result.error is AppError.Network || result.error is AppError.Server || result.error is AppError.Unauthorized
                 sessionState = MainSessionsUiState(
                     sessions = emptyList(),
                     isLoading = false,
@@ -168,6 +174,7 @@ fun MainScreen(
                 )
             }
             is ApiResult.Error -> {
+                isApiBlocked = result.error is AppError.Network || result.error is AppError.Server || result.error is AppError.Unauthorized
                 bannerState = BannersUiState(
                     banners = emptyList(),
                     isLoading = false,
@@ -176,6 +183,16 @@ fun MainScreen(
             }
         }
     }
+
+    //TODO: Esto se debe descomentar en la versión oficial/final para que el usuario vea una pantalla de información si no hay conexión con la API
+    /*
+    if (isApiBlocked) {
+        OfflineBannerScreen(
+            message = "Ups! Parece que el servidor no responde. Puede que estemos bajo mantenimiento o que no tengas conexión a internet"
+        )
+        return
+    }*/
+
 
     val allSessions = sessionState.sessions
     val allBaners = bannerState.banners
@@ -286,15 +303,7 @@ fun MainScreen(
                     }
                 }
 
-                if(bannerState.errorMessage != null){
-                    item {
-                        Text(
-                            text = "Error al cargar banners: ${bannerState.errorMessage}",
-                            color = TextWhite,
-                            modifier = Modifier.padding(horizontal = 12.dp)
-                        )
-                    }
-                }
+
                 if (allBaners.isNotEmpty()) {
                     item {
                         Banner(images = allBaners.map { it.url })
@@ -331,16 +340,6 @@ fun MainScreen(
                     item {
                         Text(
                             text = "Cargando sesiones...",
-                            color = TextWhite,
-                            modifier = Modifier.padding(horizontal = 12.dp)
-                        )
-                    }
-                }
-
-                if (sessionState.errorMessage != null) {
-                    item {
-                        Text(
-                            text = "Error al cargar sesiones: ${sessionState.errorMessage}",
                             color = TextWhite,
                             modifier = Modifier.padding(horizontal = 12.dp)
                         )
