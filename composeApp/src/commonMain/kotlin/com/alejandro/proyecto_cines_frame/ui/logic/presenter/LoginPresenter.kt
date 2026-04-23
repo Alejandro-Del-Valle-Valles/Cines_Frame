@@ -1,6 +1,7 @@
 package com.alejandro.proyecto_cines_frame.ui.logic.presenter
 
 import com.alejandro.proyecto_cines_frame.core.error.ApiResult
+import com.alejandro.proyecto_cines_frame.core.session.SessionManager
 import com.alejandro.proyecto_cines_frame.domain.extension.toFieldErrorMessagesIfAny
 import com.alejandro.proyecto_cines_frame.domain.extension.toFirstUiMessagePerField
 import com.alejandro.proyecto_cines_frame.domain.repository.CuentaRepository
@@ -37,6 +38,7 @@ class LoginPresenter(
 
             when (val res = cuentaRepo.login(s.correo, s.contrasena, rememberMe)) {
                 is ApiResult.Success -> {
+                    SessionManager.setSession(res.data, res.data.token)
                     _state.update { it.copy(isLoading = false, loginSuccess = true) }
                 }
                 is ApiResult.Error -> {

@@ -126,7 +126,7 @@ fun LoginScreen(
 
                     // Botón de login
                     Button(
-                        onClick = { presenter.submit(rememberMe = false) },
+                        onClick = { presenter.submit(rememberMe = true) },
                         enabled = !state.isLoading,
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(

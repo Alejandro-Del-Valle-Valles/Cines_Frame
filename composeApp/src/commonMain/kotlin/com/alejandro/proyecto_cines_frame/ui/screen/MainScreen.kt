@@ -8,16 +8,18 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.alejandro.proyecto_cines_frame.core.error.AppError
 import com.alejandro.proyecto_cines_frame.core.error.ApiResult
 import com.alejandro.proyecto_cines_frame.core.security.CredentialStoreFactory
-import com.alejandro.proyecto_cines_frame.core.session.TokenStore
+import com.alejandro.proyecto_cines_frame.core.session.SessionManager
 import com.alejandro.proyecto_cines_frame.data.remote.api.KtorBanerApi
 import com.alejandro.proyecto_cines_frame.data.remote.api.KtorCuentaApi
 import com.alejandro.proyecto_cines_frame.data.remote.api.KtorSesionApi
@@ -98,9 +100,8 @@ fun MainScreen(
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var isSearching by remember { mutableStateOf(false) }
 
-    var isSessionActive by remember {
-        mutableStateOf(!TokenStore.accessToken.isNullOrBlank())
-    }
+    val authState by SessionManager.state.collectAsState()
+    var isRestoringSession by remember { mutableStateOf(true) }
 
     //FILTER
     val availableDays = remember { buildCarteleraDays() }
@@ -128,6 +129,24 @@ fun MainScreen(
 
     val fetchRange = remember(calendarDays) {
         SessionRangeFormatter.buildRangeForCalendarDays(calendarDays)
+    }
+
+    LaunchedEffect(cuentaRepository) {
+        when (val result = cuentaRepository.autoLoginIfPossible()) {
+            is ApiResult.Success -> {
+                val cuenta = result.data
+                if (cuenta != null) {
+                    SessionManager.setSession(cuenta, cuenta.token)
+                } else {
+                    SessionManager.clearSession()
+                }
+            }
+
+            is ApiResult.Error -> {
+                SessionManager.clearSession()
+            }
+        }
+        isRestoringSession = false
     }
 
     LaunchedEffect(moviesRepository, fetchRange) {
@@ -219,7 +238,6 @@ fun MainScreen(
     if (currentScreen == "login") {
         LoginScreen(
             onLoginSuccess = {
-                isSessionActive = true
                 currentScreen = "main"
             },
             presenter = loginPresenter
@@ -234,6 +252,18 @@ fun MainScreen(
             },
             presenter = registerPresenter
         )
+        return
+    }
+
+    if (isRestoringSession) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(BackgroundDark),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(color = TextWhite)
+        }
         return
     }
 
@@ -273,8 +303,8 @@ fun MainScreen(
 
             onLogoutClick = {
                 scope.launch {
-                    cuentaRepository.logout(clearRememberedCredentials = false)
-                    isSessionActive = false
+                    cuentaRepository.logout(clearRememberedCredentials = true)
+                    SessionManager.clearSession()
                 }
             },
 
@@ -282,7 +312,7 @@ fun MainScreen(
                 //TODO: Lanzar vista de "MiCuenta" con los datos de la cuenta y permitir modificación
             },
 
-            isSessionActive = isSessionActive
+            isSessionActive = authState.isAuthenticated
         )
 
         Box(modifier = Modifier.fillMaxSize()) {
