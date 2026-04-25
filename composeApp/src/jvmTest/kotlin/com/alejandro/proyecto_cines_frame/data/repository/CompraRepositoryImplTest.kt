@@ -23,6 +23,7 @@ class CompraRepositoryImplTest {
         // Arrange
         val input = CompraDTO(
             correo = "cliente@correo.com",
+            holdToken = "token-123",
             lineasCompra = listOf(
                 LineaCompraProductoDTO(
                     numero = 1,

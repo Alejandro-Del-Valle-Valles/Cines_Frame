@@ -52,6 +52,7 @@ kotlin {
         jvmTest.dependencies {
             implementation(libs.kotlin.testJunit)
             implementation("io.mockk:mockk:1.13.13")
+            implementation("io.ktor:ktor-client-mock:3.4.2")
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)

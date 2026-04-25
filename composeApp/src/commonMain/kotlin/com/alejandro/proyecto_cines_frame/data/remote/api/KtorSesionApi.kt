@@ -2,6 +2,9 @@ package com.alejandro.proyecto_cines_frame.data.remote.api
 
 import com.alejandro.proyecto_cines_frame.core.network.getUrl
 import com.alejandro.proyecto_cines_frame.data.remote.api.interfaces.SesionApi
+import com.alejandro.proyecto_cines_frame.data.remote.dto.ButacasStatusResponse
+import com.alejandro.proyecto_cines_frame.data.remote.dto.HoldButacaRequest
+import com.alejandro.proyecto_cines_frame.data.remote.dto.HoldTokenResponse
 import com.alejandro.proyecto_cines_frame.data.remote.dto.SesionCompletaDTO
 import com.alejandro.proyecto_cines_frame.data.remote.dto.SesionCrudDTO
 import io.ktor.client.HttpClient
@@ -11,6 +14,7 @@ import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 
 class KtorSesionApi(
@@ -57,4 +61,35 @@ class KtorSesionApi(
             contentType(ContentType.Application.Json)
             setBody(sesion)
         }.body()
+
+    /**
+     * Crea un token con una duración para poder reservar butacas de una sesión concreta
+     */
+    override suspend fun createHoldToken(numSala: Int, peliculaId: String, horario: String): HoldTokenResponse =
+        httpClient.post("$baseUrl/$numSala/$peliculaId/$horario/hold-token").body()
+
+    /**
+     * Reserva una butaca de una sesión cocnreta al seleccionarla
+     */
+    override suspend fun holdButaca(numSala: Int, peliculaId: String, horario: String, req: HoldButacaRequest) : HttpStatusCode =
+        httpClient.post("$baseUrl/$numSala/$peliculaId/$horario/butaca/hold"){
+            contentType(ContentType.Application.Json)
+            setBody(req)
+        }.status
+
+    /**
+     * Libera una butaca de una sesión concreta al deseleccionarla
+     */
+    override suspend fun releaseButaca(numSala: Int, peliculaId: String, horario: String, req: HoldButacaRequest) : HttpStatusCode =
+        httpClient.delete("$baseUrl/$numSala/$peliculaId/$horario/butaca/hold"){
+            contentType(ContentType.Application.Json)
+            setBody(req)
+        }.status
+
+
+    /**
+     * Devuelve el estado de las butacas de una sesión
+     */
+    override suspend fun butacasStatus(numSala: Int, peliculaId: String, horario: String): ButacasStatusResponse =
+        httpClient.get("$baseUrl/$numSala/$peliculaId/$horario/butacas/status").body()
 }

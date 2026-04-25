@@ -3,8 +3,8 @@ package com.alejandro.proyecto_cines_frame.data.adapter
 import com.alejandro.proyecto_cines_frame.data.converter.PeliculaEstadoConverter
 import com.alejandro.proyecto_cines_frame.data.remote.dto.PeliculaCompletoDTO
 import com.alejandro.proyecto_cines_frame.data.remote.dto.PeliculaDTO
+import com.alejandro.proyecto_cines_frame.domain.extension.toLocalTime
 import com.alejandro.proyecto_cines_frame.domain.model.Pelicula
-import kotlinx.datetime.LocalTime
 
 object PeliculaAdapter {
 
@@ -15,7 +15,7 @@ object PeliculaAdapter {
             descripcion = peliculaDTO.descripcion ?: "Sin descripción",
             estado = PeliculaEstadoConverter.toPeliculaEstado(peliculaDTO.enCartelera),
             portada = peliculaDTO.url,
-            duracion = DateAdater.toLocalTime(peliculaDTO.duracion),
+            duracion = peliculaDTO.duracion.toLocalTime(),
             calificacionEdad = peliculaDTO.edad ?: 0,
             genero = peliculaDTO.genero
         )
@@ -28,7 +28,7 @@ object PeliculaAdapter {
             descripcion = peliculaCompletoDTO.descripcion ?: "Sin descripción",
             estado = PeliculaEstadoConverter.toPeliculaEstado(peliculaCompletoDTO.enCartelera),
             portada = peliculaCompletoDTO.url,
-            duracion = DateAdater.toLocalTime(peliculaCompletoDTO.duracion),
+            duracion = peliculaCompletoDTO.duracion.toLocalTime(),
             calificacionEdad = peliculaCompletoDTO.edad ?: 0,
             genero = peliculaCompletoDTO.genero,
             creditos = peliculaCompletoDTO.participantes.map { CreditoAdapter.toCredito(it) }

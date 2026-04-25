@@ -1,8 +1,8 @@
 package com.alejandro.proyecto_cines_frame.data.adapter
 
 import com.alejandro.proyecto_cines_frame.data.remote.dto.SesionCompletaDTO
+import com.alejandro.proyecto_cines_frame.domain.extension.toLocalDateTime
 import com.alejandro.proyecto_cines_frame.domain.model.Sesion
-import kotlinx.datetime.LocalDateTime
 
 object SesionAdapter {
 
@@ -10,7 +10,7 @@ object SesionAdapter {
         return Sesion(
             numSala = sesion.numSala,
             pelicula = PeliculaAdapter.toPelicula(sesion.pelicula),
-            horario = DateAdater.toLocalDateTime(sesion.horario),
+            horario = sesion.horario.toLocalDateTime(),
             tresD = sesion.tresD,
             vose = sesion.vose
         )
