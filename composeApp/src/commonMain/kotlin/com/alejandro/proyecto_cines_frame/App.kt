@@ -15,14 +15,14 @@
     import kotlin.time.Clock
 
     
-    @Composable
+   /* @Composable
     @Preview
     fun App() {
         AppTheme {
             MainScreen()
         }
     }
-    /*
+    */
     @Composable
     @Preview
     fun App() {
@@ -75,4 +75,4 @@
                 )
             }
         }
-    }*/
+    }

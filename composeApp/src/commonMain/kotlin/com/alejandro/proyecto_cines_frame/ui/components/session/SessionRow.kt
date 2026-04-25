@@ -31,15 +31,21 @@ fun SessionRow(
             val firstSession = sessions.minBy { it.horario }
 
             SessionChip(
+                session = firstSession,
                 text = formatDate(firstSession.horario),
-                scale = scale
+                scale = scale,
+                showIcons = false,
+                fillWidth = true
             )
 
         } else {
             sessions.forEach { session ->
                 SessionChip(
+                    session = session,
                     text = formatTime(session),
-                    scale = scale
+                    scale = scale,
+                    showIcons = true,
+                    fillWidth = false
                 )
             }
         }

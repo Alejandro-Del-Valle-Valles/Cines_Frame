@@ -1,45 +1,91 @@
 package com.alejandro.proyecto_cines_frame.ui.components.checkout
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.shape.RoundedCornerShape
-import com.alejandro.proyecto_cines_frame.ui.theme.*
+import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
 
 @Composable
 fun CheckoutBottomBar(
-    state: CheckoutState,
-    onContinue: () -> Unit
+    step: CheckoutStep,
+    compactLayout: Boolean,
+    onExit: () -> Unit,
+    onPrevious: () -> Unit,
+    onContinue: () -> Unit,
+    continueEnabled: Boolean
 ) {
-    val canContinue = state.selectedSeats.isNotEmpty()
+    if (step == CheckoutStep.PAYMENT) return
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(20.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+    val isFirstStep = step == CheckoutStep.SEATS
+    val backLabel = if (isFirstStep) "Salir" else "Atrás"
+    val continueLabel = if (step == CheckoutStep.SUMMARY) "Pagar" else "Continuar"
+
+    Surface(
+        tonalElevation = 2.dp,
+        shadowElevation = 6.dp,
+        modifier = Modifier.fillMaxWidth()
     ) {
+        Column(Modifier.fillMaxWidth()) {
+            HorizontalDivider()
+            if (compactLayout) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = if (isFirstStep) onExit else onPrevious,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(backLabel)
+                    }
 
-        Text(
-            text = if (!canContinue)
-                "Debes elegir al menos un asiento para continuar"
-            else "",
-            color = TextGray
-        )
+                    Button(
+                        onClick = onContinue,
+                        enabled = continueEnabled,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(continueLabel)
+                    }
+                }
+            } else {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = if (isFirstStep) onExit else onPrevious,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(backLabel)
+                    }
 
-        Button(
-            onClick = onContinue,
-            enabled = canContinue,
-            shape = RoundedCornerShape(50.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = if (canContinue) PrimaryRed else TextGray
-            )
-        ) {
-            Text("CONTINUAR")
+                    Button(
+                        onClick = onContinue,
+                        enabled = continueEnabled,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(continueLabel)
+                    }
+                }
+            }
         }
     }
 }

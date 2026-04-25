@@ -35,6 +35,9 @@ fun CheckoutScreen(
                 state = state,
                 seatMatrix = seatMatrix,
                 onBack = onBack,
+                onPreviousStep = {
+                    state = state.copy(step = previousStep(state.step))
+                },
                 onSeatClick = { clicked ->
                     val current = state.selectedSeats.toMutableSet()
                     if (!current.add(clicked)) current.remove(clicked)

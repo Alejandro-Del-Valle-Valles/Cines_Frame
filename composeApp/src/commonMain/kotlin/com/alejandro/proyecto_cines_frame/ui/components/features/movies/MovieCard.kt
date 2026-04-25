@@ -39,8 +39,9 @@ fun MovieCard(
     val movieSessions = remember(sessions, movie.id) {
         sessions.filter { it.pelicula.id == movie.id }
     }
+
     Column(
-        modifier = modifier.width(cardWidth)
+        modifier = modifier.fillMaxWidth()
     ) {
         Box(
             modifier = Modifier
@@ -51,7 +52,7 @@ fun MovieCard(
             if (!movie.portada.isNullOrBlank()) {
                 AsyncImage(
                     model = movie.portada,
-                    contentDescription = "Portada de la película ${movie.nombre}",
+                    contentDescription = "Portada de ${movie.nombre}",
                     modifier = Modifier
                         .matchParentSize()
                         .clip(RoundedCornerShape(12.dp))
@@ -62,8 +63,8 @@ fun MovieCard(
                 Box(
                     modifier = Modifier
                         .matchParentSize()
-                        .background(Color.Gray, RoundedCornerShape(12.dp))
-                        .clip(RoundedCornerShape(12.dp)),
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color.Gray),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -90,12 +91,13 @@ fun MovieCard(
                 }
             }
         }
+
         Spacer(modifier = Modifier.height(6.dp * sessionScale))
 
         if (movieSessions.isNotEmpty()) {
             SessionRow(
                 sessions = movieSessions,
-                scale = sessionScale,
+                scale = sessionScale
             )
         }
     }
