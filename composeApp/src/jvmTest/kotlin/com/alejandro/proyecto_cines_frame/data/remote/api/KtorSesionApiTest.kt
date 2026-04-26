@@ -16,7 +16,9 @@ import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 
 class KtorSesionApiTest {
@@ -49,6 +51,81 @@ class KtorSesionApiTest {
         assertEquals("/api/sesion/5/pel-99/2026-04-25T21-30-00/hold-token", path)
         assertEquals("hold-123", response.holdToken)
         assertEquals("2026-04-25T21:30:00", response.expira)
+    }
+
+    @Test
+    fun createHoldToken_ok_aceptaAliasTokenYPayloadEnvuelto() = runTest {
+        val client = buildClient {
+            respond(
+                content = """{"data":{"token":"hold-xyz","expiresAt":"2026-04-25T22:00:00"}}""",
+                status = HttpStatusCode.Created,
+                headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            )
+        }
+
+        val api = KtorSesionApi(client)
+
+        val response = api.createHoldToken(
+            numSala = 1,
+            peliculaId = "pel-1",
+            horario = "2026-04-25T22-00-00"
+        )
+
+        assertEquals("hold-xyz", response.holdToken)
+        assertEquals("2026-04-25T22:00:00", response.expira)
+    }
+
+    @Test
+    fun createHoldToken_fallaSiNoLlegaToken() = runTest {
+        val client = buildClient {
+            respond(
+                content = """{"expira":"2026-04-25T21:30:00"}""",
+                status = HttpStatusCode.Created,
+                headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            )
+        }
+
+        val api = KtorSesionApi(client)
+
+        assertFailsWith<SerializationException> {
+            api.createHoldToken(
+                numSala = 5,
+                peliculaId = "pel-99",
+                horario = "2026-04-25T21-30-00"
+            )
+        }
+    }
+
+    @Test
+    fun releaseHoldToken_ok_devuelveStatusYLlamaAlEndpointCorrecto() = runTest {
+        var method: HttpMethod? = null
+        var path: String? = null
+        var tokenParam: String? = null
+
+        val client = buildClient { request ->
+            method = request.method
+            path = request.url.encodedPath
+            tokenParam = request.url.parameters["token"]
+
+            respond(
+                content = "",
+                status = HttpStatusCode.NoContent
+            )
+        }
+
+        val api = KtorSesionApi(client)
+
+        val status = api.releaseHoldToken(
+            numSala = 5,
+            peliculaId = "pel-99",
+            horario = "2026-04-25T21-30-00",
+            token = "hold-123"
+        )
+
+        assertEquals(HttpMethod.Delete, method)
+        assertEquals("/api/sesion/5/pel-99/2026-04-25T21-30-00/hold-token", path)
+        assertEquals("hold-123", tokenParam)
+        assertEquals(HttpStatusCode.NoContent, status)
     }
 
     @Test

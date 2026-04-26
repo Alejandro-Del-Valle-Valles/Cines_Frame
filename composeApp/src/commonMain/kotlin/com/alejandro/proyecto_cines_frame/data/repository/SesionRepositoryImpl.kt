@@ -7,7 +7,6 @@ import com.alejandro.proyecto_cines_frame.data.adapter.SesionAdapter
 import com.alejandro.proyecto_cines_frame.data.remote.api.interfaces.SesionApi
 import com.alejandro.proyecto_cines_frame.data.remote.dto.ButacasStatusResponse
 import com.alejandro.proyecto_cines_frame.data.remote.dto.HoldButacaRequest
-import com.alejandro.proyecto_cines_frame.data.remote.dto.HoldTokenResponse
 import com.alejandro.proyecto_cines_frame.domain.model.HoldToken
 import com.alejandro.proyecto_cines_frame.data.remote.dto.SesionCrudDTO
 import com.alejandro.proyecto_cines_frame.data.remote.error.toAppError
@@ -99,34 +98,29 @@ class SesionRepositoryImpl(
     }
 
     /**
+     * Libera un token de bloqueo de una sesión
+     */
+    override suspend fun releaseHoldToken(
+        numSala: Int,
+        peliculaId: String,
+        horario: String,
+        token: String
+    ): ApiResult<Unit> {
+        return try {
+            val response = api.releaseHoldToken(numSala, peliculaId, horario, token)
+            response.toSeatMutationResult("Datos de token inválidos")
+        } catch (t: Throwable) {
+            ApiResult.Error(t.toAppError())
+        }
+    }
+
+    /**
      * Reserva una butaca de una sesión
      */
     override suspend fun holdButaca(numSala: Int, peliculaId: String, horario: String, req: HoldButacaRequest): ApiResult<Unit> {
         return try {
             val response = api.holdButaca(numSala, peliculaId, horario, req)
-            when (response) {
-                HttpStatusCode.OK,
-                HttpStatusCode.Created,
-                HttpStatusCode.NoContent -> ApiResult.Success(Unit)
-
-                HttpStatusCode.BadRequest ->
-                    ApiResult.Error(AppError.Validation(mapOf("request" to "Datos de bloqueo inválidos")))
-                HttpStatusCode.Unauthorized ->
-                    ApiResult.Error(AppError.Unauthorized(mapOf("auth" to "No autenticado")))
-                HttpStatusCode.Forbidden ->
-                    ApiResult.Error(AppError.Forbidden(mapOf("auth" to "No autorizado")))
-                HttpStatusCode.NotFound ->
-                    ApiResult.Error(AppError.NotFound(mapOf("sesion" to "Sesión no encontrada")))
-                HttpStatusCode.Conflict ->
-                    ApiResult.Error(AppError.Conflict(mapOf("butaca" to "Butaca ocupada o bloqueada")))
-                else ->
-                    ApiResult.Error(
-                        AppError.Server(
-                            code = response.value,
-                            details = mapOf("error" to "Error HTTP ${response.value}")
-                        )
-                    )
-            }
+            response.toSeatMutationResult("Datos de bloqueo inválidos")
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
         }
@@ -138,29 +132,7 @@ class SesionRepositoryImpl(
     override suspend fun releaseButaca(numSala: Int, peliculaId: String, horario: String, req: HoldButacaRequest): ApiResult<Unit> {
         return try {
             val response = api.releaseButaca(numSala, peliculaId, horario, req)
-            when (response) {
-                HttpStatusCode.OK,
-                HttpStatusCode.Created,
-                HttpStatusCode.NoContent -> ApiResult.Success(Unit)
-
-                HttpStatusCode.BadRequest ->
-                    ApiResult.Error(AppError.Validation(mapOf("request" to "Datos de bloqueo inválidos")))
-                HttpStatusCode.Unauthorized ->
-                    ApiResult.Error(AppError.Unauthorized(mapOf("auth" to "No autenticado")))
-                HttpStatusCode.Forbidden ->
-                    ApiResult.Error(AppError.Forbidden(mapOf("auth" to "No autorizado")))
-                HttpStatusCode.NotFound ->
-                    ApiResult.Error(AppError.NotFound(mapOf("sesion" to "Sesión no encontrada")))
-                HttpStatusCode.Conflict ->
-                    ApiResult.Error(AppError.Conflict(mapOf("butaca" to "Butaca ocupada o bloqueada")))
-                else ->
-                    ApiResult.Error(
-                        AppError.Server(
-                            code = response.value,
-                            details = mapOf("error" to "Error HTTP ${response.value}")
-                        )
-                    )
-            }
+            response.toSeatMutationResult("Datos de bloqueo inválidos")
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
         }
@@ -176,5 +148,31 @@ class SesionRepositoryImpl(
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
         }
+    }
+}
+
+private fun HttpStatusCode.toSeatMutationResult(validationMessage: String): ApiResult<Unit> {
+    return when (this) {
+        HttpStatusCode.OK,
+        HttpStatusCode.Created,
+        HttpStatusCode.NoContent -> ApiResult.Success(Unit)
+
+        HttpStatusCode.BadRequest ->
+            ApiResult.Error(AppError.Validation(mapOf("request" to validationMessage)))
+        HttpStatusCode.Unauthorized ->
+            ApiResult.Error(AppError.Unauthorized(mapOf("auth" to "No autenticado")))
+        HttpStatusCode.Forbidden ->
+            ApiResult.Error(AppError.Forbidden(mapOf("auth" to "No autorizado")))
+        HttpStatusCode.NotFound ->
+            ApiResult.Error(AppError.NotFound(mapOf("sesion" to "Sesión no encontrada")))
+        HttpStatusCode.Conflict ->
+            ApiResult.Error(AppError.Conflict(mapOf("butaca" to "Butaca ocupada o bloqueada")))
+        else ->
+            ApiResult.Error(
+                AppError.Server(
+                    code = value,
+                    details = mapOf("error" to "Error HTTP $value")
+                )
+            )
     }
 }

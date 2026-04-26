@@ -25,7 +25,9 @@ fun CheckoutContainer(
     session: Sesion,
     state: CheckoutState,
     seatMatrix: SeatMatrix,
-    onBack: () -> Unit,
+    remainingSeconds: Long,
+    onCancelCheckout: () -> Unit,
+    onPurchaseCompleted: () -> Unit,
     onPreviousStep: () -> Unit,
     onSeatClick: (SeatPosition) -> Unit,
     onContinue: () -> Unit
@@ -60,7 +62,11 @@ fun CheckoutContainer(
                 .fillMaxSize()
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
-                CheckoutHeaderTop(session, onBack)
+                CheckoutHeaderTop(
+                    session = session,
+                    remainingSeconds = remainingSeconds,
+                    onBack = onCancelCheckout
+                )
 
                 CheckoutStepperModern(
                     step = state.step,
@@ -124,7 +130,7 @@ fun CheckoutContainer(
                     CheckoutBottomBar(
                         step = state.step,
                         compactLayout = compactLayout,
-                        onExit = onBack,
+                        onExit = onCancelCheckout,
                         onPrevious = onPreviousStep,
                         onContinue = onContinue,
                         continueEnabled = when (state.step) {
@@ -132,7 +138,6 @@ fun CheckoutContainer(
                             CheckoutStep.TICKETS -> tickets.total() == state.selectedSeats.size && state.selectedSeats.isNotEmpty()
                             CheckoutStep.BAR -> true
                             CheckoutStep.SUMMARY -> true
-                            CheckoutStep.PAYMENT -> false
                         }
                     )
                 }
@@ -143,8 +148,7 @@ fun CheckoutContainer(
     if (paymentDone) {
         PaymentStep(
             onClose = {
-                paymentDone = false
-                onBack()
+                onPurchaseCompleted()
             }
         )
     }

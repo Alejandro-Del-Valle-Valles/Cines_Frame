@@ -28,6 +28,7 @@ import com.alejandro.proyecto_cines_frame.ui.components.session.SessionRow
 fun MovieCard(
     movie: Pelicula,
     sessions: List<Sesion>,
+    onSessionClick: (Sesion) -> Unit = {},
     modifier: Modifier = Modifier,
     cardWidth: Dp = 110.dp,
     posterHeight: Dp = 160.dp,
@@ -97,7 +98,8 @@ fun MovieCard(
         if (movieSessions.isNotEmpty()) {
             SessionRow(
                 sessions = movieSessions,
-                scale = sessionScale
+                scale = sessionScale,
+                onSessionClick = onSessionClick
             )
         }
     }

@@ -14,6 +14,7 @@ interface SesionRepository {
     suspend fun createSesion(sesion: SesionCrudDTO) : ApiResult<Sesion>
     suspend fun deleteSesion(sesion: SesionCrudDTO) : ApiResult<Sesion>
     suspend fun createHoldToken(numSala: Int, peliculaId: String, horario: String) : ApiResult<HoldToken>
+    suspend fun releaseHoldToken(numSala: Int, peliculaId: String, horario: String, token: String) : ApiResult<Unit>
     suspend fun holdButaca(numSala: Int, peliculaId: String, horario: String, req: HoldButacaRequest) : ApiResult<Unit>
     suspend fun releaseButaca(numSala: Int, peliculaId: String, horario: String, req: HoldButacaRequest) : ApiResult<Unit>
     suspend fun butacasStatus(numSala: Int, peliculaId: String, horario: String) : ApiResult<ButacasStatusResponse>

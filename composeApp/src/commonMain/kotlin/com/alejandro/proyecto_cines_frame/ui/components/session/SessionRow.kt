@@ -13,6 +13,7 @@ import com.alejandro.proyecto_cines_frame.domain.model.Sesion
 fun SessionRow(
     sessions: List<Sesion>,
     scale: Float,
+    onSessionClick: (Sesion) -> Unit = {},
     formatTime: (Sesion) -> String = {
         "%02d:%02d".format(it.horario.hour, it.horario.minute)
     }
@@ -35,7 +36,8 @@ fun SessionRow(
                 text = formatDate(firstSession.horario),
                 scale = scale,
                 showIcons = false,
-                fillWidth = true
+                fillWidth = true,
+                onClick = onSessionClick
             )
 
         } else {
@@ -45,7 +47,8 @@ fun SessionRow(
                     text = formatTime(session),
                     scale = scale,
                     showIcons = true,
-                    fillWidth = false
+                    fillWidth = false,
+                    onClick = onSessionClick
                 )
             }
         }

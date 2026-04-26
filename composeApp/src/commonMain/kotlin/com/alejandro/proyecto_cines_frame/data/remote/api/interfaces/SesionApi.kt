@@ -14,6 +14,7 @@ interface SesionApi {
     suspend fun createSesion(sesion: SesionCrudDTO) : SesionCompletaDTO
     suspend fun deleteSesion(sesion: SesionCrudDTO) : SesionCompletaDTO
     suspend fun createHoldToken(numSala: Int, peliculaId: String, horario: String) : HoldTokenResponse
+    suspend fun releaseHoldToken(numSala: Int, peliculaId: String, horario: String, token: String) : HttpStatusCode
     suspend fun holdButaca(numSala: Int, peliculaId: String, horario: String, req: HoldButacaRequest) : HttpStatusCode
     suspend fun releaseButaca(numSala: Int, peliculaId: String, horario: String, req: HoldButacaRequest) : HttpStatusCode
     suspend fun butacasStatus(numSala: Int, peliculaId: String, horario: String) : ButacasStatusResponse

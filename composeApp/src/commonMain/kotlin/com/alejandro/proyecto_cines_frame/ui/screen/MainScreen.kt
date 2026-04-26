@@ -22,14 +22,18 @@ import com.alejandro.proyecto_cines_frame.core.security.CredentialStoreFactory
 import com.alejandro.proyecto_cines_frame.core.session.SessionManager
 import com.alejandro.proyecto_cines_frame.data.remote.api.KtorBanerApi
 import com.alejandro.proyecto_cines_frame.data.remote.api.KtorCuentaApi
+import com.alejandro.proyecto_cines_frame.data.remote.api.KtorSalaApi
 import com.alejandro.proyecto_cines_frame.data.remote.api.KtorSesionApi
 import com.alejandro.proyecto_cines_frame.data.remote.client.HttpClientFactory
 import com.alejandro.proyecto_cines_frame.data.repository.BanerRepositoryImpl
 import com.alejandro.proyecto_cines_frame.data.repository.CuentaRepositoryImpl
+import com.alejandro.proyecto_cines_frame.data.repository.SalaRepositoryImpl
 import com.alejandro.proyecto_cines_frame.data.repository.SesionRepositoryImpl
+import com.alejandro.proyecto_cines_frame.domain.model.Sesion
+import com.alejandro.proyecto_cines_frame.domain.repository.BanerRepository
+import com.alejandro.proyecto_cines_frame.domain.repository.SalaRepository
 import com.alejandro.proyecto_cines_frame.domain.repository.SesionRepository
 import com.alejandro.proyecto_cines_frame.ui.components.banner.Banner
-import com.alejandro.proyecto_cines_frame.ui.components.banner.OfflineBannerScreen
 import com.alejandro.proyecto_cines_frame.ui.components.features.movies.MovieSection
 import com.alejandro.proyecto_cines_frame.ui.components.filter.*
 import com.alejandro.proyecto_cines_frame.ui.components.footer.Footer
@@ -45,14 +49,14 @@ import com.alejandro.proyecto_cines_frame.ui.theme.BackgroundDark
 import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
 import org.jetbrains.compose.resources.painterResource
 import proyecto_cines_frame.composeapp.generated.resources.Res
-import proyecto_cines_frame.composeapp.generated.resources.banner
 import proyecto_cines_frame.composeapp.generated.resources.calendar
 import kotlinx.coroutines.launch
 
 @Composable
 fun MainScreen(
     sesionRepository: SesionRepository? = null,
-    bannerRepository: SesionRepository? = null
+    bannerRepository: BanerRepository? = null,
+    salaRepository: SalaRepository? = null
 ) {
     val moviesRepository = sesionRepository ?: remember {
         SesionRepositoryImpl(
@@ -60,9 +64,15 @@ fun MainScreen(
         )
     }
 
-    val bannerRepository = remember {
+    val banerRepository = bannerRepository ?: remember {
         BanerRepositoryImpl(
             api = KtorBanerApi(HttpClientFactory.create())
+        )
+    }
+
+    val salasRepository = salaRepository ?: remember {
+        SalaRepositoryImpl(
+            api = KtorSalaApi(HttpClientFactory.create())
         )
     }
 
@@ -118,6 +128,11 @@ fun MainScreen(
     var isApiBlocked by remember {
         mutableStateOf(false)
     }
+
+    var checkoutSession by remember { mutableStateOf<Sesion?>(null) }
+    var checkoutSalaCapacity by remember { mutableStateOf(0) }
+    var isOpeningCheckout by remember { mutableStateOf(false) }
+    var checkoutErrorMessage by remember { mutableStateOf<String?>(null) }
 
     var sessionState by remember {
         mutableStateOf(MainSessionsUiState(isLoading = true))
@@ -180,11 +195,11 @@ fun MainScreen(
         }
     }
 
-    LaunchedEffect(bannerRepository) {
+    LaunchedEffect(banerRepository) {
 
         bannerState = BannersUiState(isLoading = true)
 
-        when (val result = bannerRepository.getBanersToday()) {
+        when (val result = banerRepository.getBanersToday()) {
             is ApiResult.Success -> {
                 bannerState = BannersUiState(
                     banners = result.data,
@@ -251,6 +266,18 @@ fun MainScreen(
                 currentScreen = "login"
             },
             presenter = registerPresenter
+        )
+        return
+    }
+
+    if (currentScreen == "checkout" && checkoutSession != null) {
+        CheckoutScreen(
+            session = checkoutSession!!,
+            salaCapacity = checkoutSalaCapacity,
+            onBack = {
+                currentScreen = "main"
+            },
+            sesionRepository = moviesRepository
         )
         return
     }
@@ -362,7 +389,44 @@ fun MainScreen(
                     MovieSection(
                         title = "CARTELERA",
                         movies = carteleraMovies,
-                        sessions = carteleraSessions
+                        sessions = carteleraSessions,
+                        onSessionClick = { sessionClicked ->
+                            scope.launch {
+                                isOpeningCheckout = true
+                                checkoutErrorMessage = null
+
+                                val sesionResult = moviesRepository.getSesion(
+                                    numSala = sessionClicked.numSala,
+                                    peliculaId = sessionClicked.pelicula.id,
+                                    horario = sessionClicked.horario.toString()
+                                )
+
+                                val sesionDetalle = when (sesionResult) {
+                                    is ApiResult.Success -> sesionResult.data
+                                    is ApiResult.Error -> {
+                                        checkoutErrorMessage = toMainScreenErrorMessage(sesionResult.error)
+                                        isOpeningCheckout = false
+                                        return@launch
+                                    }
+                                }
+
+                                val salaResult = salasRepository.getByNumero(sesionDetalle.numSala)
+
+                                when (salaResult) {
+                                    is ApiResult.Success -> {
+                                        checkoutSession = sesionDetalle
+                                        checkoutSalaCapacity = salaResult.data.aforo
+                                        currentScreen = "checkout"
+                                    }
+
+                                    is ApiResult.Error -> {
+                                        checkoutErrorMessage = toMainScreenErrorMessage(salaResult.error)
+                                    }
+                                }
+
+                                isOpeningCheckout = false
+                            }
+                        }
                     )
                 }
 
@@ -380,8 +444,65 @@ fun MainScreen(
                     MovieSection(
                         title = "PRÓXIMOS ESTRENOS",
                         movies = estrenoMovies,
-                        sessions = estrenoSessions
+                        sessions = estrenoSessions,
+                        onSessionClick = { sessionClicked ->
+                            scope.launch {
+                                isOpeningCheckout = true
+                                checkoutErrorMessage = null
+
+                                val sesionResult = moviesRepository.getSesion(
+                                    numSala = sessionClicked.numSala,
+                                    peliculaId = sessionClicked.pelicula.id,
+                                    horario = sessionClicked.horario.toString()
+                                )
+
+                                val sesionDetalle = when (sesionResult) {
+                                    is ApiResult.Success -> sesionResult.data
+                                    is ApiResult.Error -> {
+                                        checkoutErrorMessage = toMainScreenErrorMessage(sesionResult.error)
+                                        isOpeningCheckout = false
+                                        return@launch
+                                    }
+                                }
+
+                                val salaResult = salasRepository.getByNumero(sesionDetalle.numSala)
+
+                                when (salaResult) {
+                                    is ApiResult.Success -> {
+                                        checkoutSession = sesionDetalle
+                                        checkoutSalaCapacity = salaResult.data.aforo
+                                        currentScreen = "checkout"
+                                    }
+
+                                    is ApiResult.Error -> {
+                                        checkoutErrorMessage = toMainScreenErrorMessage(salaResult.error)
+                                    }
+                                }
+
+                                isOpeningCheckout = false
+                            }
+                        }
                     )
+                }
+
+                if (isOpeningCheckout) {
+                    item {
+                        Text(
+                            text = "Abriendo checkout...",
+                            color = TextWhite,
+                            modifier = Modifier.padding(horizontal = 12.dp)
+                        )
+                    }
+                }
+
+                if (!checkoutErrorMessage.isNullOrBlank()) {
+                    item {
+                        Text(
+                            text = checkoutErrorMessage.orEmpty(),
+                            color = TextWhite,
+                            modifier = Modifier.padding(horizontal = 12.dp)
+                        )
+                    }
                 }
                 item {
                     Spacer(Modifier.height(24.dp))
