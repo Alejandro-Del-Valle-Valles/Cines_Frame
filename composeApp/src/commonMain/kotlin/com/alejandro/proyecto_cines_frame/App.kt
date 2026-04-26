@@ -16,8 +16,9 @@ import proyecto_cines_frame.composeapp.generated.resources.logo_frames
 @Preview
 fun App() {
     AppTheme {
-        //MainScreen()
-        MaterialTheme {
+        MainScreen()
+
+        /*MaterialTheme {
             MovieDetailScreen(
                 title = "Atrapando a un monstruo",
                 description = "Aurora, una niña de 10 años, está convencida de que el monstruo que vive bajo su cama se ha comido a su familia...",
@@ -28,6 +29,6 @@ fun App() {
                 imagePainter = painterResource(Res.drawable.logo_frames), // usa el que tengas
                 onBackClick = {}
             )
-        }
+        }*/
     }
 }
