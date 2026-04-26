@@ -12,6 +12,7 @@ import com.alejandro.proyecto_cines_frame.domain.model.Sesion
 fun MovieGrid(
     movies: List<Pelicula>,
     sessions: List<Sesion>,
+    onMovieClick: (Pelicula) -> Unit = {},
     onSessionClick: (Sesion) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -34,6 +35,7 @@ fun MovieGrid(
                 MovieRow(
                     movies = rowMovies,
                     sessions = sessions,
+                    onMovieClick = onMovieClick,
                     onSessionClick = onSessionClick,
                     columns = columns,
                     cardWidth = cardSize.width,

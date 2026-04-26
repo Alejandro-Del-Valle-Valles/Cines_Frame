@@ -1,6 +1,7 @@
 package com.alejandro.proyecto_cines_frame.ui.components.features.movies
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
@@ -28,6 +29,7 @@ import com.alejandro.proyecto_cines_frame.ui.components.session.SessionRow
 fun MovieCard(
     movie: Pelicula,
     sessions: List<Sesion>,
+    onMovieClick: (Pelicula) -> Unit = {},
     onSessionClick: (Sesion) -> Unit = {},
     modifier: Modifier = Modifier,
     cardWidth: Dp = 110.dp,
@@ -40,23 +42,23 @@ fun MovieCard(
     val movieSessions = remember(sessions, movie.id) {
         sessions.filter { it.pelicula.id == movie.id }
     }
-
     Column(
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier.width(cardWidth)
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(posterHeight)
                 .hoverable(interactionSource)
+                .clip(RoundedCornerShape(12.dp))
+                .clickable { onMovieClick(movie) }
         ) {
             if (!movie.portada.isNullOrBlank()) {
                 AsyncImage(
                     model = movie.portada,
-                    contentDescription = "Portada de ${movie.nombre}",
+                    contentDescription = "Portada de la película ${movie.nombre}",
                     modifier = Modifier
                         .matchParentSize()
-                        .clip(RoundedCornerShape(12.dp))
                         .background(Color.DarkGray),
                     contentScale = ContentScale.Crop
                 )
@@ -64,7 +66,6 @@ fun MovieCard(
                 Box(
                     modifier = Modifier
                         .matchParentSize()
-                        .clip(RoundedCornerShape(12.dp))
                         .background(Color.Gray),
                     contentAlignment = Alignment.Center
                 ) {
@@ -92,7 +93,6 @@ fun MovieCard(
                 }
             }
         }
-
         Spacer(modifier = Modifier.height(6.dp * sessionScale))
 
         if (movieSessions.isNotEmpty()) {

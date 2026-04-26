@@ -14,7 +14,7 @@ import com.alejandro.proyecto_cines_frame.ui.components.footer.FooterUtils
 import com.alejandro.proyecto_cines_frame.ui.theme.ColorFondoHeader
 import org.jetbrains.compose.resources.painterResource
 import proyecto_cines_frame.composeapp.generated.resources.Res
-import proyecto_cines_frame.composeapp.generated.resources.banner
+import proyecto_cines_frame.composeapp.generated.resources.logo_frames
 
 @Composable
 fun MovieDetailScreen(
@@ -55,7 +55,7 @@ fun PreviewMovieDetailScreen() {
             actors = "Matthew McConaughey, Anne Hathaway",
             duration = "169 min",
             ageRating = "+12",
-            imagePainter = painterResource(Res.drawable.banner), // Aquí va la imagen de prueba
+            imagePainter = painterResource(Res.drawable.logo_frames), // Aquí va la imagen de prueba
             onBackClick = {}
         )
     }

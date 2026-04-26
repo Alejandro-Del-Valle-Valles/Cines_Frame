@@ -22,6 +22,7 @@ fun MovieSection(
     title: String,
     movies: List<Pelicula>,
     sessions: List<Sesion>,
+    onMovieClick: (Pelicula) -> Unit = {},
     onSessionClick: (Sesion) -> Unit = {}
 ) {
     Column(
@@ -45,6 +46,7 @@ fun MovieSection(
             MovieGrid(
                 movies = movies,
                 sessions = sessions,
+                onMovieClick = onMovieClick,
                 onSessionClick = onSessionClick
             )
         }

@@ -9,7 +9,6 @@ import com.alejandro.proyecto_cines_frame.ui.screen.MovieDetailScreen
 import com.alejandro.proyecto_cines_frame.ui.theme.AppTheme
 import org.jetbrains.compose.resources.painterResource
 import proyecto_cines_frame.composeapp.generated.resources.Res
-import proyecto_cines_frame.composeapp.generated.resources.banner
 import proyecto_cines_frame.composeapp.generated.resources.logo_frames
 
 @Composable
@@ -17,18 +16,5 @@ import proyecto_cines_frame.composeapp.generated.resources.logo_frames
 fun App() {
     AppTheme {
         MainScreen()
-
-        /*MaterialTheme {
-            MovieDetailScreen(
-                title = "Atrapando a un monstruo",
-                description = "Aurora, una niña de 10 años, está convencida de que el monstruo que vive bajo su cama se ha comido a su familia...",
-                directors = "Bryan Fuller",
-                actors = "Mads Mikkelsen, David Dastmalchian, Sigourney Weaver, Sophie Sloan",
-                duration = "105'",
-                ageRating = "16 años",
-                imagePainter = painterResource(Res.drawable.logo_frames), // usa el que tengas
-                onBackClick = {}
-            )
-        }*/
     }
 }
