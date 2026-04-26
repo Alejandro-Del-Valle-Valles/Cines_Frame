@@ -33,6 +33,16 @@ data class CartProduct(
 ) {
     fun lineTotal(): Float = producto.precio * cantidad
 }
+
+data class PaymentFormData(
+    val holder: String = "",
+    val cardNumber: String = "",
+    val expiry: String = "",
+    val cvv: String = "",
+    val email: String = "",
+    val confirmEmail: String = ""
+)
+
 fun nextStep(step: CheckoutStep): CheckoutStep {
     return when (step) {
         CheckoutStep.SEATS -> CheckoutStep.TICKETS

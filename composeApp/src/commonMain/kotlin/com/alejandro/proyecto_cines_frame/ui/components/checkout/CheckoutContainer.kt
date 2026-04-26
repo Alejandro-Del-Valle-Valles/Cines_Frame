@@ -10,14 +10,19 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.alejandro.proyecto_cines_frame.core.session.SessionManager
+import com.alejandro.proyecto_cines_frame.domain.extension.toFirstUiMessagePerField
 import com.alejandro.proyecto_cines_frame.domain.model.Producto
 import com.alejandro.proyecto_cines_frame.domain.model.Sesion
+import com.alejandro.proyecto_cines_frame.domain.validation.CheckoutPaymentValidator
 import com.alejandro.proyecto_cines_frame.ui.theme.SurfaceDark
 
 @Composable
@@ -32,7 +37,13 @@ fun CheckoutContainer(
     onSeatClick: (SeatPosition) -> Unit,
     onContinue: () -> Unit
 ) {
+    val authState by SessionManager.state.collectAsState()
+    val sessionEmail = authState.cuenta?.usuario?.correo.orEmpty()
+    val isAuthenticated = authState.isAuthenticated && sessionEmail.isNotBlank()
+
     var tickets by remember { mutableStateOf(TicketSelection()) }
+    var paymentFormData by remember { mutableStateOf(PaymentFormData()) }
+    var paymentFieldErrors by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
 
     var products by remember {
         mutableStateOf(
@@ -46,6 +57,15 @@ fun CheckoutContainer(
     }
 
     var paymentDone by remember { mutableStateOf(false) }
+
+    LaunchedEffect(isAuthenticated, sessionEmail) {
+        if (isAuthenticated) {
+            paymentFormData = paymentFormData.copy(
+                email = sessionEmail,
+                confirmEmail = sessionEmail
+            )
+        }
+    }
 
     BoxWithConstraints(
         modifier = Modifier
@@ -117,9 +137,50 @@ fun CheckoutContainer(
                         CheckoutStep.PAYMENT -> {
                             PaymentFormStep(
                                 compactLayout = compactLayout,
+                                formData = paymentFormData,
+                                fieldErrors = paymentFieldErrors,
+                                showEmailFields = !isAuthenticated,
+                                sessionEmail = sessionEmail,
+                                onHolderChange = {
+                                    paymentFormData = paymentFormData.copy(holder = it)
+                                    paymentFieldErrors = paymentFieldErrors - "holder"
+                                },
+                                onCardChange = {
+                                    paymentFormData = paymentFormData.copy(cardNumber = it.filter(Char::isDigit))
+                                    paymentFieldErrors = paymentFieldErrors - "cardNumber"
+                                },
+                                onExpiryChange = {
+                                    paymentFormData = paymentFormData.copy(expiry = it)
+                                    paymentFieldErrors = paymentFieldErrors - "expiry"
+                                },
+                                onCvvChange = {
+                                    paymentFormData = paymentFormData.copy(cvv = it.filter(Char::isDigit).take(3))
+                                    paymentFieldErrors = paymentFieldErrors - "cvv"
+                                },
+                                onEmailChange = {
+                                    paymentFormData = paymentFormData.copy(email = it)
+                                    paymentFieldErrors = paymentFieldErrors - "email"
+                                },
+                                onConfirmEmailChange = {
+                                    paymentFormData = paymentFormData.copy(confirmEmail = it)
+                                    paymentFieldErrors = paymentFieldErrors - "confirmEmail"
+                                },
                                 onBack = onPreviousStep,
                                 onPay = {
-                                    paymentDone = true
+                                    val errors = CheckoutPaymentValidator
+                                        .validate(
+                                            holder = paymentFormData.holder,
+                                            cardNumber = paymentFormData.cardNumber,
+                                            expiry = paymentFormData.expiry,
+                                            cvv = paymentFormData.cvv,
+                                            email = if (isAuthenticated) sessionEmail else paymentFormData.email,
+                                            confirmEmail = if (isAuthenticated) sessionEmail else paymentFormData.confirmEmail,
+                                            requireEmail = !isAuthenticated
+                                        )
+                                        .toFirstUiMessagePerField()
+
+                                    paymentFieldErrors = errors
+                                    paymentDone = errors.isEmpty()
                                 }
                             )
                         }
