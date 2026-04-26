@@ -21,7 +21,8 @@ import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
 fun MovieSection(
     title: String,
     movies: List<Pelicula>,
-    sessions: List<Sesion>
+    sessions: List<Sesion>,
+    onSessionClick: (Sesion) -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -43,7 +44,8 @@ fun MovieSection(
         } else {
             MovieGrid(
                 movies = movies,
-                sessions = sessions
+                sessions = sessions,
+                onSessionClick = onSessionClick
             )
         }
     }

@@ -43,10 +43,7 @@ class KtorAlergenoApi(
     /**
      * Actualiza un alérgeno
      */
-    override suspend fun updateAlergeno(
-        nombre: String,
-        alergeno: AlergenoDTO
-    ): AlergenoDTO =
+    override suspend fun updateAlergeno(nombre: String, alergeno: AlergenoDTO): AlergenoDTO =
         httpClient.put("$baseUrl/$nombre"){
             contentType(ContentType.Application.Json)
             setBody(alergeno)

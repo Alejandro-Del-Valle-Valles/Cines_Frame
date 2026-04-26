@@ -38,6 +38,8 @@ kotlin {
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(libs.kotlinx.datetime)
             implementation(libs.ktor.client.auth)
+            implementation(libs.coil.compose)
+            implementation(libs.coil.network.ktor)
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
             implementation("io.ktor:ktor-client-core:3.4.2")
             implementation("io.ktor:ktor-client-content-negotiation:3.4.2")
@@ -45,6 +47,12 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
+        }
+        jvmTest.dependencies {
+            implementation(libs.kotlin.testJunit)
+            implementation("io.mockk:mockk:1.13.13")
+            implementation("io.ktor:ktor-client-mock:3.4.2")
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
@@ -64,7 +72,7 @@ android {
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
-        versionName = "1.0"
+        versionName = "Alpha-0.4"
     }
     packaging {
         resources {

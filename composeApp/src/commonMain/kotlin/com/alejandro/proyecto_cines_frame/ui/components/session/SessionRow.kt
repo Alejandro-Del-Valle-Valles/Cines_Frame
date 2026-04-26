@@ -13,6 +13,7 @@ import com.alejandro.proyecto_cines_frame.domain.model.Sesion
 fun SessionRow(
     sessions: List<Sesion>,
     scale: Float,
+    onSessionClick: (Sesion) -> Unit = {},
     formatTime: (Sesion) -> String = {
         "%02d:%02d".format(it.horario.hour, it.horario.minute)
     }
@@ -31,15 +32,23 @@ fun SessionRow(
             val firstSession = sessions.minBy { it.horario }
 
             SessionChip(
+                session = firstSession,
                 text = formatDate(firstSession.horario),
-                scale = scale
+                scale = scale,
+                showIcons = false,
+                fillWidth = true,
+                onClick = onSessionClick
             )
 
         } else {
             sessions.forEach { session ->
                 SessionChip(
+                    session = session,
                     text = formatTime(session),
-                    scale = scale
+                    scale = scale,
+                    showIcons = true,
+                    fillWidth = false,
+                    onClick = onSessionClick
                 )
             }
         }

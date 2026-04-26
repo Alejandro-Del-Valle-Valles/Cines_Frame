@@ -26,7 +26,9 @@ fun HeaderEscritorio(
     onEntradasClick: () -> Unit,
     onLoginClick: () -> Unit,
     onRegisterClick: () -> Unit,
-    onLogoutClick: () -> Unit
+    onMyAccountClick: () -> Unit,
+    onLogoutClick: () -> Unit,
+    isSessionActive: Boolean
 ) {
     Row(modifier = Modifier.fillMaxWidth()) {
         HeaderBrand(
@@ -50,7 +52,9 @@ fun HeaderEscritorio(
             onEntradasClick,
             onLoginClick,
             onRegisterClick,
-            onLogoutClick
+            onMyAccountClick,
+            onLogoutClick,
+            isSessionActive
         )
     }
 }

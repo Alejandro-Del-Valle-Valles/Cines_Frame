@@ -22,7 +22,9 @@ fun Header(
     onEntradasClick: () -> Unit,
     onLoginClick: () -> Unit,
     onRegisterClick: () -> Unit,
-    onLogoutClick: () -> Unit
+    onMyAccountClick: () -> Unit,
+    onLogoutClick: () -> Unit,
+    isSessionActive: Boolean
 ) {
     BoxWithConstraints(
         modifier = Modifier
@@ -47,7 +49,9 @@ fun Header(
                     onEntradasClick = onEntradasClick,
                     onLoginClick = onLoginClick,
                     onRegisterClick = onRegisterClick,
-                    onLogoutClick = onLogoutClick
+                    onMyAccountClick = onMyAccountClick,
+                    onLogoutClick = onLogoutClick,
+                    isSessionActive = isSessionActive
                 )
             } else {
                 HeaderMovil(
@@ -58,7 +62,9 @@ fun Header(
                     onEntradasClick = onEntradasClick,
                     onLoginClick = onLoginClick,
                     onRegisterClick = onRegisterClick,
-                    onLogoutClick = onLogoutClick
+                    onMyAccountClick = onMyAccountClick,
+                    onLogoutClick = onLogoutClick,
+                    isSessionActive = isSessionActive
                 )
             }
         }

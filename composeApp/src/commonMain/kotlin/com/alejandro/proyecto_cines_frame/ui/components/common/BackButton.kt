@@ -15,20 +15,13 @@ import androidx.compose.ui.unit.dp
 //Botón para volver al main
 @Composable
 fun BackButton(
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-        Text(
-            text = "<",
-            color = Color.White,
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier
-                .padding(16.dp)
-                .align(Alignment.TopStart)
-                .clickable { onClick() }
-        )
-    }
+    Text(
+        text = "<",
+        color = Color.White,
+        style = MaterialTheme.typography.headlineMedium,
+        modifier = modifier.clickable { onClick() }
+    )
 }

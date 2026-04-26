@@ -5,5 +5,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class CompraDTO(
     val correo: String,
+    val holdToken: String,
     val lineasCompra: List<LineaCompraDTO> = mutableListOf()
 )

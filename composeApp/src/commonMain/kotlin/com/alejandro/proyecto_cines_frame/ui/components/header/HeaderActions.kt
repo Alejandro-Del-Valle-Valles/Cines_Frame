@@ -20,7 +20,9 @@ fun HeaderActions(
     onEntradasClick: () -> Unit,
     onLoginClick: () -> Unit,
     onRegisterClick: () -> Unit,
-    onLogoutClick: () -> Unit
+    onMyAccountClick: () -> Unit,
+    onLogoutClick: () -> Unit,
+    isSessionActive: Boolean
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -40,27 +42,37 @@ fun HeaderActions(
                 expanded = expanded,
                 onDismissRequest = { expanded = false }
             ) {
-                DropdownMenuItem(
-                    text = { Text("Iniciar sesión") },
-                    onClick = {
-                        expanded = false
-                        onLoginClick()
-                    }
-                )
-                DropdownMenuItem(
-                    text = { Text("Crear cuenta") },
-                    onClick = {
-                        expanded = false
-                        onRegisterClick()
-                    }
-                )
-                DropdownMenuItem(
-                    text = { Text("Cerrar sesión") },
-                    onClick = {
-                        expanded = false
-                        onLogoutClick()
-                    }
-                )
+                if(!isSessionActive) {
+                    DropdownMenuItem(
+                        text = { Text("Iniciar sesión") },
+                        onClick = {
+                            expanded = false
+                            onLoginClick()
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Crear cuenta") },
+                        onClick = {
+                            expanded = false
+                            onRegisterClick()
+                        }
+                    )
+                } else {
+                    DropdownMenuItem(
+                        text = { Text("Mi Cuenta") },
+                        onClick = {
+                            expanded = false
+                            onMyAccountClick()
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Cerrar sesión") },
+                        onClick = {
+                            expanded = false
+                            onLogoutClick()
+                        }
+                    )
+                }
             }
         }
     }

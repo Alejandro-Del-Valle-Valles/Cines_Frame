@@ -8,37 +8,109 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.alejandro.proyecto_cines_frame.core.error.AppError
+import com.alejandro.proyecto_cines_frame.core.error.ApiResult
+import com.alejandro.proyecto_cines_frame.core.security.CredentialStoreFactory
+import com.alejandro.proyecto_cines_frame.core.session.SessionManager
+import com.alejandro.proyecto_cines_frame.data.remote.api.KtorBanerApi
+import com.alejandro.proyecto_cines_frame.data.remote.api.KtorCuentaApi
+import com.alejandro.proyecto_cines_frame.data.remote.api.KtorSalaApi
+import com.alejandro.proyecto_cines_frame.data.remote.api.KtorSesionApi
+import com.alejandro.proyecto_cines_frame.data.remote.client.HttpClientFactory
+import com.alejandro.proyecto_cines_frame.data.repository.BanerRepositoryImpl
+import com.alejandro.proyecto_cines_frame.data.repository.CuentaRepositoryImpl
+import com.alejandro.proyecto_cines_frame.data.repository.SalaRepositoryImpl
+import com.alejandro.proyecto_cines_frame.data.repository.SesionRepositoryImpl
+import com.alejandro.proyecto_cines_frame.domain.model.Sesion
+import com.alejandro.proyecto_cines_frame.domain.repository.BanerRepository
+import com.alejandro.proyecto_cines_frame.domain.repository.SalaRepository
+import com.alejandro.proyecto_cines_frame.domain.repository.SesionRepository
 import com.alejandro.proyecto_cines_frame.ui.components.banner.Banner
-import com.alejandro.proyecto_cines_frame.ui.components.features.movies.MovieMockData
 import com.alejandro.proyecto_cines_frame.ui.components.features.movies.MovieSection
 import com.alejandro.proyecto_cines_frame.ui.components.filter.*
 import com.alejandro.proyecto_cines_frame.ui.components.footer.Footer
 import com.alejandro.proyecto_cines_frame.ui.components.header.Header
 import com.alejandro.proyecto_cines_frame.ui.components.header.HeaderUtils
+import com.alejandro.proyecto_cines_frame.ui.components.header.filter.applySearch
 import com.alejandro.proyecto_cines_frame.ui.logic.MovieUiMapper
+import com.alejandro.proyecto_cines_frame.ui.logic.formatters.SessionRangeFormatter
+import com.alejandro.proyecto_cines_frame.ui.logic.presenter.LoginPresenter
+import com.alejandro.proyecto_cines_frame.ui.logic.presenter.RegisterPresenter
+import com.alejandro.proyecto_cines_frame.ui.logic.state.BannersUiState
+import com.alejandro.proyecto_cines_frame.ui.logic.state.MainSessionsUiState
 import com.alejandro.proyecto_cines_frame.ui.theme.BackgroundDark
 import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
 import org.jetbrains.compose.resources.painterResource
 import proyecto_cines_frame.composeapp.generated.resources.Res
-import proyecto_cines_frame.composeapp.generated.resources.banner
 import proyecto_cines_frame.composeapp.generated.resources.calendar
+import kotlinx.coroutines.launch
+
 
 @Composable
-fun MainScreen() {
+fun MainScreen(
+    sesionRepository: SesionRepository? = null,
+    bannerRepository: BanerRepository? = null,
+    salaRepository: SalaRepository? = null
+) {
+    val moviesRepository = sesionRepository ?: remember {
+        SesionRepositoryImpl(
+            api = KtorSesionApi(HttpClientFactory.create())
+        )
+    }
 
-    val allSessions = remember { MovieMockData.getSesiones() }
+    val banerRepository = bannerRepository ?: remember {
+        BanerRepositoryImpl(
+            api = KtorBanerApi(HttpClientFactory.create())
+        )
+    }
+
+    val salasRepository = salaRepository ?: remember {
+        SalaRepositoryImpl(
+            api = KtorSalaApi(HttpClientFactory.create())
+        )
+    }
+
+    //Para poder cambia de pantalla
+    var currentScreen by remember { mutableStateOf("main") }
+
+    val scope = rememberCoroutineScope()
+
+    val cuentaRepository = remember {
+        CuentaRepositoryImpl(
+            api = KtorCuentaApi(HttpClientFactory.create()),
+            secureStore = CredentialStoreFactory.create()
+        )
+    }
+
+    val loginPresenter = remember(cuentaRepository, scope) {
+        LoginPresenter(
+            cuentaRepo = cuentaRepository,
+            scope = scope
+        )
+    }
+
+    val registerPresenter = remember(cuentaRepository, scope) {
+        RegisterPresenter(
+            cuentaRepo = cuentaRepository,
+            scope = scope
+        )
+    }
 
     val listState = rememberLazyListState()
 
     //SEARCH
     var searchQuery by rememberSaveable { mutableStateOf("") }
-    var isSearching by remember { mutableStateOf(false) }
+
+    val authState by SessionManager.state.collectAsState()
+    var isRestoringSession by remember { mutableStateOf(true) }
 
     //FILTER
     val availableDays = remember { buildCarteleraDays() }
@@ -50,14 +122,124 @@ fun MainScreen() {
             )
         )
     }
+
     val calendarDays = remember { buildCalendarDays() }
 
+    var isApiBlocked by remember {
+        mutableStateOf(false)
+    }
+
+    var checkoutSession by remember { mutableStateOf<Sesion?>(null) }
+    var checkoutSalaCapacity by remember { mutableStateOf(0) }
+    var isOpeningCheckout by remember { mutableStateOf(false) }
+    var checkoutErrorMessage by remember { mutableStateOf<String?>(null) }
+
+    var sessionState by remember {
+        mutableStateOf(MainSessionsUiState(isLoading = true))
+    }
+
+    var bannerState by remember {
+        mutableStateOf(BannersUiState(isLoading = true))
+    }
+
+    val fetchRange = remember(calendarDays) {
+        SessionRangeFormatter.buildRangeForCalendarDays(calendarDays)
+    }
+
+    LaunchedEffect(cuentaRepository) {
+        when (val result = cuentaRepository.autoLoginIfPossible()) {
+            is ApiResult.Success -> {
+                val cuenta = result.data
+                if (cuenta != null) {
+                    SessionManager.setSession(cuenta, cuenta.token)
+                } else {
+                    SessionManager.clearSession()
+                }
+            }
+
+            is ApiResult.Error -> {
+                SessionManager.clearSession()
+            }
+        }
+
+        isRestoringSession = false
+    }
+
+    LaunchedEffect(moviesRepository, fetchRange) {
+        if (fetchRange == null) {
+            sessionState = MainSessionsUiState(
+                isLoading = false,
+                errorMessage = "No hay dias disponibles para filtrar sesiones."
+            )
+            return@LaunchedEffect
+        }
+
+        sessionState = MainSessionsUiState(isLoading = true)
+
+        when (val result = moviesRepository.getByRangoHorario(fetchRange.first, fetchRange.second)) {
+            is ApiResult.Success -> {
+                sessionState = MainSessionsUiState(
+                    sessions = result.data,
+                    isLoading = false,
+                    errorMessage = null
+                )
+            }
+
+            is ApiResult.Error -> {
+                isApiBlocked =
+                    result.error is AppError.Network ||
+                            result.error is AppError.Server ||
+                            result.error is AppError.Unauthorized
+
+                sessionState = MainSessionsUiState(
+                    sessions = emptyList(),
+                    isLoading = false,
+                    errorMessage = toMainScreenErrorMessage(result.error)
+                )
+            }
+        }
+    }
+
+    LaunchedEffect(banerRepository) {
+        bannerState = BannersUiState(isLoading = true)
+
+        when (val result = banerRepository.getBanersToday()) {
+            is ApiResult.Success -> {
+                bannerState = BannersUiState(
+                    banners = result.data,
+                    isLoading = false,
+                    errorMessage = null
+                )
+            }
+
+            is ApiResult.Error -> {
+                isApiBlocked =
+                    result.error is AppError.Network ||
+                            result.error is AppError.Server ||
+                            result.error is AppError.Unauthorized
+
+                bannerState = BannersUiState(
+                    banners = emptyList(),
+                    isLoading = false,
+                    errorMessage = toMainScreenErrorMessage(result.error)
+                )
+            }
+        }
+    }
+
+    val allSessions = sessionState.sessions
+    val allBaners = bannerState.banners
+
     //LÓGICA (fuera de UI)
-    val (carteleraMovies, carteleraSessions) = remember(filterState) {
+    val (carteleraMoviesBase, carteleraSessions) = remember(filterState, allSessions) {
         MovieUiMapper.getFilteredCartelera(allSessions, filterState)
     }
 
-    val (estrenoMovies, estrenoSessions) = remember {
+    val carteleraMovies = remember(carteleraMoviesBase, searchQuery) {
+        carteleraMoviesBase.applySearch(searchQuery)
+    }
+
+    val (estrenoMovies, estrenoSessions) = remember(allSessions) {
         MovieUiMapper.getEstrenos(allSessions)
     }
 
@@ -70,14 +252,18 @@ fun MainScreen() {
         label = "opacidadOscurecimiento"
     )
 
-    //Para poder cambia de pantalla
-    var currentScreen by remember { mutableStateOf("main") }
+    LaunchedEffect(searchQuery) {
+        if (searchQuery.trim().length >= 3) {
+            listState.animateScrollToItem(3)
+        }
+    }
 
     if (currentScreen == "login") {
         LoginScreen(
             onLoginSuccess = {
                 currentScreen = "main"
-            }
+            },
+            presenter = loginPresenter
         )
         return
     }
@@ -85,9 +271,34 @@ fun MainScreen() {
     if (currentScreen == "register") {
         RegisterScreen(
             onRegisterSuccess = {
-                currentScreen = "main"
-            }
+                currentScreen = "login"
+            },
+            presenter = registerPresenter
         )
+        return
+    }
+
+    if (currentScreen == "checkout" && checkoutSession != null) {
+        CheckoutScreen(
+            session = checkoutSession!!,
+            salaCapacity = checkoutSalaCapacity,
+            onBack = {
+                currentScreen = "main"
+            },
+            sesionRepository = moviesRepository
+        )
+        return
+    }
+
+    if (isRestoringSession) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(BackgroundDark),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(color = TextWhite)
+        }
         return
     }
 
@@ -105,9 +316,9 @@ fun MainScreen() {
                 searchQuery = it
             },
 
-            onSearchSubmit = { query ->
-                if (query.length >= 3) {
-                    isSearching = true
+            onSearchSubmit = {
+                scope.launch {
+                    listState.animateScrollToItem(3)
                 }
             },
 
@@ -125,7 +336,18 @@ fun MainScreen() {
                 currentScreen = "register"
             },
 
-            onLogoutClick = {}
+            onLogoutClick = {
+                scope.launch {
+                    cuentaRepository.logout(clearRememberedCredentials = true)
+                    SessionManager.clearSession()
+                }
+            },
+
+            onMyAccountClick = {
+                //TODO: Lanzar vista de "MiCuenta" con los datos de la cuenta y permitir modificación
+            },
+
+            isSessionActive = authState.isAuthenticated
         )
 
         Box(modifier = Modifier.fillMaxSize()) {
@@ -136,12 +358,20 @@ fun MainScreen() {
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
 
-                item {
-                    Banner(
-                        images = listOf(
-                            painterResource(Res.drawable.banner)
+                if (bannerState.isLoading) {
+                    item {
+                        Text(
+                            text = "Cargando banners...",
+                            color = TextWhite,
+                            modifier = Modifier.padding(horizontal = 12.dp)
                         )
-                    )
+                    }
+                }
+
+                if (allBaners.isNotEmpty()) {
+                    item {
+                        Banner(images = allBaners.map { it.url })
+                    }
                 }
 
                 item {
@@ -161,26 +391,140 @@ fun MainScreen() {
                         calendarPainter = painterResource(Res.drawable.calendar)
                     )
                 }
+
                 item {
                     // 🔹 CARTELERA FILTRADA
                     MovieSection(
                         title = "CARTELERA",
                         movies = carteleraMovies,
-                        sessions = carteleraSessions
+                        sessions = carteleraSessions,
+                        onSessionClick = { sessionClicked ->
+                            scope.launch {
+                                isOpeningCheckout = true
+                                checkoutErrorMessage = null
+
+                                val sesionResult = moviesRepository.getSesion(
+                                    numSala = sessionClicked.numSala,
+                                    peliculaId = sessionClicked.pelicula.id,
+                                    horario = sessionClicked.horario.toString()
+                                )
+
+                                val sesionDetalle = when (sesionResult) {
+                                    is ApiResult.Success -> sesionResult.data
+                                    is ApiResult.Error -> {
+                                        checkoutErrorMessage =
+                                            toMainScreenErrorMessage(sesionResult.error)
+                                        isOpeningCheckout = false
+                                        return@launch
+                                    }
+                                }
+
+                                val salaResult =
+                                    salasRepository.getByNumero(sesionDetalle.numSala)
+
+                                when (salaResult) {
+                                    is ApiResult.Success -> {
+                                        checkoutSession = sesionDetalle
+                                        checkoutSalaCapacity = salaResult.data.aforo
+                                        currentScreen = "checkout"
+                                    }
+
+                                    is ApiResult.Error -> {
+                                        checkoutErrorMessage =
+                                            toMainScreenErrorMessage(salaResult.error)
+                                    }
+                                }
+
+                                isOpeningCheckout = false
+                            }
+                        }
                     )
                 }
+
+                if (sessionState.isLoading) {
+                    item {
+                        Text(
+                            text = "Cargando sesiones...",
+                            color = TextWhite,
+                            modifier = Modifier.padding(horizontal = 12.dp)
+                        )
+                    }
+                }
+
                 item {
                     MovieSection(
                         title = "PRÓXIMOS ESTRENOS",
                         movies = estrenoMovies,
-                        sessions = estrenoSessions
+                        sessions = estrenoSessions,
+                        onSessionClick = { sessionClicked ->
+                            scope.launch {
+                                isOpeningCheckout = true
+                                checkoutErrorMessage = null
+
+                                val sesionResult = moviesRepository.getSesion(
+                                    numSala = sessionClicked.numSala,
+                                    peliculaId = sessionClicked.pelicula.id,
+                                    horario = sessionClicked.horario.toString()
+                                )
+
+                                val sesionDetalle = when (sesionResult) {
+                                    is ApiResult.Success -> sesionResult.data
+                                    is ApiResult.Error -> {
+                                        checkoutErrorMessage =
+                                            toMainScreenErrorMessage(sesionResult.error)
+                                        isOpeningCheckout = false
+                                        return@launch
+                                    }
+                                }
+
+                                val salaResult =
+                                    salasRepository.getByNumero(sesionDetalle.numSala)
+
+                                when (salaResult) {
+                                    is ApiResult.Success -> {
+                                        checkoutSession = sesionDetalle
+                                        checkoutSalaCapacity = salaResult.data.aforo
+                                        currentScreen = "checkout"
+                                    }
+
+                                    is ApiResult.Error -> {
+                                        checkoutErrorMessage =
+                                            toMainScreenErrorMessage(salaResult.error)
+                                    }
+                                }
+
+                                isOpeningCheckout = false
+                            }
+                        }
                     )
                 }
+
+                if (isOpeningCheckout) {
+                    item {
+                        Text(
+                            text = "Abriendo checkout...",
+                            color = TextWhite,
+                            modifier = Modifier.padding(horizontal = 12.dp)
+                        )
+                    }
+                }
+
+                if (!checkoutErrorMessage.isNullOrBlank()) {
+                    item {
+                        Text(
+                            text = checkoutErrorMessage.orEmpty(),
+                            color = TextWhite,
+                            modifier = Modifier.padding(horizontal = 12.dp)
+                        )
+                    }
+                }
+
                 item {
                     Spacer(Modifier.height(24.dp))
                     Footer()
                 }
             }
+
             //filtro oscuro
             if (buscadorEnfocado) {
                 Box(
@@ -198,3 +542,18 @@ fun MainScreen() {
         }
     }
 }
+
+/**
+ * Muestra mensajes de error en la pantalla principal si falla algo.
+ */
+private fun toMainScreenErrorMessage(error: AppError): String =
+    when (error) {
+        is AppError.Network -> error.message ?: "Error de red"
+        is AppError.Unknown -> error.message ?: "Error desconocido"
+        is AppError.Validation -> "Error de validacion"
+        is AppError.Unauthorized -> "No autorizado"
+        is AppError.Forbidden -> "Acceso denegado"
+        is AppError.NotFound -> "No se encontraron sesiones"
+        is AppError.Conflict -> "Conflicto en la peticion"
+        is AppError.Server -> "Error del servidor (${error.code})"
+    }

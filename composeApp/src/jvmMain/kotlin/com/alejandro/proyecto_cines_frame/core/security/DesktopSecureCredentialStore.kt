@@ -86,8 +86,6 @@ class DesktopSecureCredentialStore : SecureCredentialStore {
     }
 
     private fun deriveAesKey(): SecretKeySpec {
-        // Derivación simple por SHA-256 (mínimo viable)
-        // seed ligado a usuario+os+secreto app
         val seed = buildString {
             append(System.getProperty("user.name"))
             append("|")
