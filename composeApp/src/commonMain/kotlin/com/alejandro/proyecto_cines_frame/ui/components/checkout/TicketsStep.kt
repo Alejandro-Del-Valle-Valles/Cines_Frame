@@ -48,7 +48,7 @@ fun TicketsStep(
 
         TicketRow(
             title = "Adulto",
-            description = "Mayores de 18 años · 8,50 €",
+            description = "Desde 13 años · 8,50 €",
             value = tickets.adulto,
             canAdd = canAddMore,
             onMinus = {
@@ -61,7 +61,7 @@ fun TicketsStep(
 
         TicketRow(
             title = "Niño",
-            description = "Hasta 12 años · 6,00 €",
+            description = "Hasta 12 años (Incluidos) · 6,00 €",
             value = tickets.nino,
             canAdd = canAddMore,
             onMinus = {

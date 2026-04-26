@@ -16,6 +16,8 @@ fun PaymentFormStep(
     var card by remember { mutableStateOf("") }
     var expiry by remember { mutableStateOf("") }
     var cvv by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var confirmEmail by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -59,6 +61,25 @@ fun PaymentFormStep(
                 modifier = Modifier.weight(1f)
             )
         }
+
+        Text(
+            "Datos de contacto",
+            style = if (compactLayout) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.headlineMedium
+        )
+
+        OutlinedTextField(
+            value = email,
+            onValueChange = { email = it },
+            label = { Text("Correo") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        OutlinedTextField(
+            value = confirmEmail,
+            onValueChange = { confirmEmail = it },
+            label = { Text("Confirmación de Correo") },
+            modifier = Modifier.fillMaxWidth()
+        )
 
         Spacer(Modifier.weight(1f))
 
