@@ -35,12 +35,24 @@ fun Banner(
 
         Box(modifier = Modifier.fillMaxWidth()) {
             AnimatedContent(targetState = currentIndex, label = "banner") { index ->
-                AsyncImage(
-                    model = images[index],
-                    contentDescription = "Banner image ${index + 1}",
-                    modifier = Modifier.fillMaxWidth().height(560.dp),
-                    contentScale = ContentScale.FillWidth
-                )
+                BoxWithConstraints {
+
+                    val bannerHeight = when {
+                        maxWidth < 600.dp -> 220.dp
+                        maxWidth < 900.dp -> 320.dp
+                        maxWidth < 1400.dp -> 420.dp
+                        else -> 500.dp
+                    }
+
+                    AsyncImage(
+                        model = images[index],
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(bannerHeight),
+                        contentScale = ContentScale.Crop
+                    )
+                }
             }
         }
 
