@@ -13,7 +13,8 @@ object HttpClientFactory {
 
     fun create(): HttpClient =
         HttpClient {
-            expectSuccess = true
+            expectSuccess = false
+
             install(ContentNegotiation) {
                 json(
                     Json {

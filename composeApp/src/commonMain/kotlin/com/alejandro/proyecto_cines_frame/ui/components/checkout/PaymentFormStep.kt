@@ -13,6 +13,7 @@ fun PaymentFormStep(
     compactLayout: Boolean,
     formData: PaymentFormData,
     fieldErrors: Map<String, String>,
+    generalError: String?,
     showEmailFields: Boolean,
     sessionEmail: String,
     onHolderChange: (String) -> Unit,
@@ -123,6 +124,14 @@ fun PaymentFormStep(
         }
 
         Spacer(Modifier.weight(1f))
+
+        if (generalError != null) {
+            Text(
+                text = generalError,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
 
         Row(
             modifier = Modifier.fillMaxWidth(),

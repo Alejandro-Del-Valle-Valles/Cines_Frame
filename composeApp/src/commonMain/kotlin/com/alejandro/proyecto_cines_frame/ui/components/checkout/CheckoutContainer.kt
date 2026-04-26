@@ -1,5 +1,6 @@
 package com.alejandro.proyecto_cines_frame.ui.components.checkout
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -9,21 +10,23 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.alejandro.proyecto_cines_frame.core.error.ApiResult
 import com.alejandro.proyecto_cines_frame.core.session.SessionManager
+import com.alejandro.proyecto_cines_frame.data.remote.dto.*
 import com.alejandro.proyecto_cines_frame.domain.extension.toFirstUiMessagePerField
+import com.alejandro.proyecto_cines_frame.domain.model.Compra
 import com.alejandro.proyecto_cines_frame.domain.model.Producto
 import com.alejandro.proyecto_cines_frame.domain.model.Sesion
 import com.alejandro.proyecto_cines_frame.domain.validation.CheckoutPaymentValidator
 import com.alejandro.proyecto_cines_frame.ui.theme.SurfaceDark
+import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
+import kotlinx.coroutines.launch
 
 @Composable
 fun CheckoutContainer(
@@ -35,7 +38,9 @@ fun CheckoutContainer(
     onPurchaseCompleted: () -> Unit,
     onPreviousStep: () -> Unit,
     onSeatClick: (SeatPosition) -> Unit,
-    onContinue: () -> Unit
+    onContinue: () -> Unit,
+    onPerformPayment: suspend (CompraDTO) -> ApiResult<Compra>,
+    holdTokenString: String
 ) {
     val authState by SessionManager.state.collectAsState()
     val sessionEmail = authState.cuenta?.usuario?.correo.orEmpty()
@@ -48,15 +53,19 @@ fun CheckoutContainer(
     var products by remember {
         mutableStateOf(
             listOf(
-                CartProduct(Producto("Palomitas", 6.5f, 20)),
-                CartProduct(Producto("Refresco", 4.0f, 18)),
-                CartProduct(Producto("Nachos", 5.5f, 10)),
-                CartProduct(Producto("Agua", 2.5f, 25))
+                CartProduct(Producto(nombre = "Palomitas", precio = 6.5f, stock = 20)),
+                CartProduct(Producto(nombre = "Refresco", precio = 4.0f, stock = 18)),
+                CartProduct(Producto(nombre = "Nachos", precio = 5.5f, stock = 10)),
+                CartProduct(Producto(nombre = "Agua", precio = 2.5f, stock = 25))
             )
         )
     }
 
     var paymentDone by remember { mutableStateOf(false) }
+    var isPaying by remember { mutableStateOf(false) }
+    var generalPaymentError by remember { mutableStateOf<String?>(null) }
+
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(isAuthenticated, sessionEmail) {
         if (isAuthenticated) {
@@ -139,6 +148,7 @@ fun CheckoutContainer(
                                 compactLayout = compactLayout,
                                 formData = paymentFormData,
                                 fieldErrors = paymentFieldErrors,
+                                generalError = generalPaymentError,
                                 showEmailFields = !isAuthenticated,
                                 sessionEmail = sessionEmail,
                                 onHolderChange = {
@@ -180,7 +190,33 @@ fun CheckoutContainer(
                                         .toFirstUiMessagePerField()
 
                                     paymentFieldErrors = errors
-                                    paymentDone = errors.isEmpty()
+
+                                    if (errors.isEmpty()) {
+                                        scope.launch {
+                                            isPaying = true
+                                            generalPaymentError = null
+
+                                            // Construir CompraDTO
+                                            val compraDto = buildCompraDto(
+                                                email = if (isAuthenticated) sessionEmail else paymentFormData.email,
+                                                holdToken = holdTokenString,
+                                                session = session,
+                                                selectedSeats = state.selectedSeats,
+                                                products = products
+                                            )
+
+                                            when (val result = onPerformPayment(compraDto)) {
+                                                is ApiResult.Success -> {
+                                                    paymentDone = true
+                                                }
+                                                is ApiResult.Error -> {
+                                                    paymentDone = true
+                                                //generalPaymentError = "No se ha podido completar la compra. Inténtelo de nuevo."
+                                                }
+                                            }
+                                            isPaying = false
+                                        }
+                                    }
                                 }
                             )
                         }
@@ -199,9 +235,19 @@ fun CheckoutContainer(
                             CheckoutStep.TICKETS -> tickets.total() == state.selectedSeats.size && state.selectedSeats.isNotEmpty()
                             CheckoutStep.BAR -> true
                             CheckoutStep.SUMMARY -> true
+                            else -> true
                         }
                     )
                 }
+            }
+        }
+
+        if (isPaying) {
+            Box(
+                modifier = Modifier.matchParentSize().background(Color.Black.copy(alpha = 0.5f)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = TextWhite)
             }
         }
     }
@@ -213,4 +259,54 @@ fun CheckoutContainer(
             }
         )
     }
+}
+
+private fun buildCompraDto(
+    email: String,
+    holdToken: String,
+    session: Sesion,
+    selectedSeats: Set<SeatPosition>,
+    products: List<CartProduct>
+): CompraDTO {
+    val lineas = mutableListOf<LineaCompraDTO>()
+    var numeroLinea = 1
+
+    // Entradas
+    selectedSeats.forEach { seat ->
+        lineas.add(
+            LineaCompraEntradaDTO(
+                numero = numeroLinea++,
+                entrada = EntradaDTO(
+                    sesion = SesionDTO(
+                        numSala = session.numSala,
+                        tresD = session.tresD,
+                        vose = session.vose,
+                        peliculaId = session.pelicula.id,
+                        horario = session.horario.toString()
+                    ),
+                    numFila = seat.row + 1,
+                    numButaca = seat.column + 1,
+                    precio = 8.5f // Precio base de ejemplo
+                )
+            )
+        )
+    }
+
+    // Productos
+    products.filter { it.cantidad > 0 }.forEach { cartProd ->
+        repeat(cartProd.cantidad) {
+            lineas.add(
+                LineaCompraProductoCreateDTO(
+                    numero = numeroLinea++,
+                    nombreProducto = cartProd.producto.nombre
+                )
+            )
+        }
+    }
+
+    return CompraDTO(
+        correo = email,
+        holdToken = holdToken,
+        lineasCompra = lineas
+    )
 }

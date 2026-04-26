@@ -5,11 +5,13 @@ import com.alejandro.proyecto_cines_frame.data.remote.api.interfaces.CompraApi
 import com.alejandro.proyecto_cines_frame.data.remote.dto.CompraDTO
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.plugins.timeout
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import io.ktor.http.isSuccess
 
 class KtorCompraApi(
     private val httpClient: HttpClient
@@ -31,7 +33,7 @@ class KtorCompraApi(
      * Crea una compra y un usuario si no existe uno ya con el correo pasado
      */
     override suspend fun createCompra(compra: CompraDTO): CompraDTO =
-        httpClient.post(baseUrl){
+        httpClient.post(baseUrl) {
             contentType(ContentType.Application.Json)
             setBody(compra)
         }.body()
