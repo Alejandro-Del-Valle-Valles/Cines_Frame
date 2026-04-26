@@ -2,14 +2,10 @@ package com.alejandro.proyecto_cines_frame.ui.components.features.movies.layout
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,7 +17,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.alejandro.proyecto_cines_frame.ui.components.common.BackButton
-import com.alejandro.proyecto_cines_frame.ui.screen.MovieDetailScreen
 import com.alejandro.proyecto_cines_frame.ui.theme.OtroRojo
 import org.jetbrains.compose.resources.painterResource
 import proyecto_cines_frame.composeapp.generated.resources.Res
@@ -100,7 +95,6 @@ fun MovieDetailDesktop(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                ScheduleRow("2D", listOf("20:30", "22:15"))
                 ScheduleRow("3D", listOf("18:00", "21:00"))
                 ScheduleRow("VOSE", listOf("17:30", "19:45"))
             }
@@ -165,7 +159,7 @@ fun ScheduleRow(format: String, times: List<String>) {
 fun TimeChip(text: String) {
     Box(
         modifier = Modifier
-            .background(Color(0xFFD32F2F), RoundedCornerShape(6.dp))
+            .background(OtroRojo, RoundedCornerShape(6.dp))
             .padding(horizontal = 12.dp, vertical = 6.dp)
     ) {
         Text(text, color = Color.White)
