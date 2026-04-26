@@ -39,6 +39,7 @@ import com.alejandro.proyecto_cines_frame.ui.components.filter.*
 import com.alejandro.proyecto_cines_frame.ui.components.footer.Footer
 import com.alejandro.proyecto_cines_frame.ui.components.header.Header
 import com.alejandro.proyecto_cines_frame.ui.components.header.HeaderUtils
+import com.alejandro.proyecto_cines_frame.ui.components.header.filter.applySearch
 import com.alejandro.proyecto_cines_frame.ui.logic.MovieUiMapper
 import com.alejandro.proyecto_cines_frame.ui.logic.formatters.SessionRangeFormatter
 import com.alejandro.proyecto_cines_frame.ui.logic.presenter.LoginPresenter
@@ -51,6 +52,7 @@ import org.jetbrains.compose.resources.painterResource
 import proyecto_cines_frame.composeapp.generated.resources.Res
 import proyecto_cines_frame.composeapp.generated.resources.calendar
 import kotlinx.coroutines.launch
+
 
 @Composable
 fun MainScreen(
@@ -88,7 +90,6 @@ fun MainScreen(
         )
     }
 
-
     val loginPresenter = remember(cuentaRepository, scope) {
         LoginPresenter(
             cuentaRepo = cuentaRepository,
@@ -103,12 +104,10 @@ fun MainScreen(
         )
     }
 
-
     val listState = rememberLazyListState()
 
     //SEARCH
     var searchQuery by rememberSaveable { mutableStateOf("") }
-    var isSearching by remember { mutableStateOf(false) }
 
     val authState by SessionManager.state.collectAsState()
     var isRestoringSession by remember { mutableStateOf(true) }
@@ -123,6 +122,7 @@ fun MainScreen(
             )
         )
     }
+
     val calendarDays = remember { buildCalendarDays() }
 
     var isApiBlocked by remember {
@@ -161,6 +161,7 @@ fun MainScreen(
                 SessionManager.clearSession()
             }
         }
+
         isRestoringSession = false
     }
 
@@ -185,7 +186,11 @@ fun MainScreen(
             }
 
             is ApiResult.Error -> {
-                isApiBlocked = result.error is AppError.Network || result.error is AppError.Server || result.error is AppError.Unauthorized
+                isApiBlocked =
+                    result.error is AppError.Network ||
+                            result.error is AppError.Server ||
+                            result.error is AppError.Unauthorized
+
                 sessionState = MainSessionsUiState(
                     sessions = emptyList(),
                     isLoading = false,
@@ -196,7 +201,6 @@ fun MainScreen(
     }
 
     LaunchedEffect(banerRepository) {
-
         bannerState = BannersUiState(isLoading = true)
 
         when (val result = banerRepository.getBanersToday()) {
@@ -207,8 +211,13 @@ fun MainScreen(
                     errorMessage = null
                 )
             }
+
             is ApiResult.Error -> {
-                isApiBlocked = result.error is AppError.Network || result.error is AppError.Server || result.error is AppError.Unauthorized
+                isApiBlocked =
+                    result.error is AppError.Network ||
+                            result.error is AppError.Server ||
+                            result.error is AppError.Unauthorized
+
                 bannerState = BannersUiState(
                     banners = emptyList(),
                     isLoading = false,
@@ -218,22 +227,16 @@ fun MainScreen(
         }
     }
 
-    //TODO: Esto se debe descomentar en la versión oficial/final para que el usuario vea una pantalla de información si no hay conexión con la API
-    /*
-    if (isApiBlocked) {
-        OfflineBannerScreen(
-            message = "Ups! Parece que el servidor no responde. Puede que estemos bajo mantenimiento o que no tengas conexión a internet"
-        )
-        return
-    }*/
-
-
     val allSessions = sessionState.sessions
     val allBaners = bannerState.banners
 
     //LÓGICA (fuera de UI)
-    val (carteleraMovies, carteleraSessions) = remember(filterState, allSessions) {
+    val (carteleraMoviesBase, carteleraSessions) = remember(filterState, allSessions) {
         MovieUiMapper.getFilteredCartelera(allSessions, filterState)
+    }
+
+    val carteleraMovies = remember(carteleraMoviesBase, searchQuery) {
+        carteleraMoviesBase.applySearch(searchQuery)
     }
 
     val (estrenoMovies, estrenoSessions) = remember(allSessions) {
@@ -249,6 +252,11 @@ fun MainScreen(
         label = "opacidadOscurecimiento"
     )
 
+    LaunchedEffect(searchQuery) {
+        if (searchQuery.trim().length >= 3) {
+            listState.animateScrollToItem(3)
+        }
+    }
 
     if (currentScreen == "login") {
         LoginScreen(
@@ -308,9 +316,9 @@ fun MainScreen(
                 searchQuery = it
             },
 
-            onSearchSubmit = { query ->
-                if (query.length >= 3) {
-                    isSearching = true
+            onSearchSubmit = {
+                scope.launch {
+                    listState.animateScrollToItem(3)
                 }
             },
 
@@ -350,7 +358,7 @@ fun MainScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
 
-                if(bannerState.isLoading){
+                if (bannerState.isLoading) {
                     item {
                         Text(
                             text = "Cargando banners...",
@@ -359,7 +367,6 @@ fun MainScreen(
                         )
                     }
                 }
-
 
                 if (allBaners.isNotEmpty()) {
                     item {
@@ -384,6 +391,7 @@ fun MainScreen(
                         calendarPainter = painterResource(Res.drawable.calendar)
                     )
                 }
+
                 item {
                     // 🔹 CARTELERA FILTRADA
                     MovieSection(
@@ -404,13 +412,15 @@ fun MainScreen(
                                 val sesionDetalle = when (sesionResult) {
                                     is ApiResult.Success -> sesionResult.data
                                     is ApiResult.Error -> {
-                                        checkoutErrorMessage = toMainScreenErrorMessage(sesionResult.error)
+                                        checkoutErrorMessage =
+                                            toMainScreenErrorMessage(sesionResult.error)
                                         isOpeningCheckout = false
                                         return@launch
                                     }
                                 }
 
-                                val salaResult = salasRepository.getByNumero(sesionDetalle.numSala)
+                                val salaResult =
+                                    salasRepository.getByNumero(sesionDetalle.numSala)
 
                                 when (salaResult) {
                                     is ApiResult.Success -> {
@@ -420,7 +430,8 @@ fun MainScreen(
                                     }
 
                                     is ApiResult.Error -> {
-                                        checkoutErrorMessage = toMainScreenErrorMessage(salaResult.error)
+                                        checkoutErrorMessage =
+                                            toMainScreenErrorMessage(salaResult.error)
                                     }
                                 }
 
@@ -459,13 +470,15 @@ fun MainScreen(
                                 val sesionDetalle = when (sesionResult) {
                                     is ApiResult.Success -> sesionResult.data
                                     is ApiResult.Error -> {
-                                        checkoutErrorMessage = toMainScreenErrorMessage(sesionResult.error)
+                                        checkoutErrorMessage =
+                                            toMainScreenErrorMessage(sesionResult.error)
                                         isOpeningCheckout = false
                                         return@launch
                                     }
                                 }
 
-                                val salaResult = salasRepository.getByNumero(sesionDetalle.numSala)
+                                val salaResult =
+                                    salasRepository.getByNumero(sesionDetalle.numSala)
 
                                 when (salaResult) {
                                     is ApiResult.Success -> {
@@ -475,7 +488,8 @@ fun MainScreen(
                                     }
 
                                     is ApiResult.Error -> {
-                                        checkoutErrorMessage = toMainScreenErrorMessage(salaResult.error)
+                                        checkoutErrorMessage =
+                                            toMainScreenErrorMessage(salaResult.error)
                                     }
                                 }
 
@@ -504,11 +518,13 @@ fun MainScreen(
                         )
                     }
                 }
+
                 item {
                     Spacer(Modifier.height(24.dp))
                     Footer()
                 }
             }
+
             //filtro oscuro
             if (buscadorEnfocado) {
                 Box(
@@ -541,4 +557,3 @@ private fun toMainScreenErrorMessage(error: AppError): String =
         is AppError.Conflict -> "Conflicto en la peticion"
         is AppError.Server -> "Error del servidor (${error.code})"
     }
-
