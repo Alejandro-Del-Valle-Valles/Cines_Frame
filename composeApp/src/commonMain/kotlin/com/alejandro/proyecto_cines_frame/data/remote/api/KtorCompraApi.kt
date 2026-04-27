@@ -5,7 +5,11 @@ import com.alejandro.proyecto_cines_frame.data.remote.api.interfaces.CompraApi
 import com.alejandro.proyecto_cines_frame.data.remote.dto.CompraDTO
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.plugins.ClientRequestException
+import io.ktor.client.plugins.ResponseException
+import io.ktor.client.plugins.ServerResponseException
 import io.ktor.client.plugins.timeout
+import io.ktor.client.statement.HttpResponse
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -32,9 +36,30 @@ class KtorCompraApi(
     /**
      * Crea una compra y un usuario si no existe uno ya con el correo pasado
      */
-    override suspend fun createCompra(compra: CompraDTO): CompraDTO =
-        httpClient.post(baseUrl) {
+    override suspend fun createCompra(compra: CompraDTO): CompraDTO {
+        val response = httpClient.post(baseUrl) {
             contentType(ContentType.Application.Json)
             setBody(compra)
-        }.body()
+            timeout {
+                requestTimeoutMillis = 60_000
+                socketTimeoutMillis = 60_000
+            }
+        }
+
+        if (!response.status.isSuccess()) {
+            throw response.toStatusException()
+        }
+
+        // Algunos endpoints de compra confirman con 2xx pero devuelven cuerpo vacío/parcial.
+        return runCatching { response.body<CompraDTO>() }
+            .getOrElse { compra }
+    }
+}
+
+private fun HttpResponse.toStatusException(): ResponseException {
+    return when (status.value) {
+        in 400..499 -> ClientRequestException(this, "Error HTTP ${status.value} al crear la compra")
+        in 500..599 -> ServerResponseException(this, "Error HTTP ${status.value} al crear la compra")
+        else -> ResponseException(this, "Respuesta HTTP no exitosa al crear la compra")
+    }
 }

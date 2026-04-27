@@ -5,8 +5,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class SesionDTO(
     val numSala: Int,
-    val tresD: Boolean,
-    val vose: Boolean,
+    val tresD: Boolean = false,
+    val vose: Boolean = false,
     val peliculaId: String,
     val horario: String
 )

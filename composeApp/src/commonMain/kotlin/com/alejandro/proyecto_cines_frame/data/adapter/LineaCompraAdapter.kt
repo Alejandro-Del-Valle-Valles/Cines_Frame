@@ -6,6 +6,7 @@ import com.alejandro.proyecto_cines_frame.data.remote.dto.LineaCompraProductoCre
 import com.alejandro.proyecto_cines_frame.data.remote.dto.LineaCompraProductoDTO
 import com.alejandro.proyecto_cines_frame.domain.model.LineaCompraEntrada
 import com.alejandro.proyecto_cines_frame.domain.model.LineaCompraProducto
+import com.alejandro.proyecto_cines_frame.domain.model.Producto
 
 object LineaCompraAdapter {
 
@@ -21,8 +22,15 @@ object LineaCompraAdapter {
                     numLinea = dto.numero,
                     producto = ProductoAdapter.toProducto(dto.producto)
                 )
-            is LineaCompraProductoCreateDTO -> {
-                error("No existe modelo de dominio para LineaCompraProductoCreateDTO (nombreProducto=${dto.nombreProducto})")
-            }
+            is LineaCompraProductoCreateDTO ->
+                // En createCompra el backend puede devolver la misma línea de request sin detalle de producto.
+                LineaCompraProducto(
+                    numLinea = dto.numero,
+                    producto = Producto(
+                        nombre = dto.nombreProducto,
+                        precio = 0f,
+                        stock = 0
+                    )
+                )
         }
 }
