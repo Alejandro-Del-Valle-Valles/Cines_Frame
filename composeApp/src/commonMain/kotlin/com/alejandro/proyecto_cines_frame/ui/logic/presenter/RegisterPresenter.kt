@@ -1,6 +1,7 @@
 package com.alejandro.proyecto_cines_frame.ui.logic.presenter
 
 import com.alejandro.proyecto_cines_frame.core.error.ApiResult
+import com.alejandro.proyecto_cines_frame.core.error.AppError
 import com.alejandro.proyecto_cines_frame.data.remote.dto.CuentaDTO
 import com.alejandro.proyecto_cines_frame.domain.enums.CuentaRol
 import com.alejandro.proyecto_cines_frame.domain.extension.toFieldErrorMessagesIfAny
@@ -55,12 +56,17 @@ class RegisterPresenter(
                     _state.update { it.copy(isLoading = false, registerSuccess = true) }
                 }
                 is ApiResult.Error -> {
+                    val errorMsg = if (res.error is AppError.Conflict) {
+                        res.error.details["message"] ?: "Ya existe una cuenta con el correo indicado"
+                    } else {
+                        "Error desconocido, es probable que ya exista la cuenta."
+                    }
                     _state.update {
                         it.copy(
                             isLoading = false,
                             registerSuccess = false,
                             fieldErrors = res.error.toFieldErrorMessagesIfAny(),
-                            generalError = res.error.toString()
+                            generalError = errorMsg
                         )
                     }
                 }

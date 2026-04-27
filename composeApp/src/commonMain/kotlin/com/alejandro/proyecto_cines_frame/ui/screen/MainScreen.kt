@@ -267,6 +267,9 @@ fun MainScreen(
             onLoginSuccess = {
                 currentScreen = "main"
             },
+            onBack = {
+                currentScreen = "main"
+            },
             presenter = loginPresenter
         )
         return
@@ -276,6 +279,9 @@ fun MainScreen(
         RegisterScreen(
             onRegisterSuccess = {
                 currentScreen = "login"
+            },
+            onBack = {
+                currentScreen = "main"
             },
             presenter = registerPresenter
         )

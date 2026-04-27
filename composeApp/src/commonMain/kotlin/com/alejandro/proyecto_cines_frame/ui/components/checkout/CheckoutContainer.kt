@@ -304,7 +304,7 @@ private fun buildCompraDto(
                     ),
                     numFila = seat.row + 1,
                     numButaca = seat.column + 1,
-                    precio = 8.5f // Precio base de ejemplo
+                    precio = 8.5f
                 )
             )
         )

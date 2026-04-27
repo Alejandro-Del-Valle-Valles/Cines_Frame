@@ -28,10 +28,12 @@ fun HeaderActions(
 
     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
 
-        HeaderActionButton(
-            texto = "Entradas",
-            alClick = onEntradasClick
-        )
+        if(isSessionActive) {
+            HeaderActionButton(
+                texto = "Entradas",
+                alClick = onEntradasClick
+            )
+        }
         // Dropdown cuenta
         Box {
             HeaderActionButton(
