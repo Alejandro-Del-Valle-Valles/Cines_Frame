@@ -30,7 +30,7 @@ fun HeaderActions(
 
         if(isSessionActive) {
             HeaderActionButton(
-                texto = "Entradas",
+                texto = "Mis Entradas",
                 alClick = onEntradasClick
             )
         }
