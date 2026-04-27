@@ -13,14 +13,18 @@ import androidx.compose.ui.unit.dp
 import com.alejandro.proyecto_cines_frame.core.error.ApiResult
 import com.alejandro.proyecto_cines_frame.core.error.AppError
 import com.alejandro.proyecto_cines_frame.data.remote.api.KtorCompraApi
+import com.alejandro.proyecto_cines_frame.data.remote.api.KtorProductoApi
 import com.alejandro.proyecto_cines_frame.data.remote.api.KtorSesionApi
 import com.alejandro.proyecto_cines_frame.data.remote.client.HttpClientFactory
 import com.alejandro.proyecto_cines_frame.data.remote.dto.*
 import com.alejandro.proyecto_cines_frame.data.repository.CompraRepositoryImpl
+import com.alejandro.proyecto_cines_frame.data.repository.ProductoRepositoryImpl
 import com.alejandro.proyecto_cines_frame.data.repository.SesionRepositoryImpl
 import com.alejandro.proyecto_cines_frame.domain.model.HoldToken
+import com.alejandro.proyecto_cines_frame.domain.model.Producto
 import com.alejandro.proyecto_cines_frame.domain.model.Sesion
 import com.alejandro.proyecto_cines_frame.domain.repository.CompraRepository
+import com.alejandro.proyecto_cines_frame.domain.repository.ProductoRepository
 import com.alejandro.proyecto_cines_frame.domain.repository.SesionRepository
 import com.alejandro.proyecto_cines_frame.ui.components.checkout.*
 import com.alejandro.proyecto_cines_frame.ui.components.footer.Footer
@@ -40,11 +44,18 @@ fun CheckoutScreen(
     salaCapacity: Int,
     onBack: () -> Unit,
     sesionRepository: SesionRepository? = null,
+    productoRepository: ProductoRepository? = null,
     compraRepository: CompraRepository? = null
 ) {
     val repository = sesionRepository ?: remember {
         SesionRepositoryImpl(
             api = KtorSesionApi(HttpClientFactory.create())
+        )
+    }
+
+    val productRepository = productoRepository ?: remember {
+        ProductoRepositoryImpl(
+            api = KtorProductoApi(HttpClientFactory.create())
         )
     }
 
@@ -62,6 +73,7 @@ fun CheckoutScreen(
     var state by remember { mutableStateOf(CheckoutState()) }
     var seatMatrix by remember(baseSeatMatrix) { mutableStateOf(baseSeatMatrix) }
     var holdToken by remember { mutableStateOf<HoldToken?>(null) }
+    var products by remember { mutableStateOf<List<Producto>>(emptyList()) }
     var remainingSeconds by remember { mutableStateOf(0L) }
     var isLoadingCheckout by remember { mutableStateOf(true) }
     var isClosingCheckout by remember { mutableStateOf(false) }
@@ -98,6 +110,16 @@ fun CheckoutScreen(
 
             is ApiResult.Error -> {
                 checkoutMessage = toCheckoutErrorMessage(butacasStatusResult.error)
+            }
+        }
+
+        when (val productosStatusResult = productRepository.getAll()) {
+            is ApiResult.Success -> {
+                products = productosStatusResult.data
+            }
+
+            is ApiResult.Error -> {
+                checkoutMessage = toCheckoutErrorMessage(productosStatusResult.error)
             }
         }
 
@@ -152,6 +174,7 @@ fun CheckoutScreen(
 
                     CheckoutContainer(
                         session = session,
+                        products = products,
                         state = state,
                         seatMatrix = seatMatrix,
                         remainingSeconds = remainingSeconds,

@@ -7,10 +7,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,6 +36,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun CheckoutContainer(
     session: Sesion,
+    products: List<Producto>,
     state: CheckoutState,
     seatMatrix: SeatMatrix,
     remainingSeconds: Long,
@@ -52,12 +58,8 @@ fun CheckoutContainer(
 
     var products by remember {
         mutableStateOf(
-            listOf(
-                CartProduct(Producto(nombre = "Palomitas", precio = 6.5f, stock = 20)),
-                CartProduct(Producto(nombre = "Refresco", precio = 4.0f, stock = 18)),
-                CartProduct(Producto(nombre = "Nachos", precio = 5.5f, stock = 10)),
-                CartProduct(Producto(nombre = "Agua", precio = 2.5f, stock = 25))
-            )
+            products.map { CartProduct(producto = it, cantidad = 0) }
+                .toList()
         )
     }
 
@@ -65,6 +67,7 @@ fun CheckoutContainer(
     var isPaying by remember { mutableStateOf(false) }
     var generalPaymentError by remember { mutableStateOf<String?>(null) }
 
+    val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(isAuthenticated, sessionEmail) {
@@ -76,188 +79,203 @@ fun CheckoutContainer(
         }
     }
 
-    BoxWithConstraints(
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 620.dp)
-    ) {
-        val compactLayout = maxWidth < 900.dp
-
-        Card(
-            colors = CardDefaults.cardColors(containerColor = SurfaceDark),
-            shape = RoundedCornerShape(24.dp),
+    Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        containerColor = SurfaceDark
+    ) { paddingValues ->
+        BoxWithConstraints(
             modifier = Modifier
+                .padding(paddingValues)
                 .fillMaxWidth()
-                .fillMaxSize()
+                .heightIn(min = 620.dp)
         ) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                CheckoutHeaderTop(
-                    session = session,
-                    remainingSeconds = remainingSeconds,
-                    onBack = onCancelCheckout
-                )
+            val compactLayout = maxWidth < 900.dp
 
-                CheckoutStepperModern(
-                    step = state.step,
-                    compactLayout = compactLayout
-                )
+            Card(
+                colors = CardDefaults.cardColors(containerColor = SurfaceDark),
+                shape = RoundedCornerShape(24.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxSize()
+            ) {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    CheckoutHeaderTop(
+                        session = session,
+                        remainingSeconds = remainingSeconds,
+                        onBack = onCancelCheckout
+                    )
 
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                ) {
-                    when (state.step) {
-                        CheckoutStep.SEATS -> {
-                            CheckoutSeatSection(
-                                seatMatrix = seatMatrix,
-                                selectedSeats = state.selectedSeats,
-                                onSeatClick = onSeatClick,
-                                modifier = Modifier.fillMaxSize()
-                            )
-                        }
+                    CheckoutStepperModern(
+                        step = state.step,
+                        compactLayout = compactLayout
+                    )
 
-                        CheckoutStep.TICKETS -> {
-                            TicketsStep(
-                                seatsSelected = state.selectedSeats.size,
-                                tickets = tickets,
-                                onChange = { tickets = it }
-                            )
-                        }
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                    ) {
+                        when (state.step) {
+                            CheckoutStep.SEATS -> {
+                                CheckoutSeatSection(
+                                    seatMatrix = seatMatrix,
+                                    selectedSeats = state.selectedSeats,
+                                    onSeatClick = onSeatClick,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
 
-                        CheckoutStep.BAR -> {
-                            BarStep(
-                                products = products,
-                                onUpdate = { products = it }
-                            )
-                        }
+                            CheckoutStep.TICKETS -> {
+                                TicketsStep(
+                                    seatsSelected = state.selectedSeats.size,
+                                    tickets = tickets,
+                                    onChange = { tickets = it }
+                                )
+                            }
 
-                        CheckoutStep.SUMMARY -> {
-                            SummaryStep(
-                                movie = session.pelicula.nombre,
-                                seats = state.selectedSeats.map {
-                                    "Fila ${it.row + 1} · Butaca ${it.column + 1}"
-                                },
-                                tickets = tickets,
-                                products = products
-                            )
-                        }
+                            CheckoutStep.BAR -> {
+                                BarStep(
+                                    products = products,
+                                    onUpdate = { products = it }
+                                )
+                            }
 
-                        CheckoutStep.PAYMENT -> {
-                            PaymentFormStep(
-                                compactLayout = compactLayout,
-                                formData = paymentFormData,
-                                fieldErrors = paymentFieldErrors,
-                                generalError = generalPaymentError,
-                                showEmailFields = !isAuthenticated,
-                                sessionEmail = sessionEmail,
-                                onHolderChange = {
-                                    paymentFormData = paymentFormData.copy(holder = it)
-                                    paymentFieldErrors = paymentFieldErrors - "holder"
-                                },
-                                onCardChange = {
-                                    paymentFormData = paymentFormData.copy(cardNumber = it.filter(Char::isDigit))
-                                    paymentFieldErrors = paymentFieldErrors - "cardNumber"
-                                },
-                                onExpiryChange = {
-                                    paymentFormData = paymentFormData.copy(expiry = it)
-                                    paymentFieldErrors = paymentFieldErrors - "expiry"
-                                },
-                                onCvvChange = {
-                                    paymentFormData = paymentFormData.copy(cvv = it.filter(Char::isDigit).take(3))
-                                    paymentFieldErrors = paymentFieldErrors - "cvv"
-                                },
-                                onEmailChange = {
-                                    paymentFormData = paymentFormData.copy(email = it)
-                                    paymentFieldErrors = paymentFieldErrors - "email"
-                                },
-                                onConfirmEmailChange = {
-                                    paymentFormData = paymentFormData.copy(confirmEmail = it)
-                                    paymentFieldErrors = paymentFieldErrors - "confirmEmail"
-                                },
-                                onBack = onPreviousStep,
-                                onPay = {
-                                    val errors = CheckoutPaymentValidator
-                                        .validate(
-                                            holder = paymentFormData.holder,
-                                            cardNumber = paymentFormData.cardNumber,
-                                            expiry = paymentFormData.expiry,
-                                            cvv = paymentFormData.cvv,
-                                            email = if (isAuthenticated) sessionEmail else paymentFormData.email,
-                                            confirmEmail = if (isAuthenticated) sessionEmail else paymentFormData.confirmEmail,
-                                            requireEmail = !isAuthenticated
+                            CheckoutStep.SUMMARY -> {
+                                SummaryStep(
+                                    movie = session.pelicula.nombre,
+                                    seats = state.selectedSeats.map {
+                                        "Fila ${it.row + 1} · Butaca ${it.column + 1}"
+                                    },
+                                    tickets = tickets,
+                                    products = products
+                                )
+                            }
+
+                            CheckoutStep.PAYMENT -> {
+                                PaymentFormStep(
+                                    compactLayout = compactLayout,
+                                    formData = paymentFormData,
+                                    fieldErrors = paymentFieldErrors,
+                                    generalError = generalPaymentError,
+                                    showEmailFields = !isAuthenticated,
+                                    sessionEmail = sessionEmail,
+                                    onHolderChange = {
+                                        paymentFormData = paymentFormData.copy(holder = it)
+                                        paymentFieldErrors = paymentFieldErrors - "holder"
+                                    },
+                                    onCardChange = {
+                                        paymentFormData =
+                                            paymentFormData.copy(cardNumber = it.filter(Char::isDigit))
+                                        paymentFieldErrors = paymentFieldErrors - "cardNumber"
+                                    },
+                                    onExpiryChange = {
+                                        paymentFormData = paymentFormData.copy(expiry = it)
+                                        paymentFieldErrors = paymentFieldErrors - "expiry"
+                                    },
+                                    onCvvChange = {
+                                        paymentFormData = paymentFormData.copy(
+                                            cvv = it.filter(Char::isDigit).take(3)
                                         )
-                                        .toFirstUiMessagePerField()
-
-                                    paymentFieldErrors = errors
-
-                                    if (errors.isEmpty()) {
-                                        scope.launch {
-                                            isPaying = true
-                                            generalPaymentError = null
-
-                                            // Construir CompraDTO
-                                            val compraDto = buildCompraDto(
+                                        paymentFieldErrors = paymentFieldErrors - "cvv"
+                                    },
+                                    onEmailChange = {
+                                        paymentFormData = paymentFormData.copy(email = it)
+                                        paymentFieldErrors = paymentFieldErrors - "email"
+                                    },
+                                    onConfirmEmailChange = {
+                                        paymentFormData = paymentFormData.copy(confirmEmail = it)
+                                        paymentFieldErrors = paymentFieldErrors - "confirmEmail"
+                                    },
+                                    onBack = onPreviousStep,
+                                    onPay = {
+                                        val errors = CheckoutPaymentValidator
+                                            .validate(
+                                                holder = paymentFormData.holder,
+                                                cardNumber = paymentFormData.cardNumber,
+                                                expiry = paymentFormData.expiry,
+                                                cvv = paymentFormData.cvv,
                                                 email = if (isAuthenticated) sessionEmail else paymentFormData.email,
-                                                holdToken = holdTokenString,
-                                                session = session,
-                                                selectedSeats = state.selectedSeats,
-                                                products = products
+                                                confirmEmail = if (isAuthenticated) sessionEmail else paymentFormData.confirmEmail,
+                                                requireEmail = !isAuthenticated
                                             )
+                                            .toFirstUiMessagePerField()
 
-                                            when (val result = onPerformPayment(compraDto)) {
-                                                is ApiResult.Success -> {
-                                                    paymentDone = true
+                                        paymentFieldErrors = errors
+
+                                        if (errors.isEmpty()) {
+                                            scope.launch {
+                                                isPaying = true
+                                                generalPaymentError = null
+
+                                                // Construir CompraDTO
+                                                val compraDto = buildCompraDto(
+                                                    email = if (isAuthenticated) sessionEmail else paymentFormData.email,
+                                                    holdToken = holdTokenString,
+                                                    session = session,
+                                                    selectedSeats = state.selectedSeats,
+                                                    products = products
+                                                )
+
+                                                when (val result = onPerformPayment(compraDto)) {
+                                                    is ApiResult.Success -> {
+                                                        paymentDone = true
+                                                    }
+
+                                                    is ApiResult.Error -> {
+                                                        scope.launch {
+                                                            snackbarHostState.showSnackbar(
+                                                                message = "Ha ocurrido un error al realizar la compra. Vuelve a intentarlo más tarde.",
+                                                                duration = SnackbarDuration.Long
+                                                            )
+                                                        }
+                                                    }
                                                 }
-                                                is ApiResult.Error -> {
-                                                    //paymentDone = true
-                                                    generalPaymentError = "No se ha podido completar la compra. Inténtelo de nuevo."
-                                                }
+                                                isPaying = false
                                             }
-                                            isPaying = false
                                         }
                                     }
-                                }
-                            )
+                                )
+                            }
                         }
                     }
-                }
 
-                if (state.step != CheckoutStep.PAYMENT) {
-                    CheckoutBottomBar(
-                        step = state.step,
-                        compactLayout = compactLayout,
-                        onExit = onCancelCheckout,
-                        onPrevious = onPreviousStep,
-                        onContinue = onContinue,
-                        continueEnabled = when (state.step) {
-                            CheckoutStep.SEATS -> state.selectedSeats.isNotEmpty()
-                            CheckoutStep.TICKETS -> tickets.total() == state.selectedSeats.size && state.selectedSeats.isNotEmpty()
-                            CheckoutStep.BAR -> true
-                            CheckoutStep.SUMMARY -> true
-                            else -> true
-                        }
-                    )
+                    if (state.step != CheckoutStep.PAYMENT) {
+                        CheckoutBottomBar(
+                            step = state.step,
+                            compactLayout = compactLayout,
+                            onExit = onCancelCheckout,
+                            onPrevious = onPreviousStep,
+                            onContinue = onContinue,
+                            continueEnabled = when (state.step) {
+                                CheckoutStep.SEATS -> state.selectedSeats.isNotEmpty()
+                                CheckoutStep.TICKETS -> tickets.total() == state.selectedSeats.size && state.selectedSeats.isNotEmpty()
+                                CheckoutStep.BAR -> true
+                                CheckoutStep.SUMMARY -> true
+                                else -> true
+                            }
+                        )
+                    }
+                }
+            }
+
+            if (isPaying) {
+                Box(
+                    modifier = Modifier.matchParentSize()
+                        .background(Color.Black.copy(alpha = 0.5f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = TextWhite)
                 }
             }
         }
 
-        if (isPaying) {
-            Box(
-                modifier = Modifier.matchParentSize().background(Color.Black.copy(alpha = 0.5f)),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(color = TextWhite)
-            }
+        if (paymentDone) {
+            PaymentStep(
+                onClose = {
+                    onPurchaseCompleted()
+                }
+            )
         }
-    }
-
-    if (paymentDone) {
-        PaymentStep(
-            onClose = {
-                onPurchaseCompleted()
-            }
-        )
     }
 }
 
