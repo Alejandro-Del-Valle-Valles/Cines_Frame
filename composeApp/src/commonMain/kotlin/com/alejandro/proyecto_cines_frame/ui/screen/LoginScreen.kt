@@ -49,7 +49,10 @@ fun LoginScreen(
             BackButton(
                 onClick = {
                     onLoginSuccess() // vuelve al main
-                }
+                },
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(16.dp)
             )
             Card(
                 modifier = Modifier.fillMaxWidth(0.9f),

@@ -49,8 +49,11 @@ fun RegisterScreen(
         ) {
             BackButton(
                 onClick = {
-                    onRegisterSuccess() // vuelve atrás
-                }
+                    onRegisterSuccess()
+                },
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(16.dp)
             )
             Card(
                 modifier = Modifier.fillMaxWidth(0.9f),
