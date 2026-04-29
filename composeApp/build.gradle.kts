@@ -24,7 +24,6 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.ktor.client.okhttp)
-            implementation("io.ktor:ktor-client-okhttp:3.4.2")
             implementation(libs.androidx.security.crypto)
         }
         commonMain.dependencies {
@@ -57,7 +56,6 @@ kotlin {
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
-            implementation(libs.ktor.client.okhttp)
             implementation("io.ktor:ktor-client-cio:3.4.2")
         }
     }

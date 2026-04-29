@@ -9,10 +9,19 @@ import io.ktor.client.plugins.auth.Auth
 import io.ktor.client.plugins.auth.providers.BearerTokens
 import io.ktor.client.plugins.auth.providers.bearer
 
+/**
+ * Provides a platform-specific HttpClient instance.
+ */
+expect fun createPlatformHttpClient(): HttpClient
+
 object HttpClientFactory {
 
+    /**
+     * Creates an HttpClient with shared configuration applied
+     * on top of the platform-specific engine.
+     */
     fun create(): HttpClient =
-        HttpClient {
+        createPlatformHttpClient().config {
             expectSuccess = false
 
             install(ContentNegotiation) {
