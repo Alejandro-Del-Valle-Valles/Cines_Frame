@@ -1,7 +1,7 @@
 package com.alejandro.proyecto_cines_frame.data.repository
 
 import com.alejandro.proyecto_cines_frame.core.error.ApiResult
-import com.alejandro.proyecto_cines_frame.data.adapter.PeliculaAdapter
+import com.alejandro.proyecto_cines_frame.data.adapter.toDomain
 import com.alejandro.proyecto_cines_frame.data.remote.api.interfaces.PeliculaApi
 import com.alejandro.proyecto_cines_frame.data.remote.dto.PeliculaCreateDTO
 import com.alejandro.proyecto_cines_frame.data.remote.error.toAppError
@@ -18,7 +18,7 @@ class PeliculaRepositoryImpl(
     override suspend fun getAllBasic(): ApiResult<List<Pelicula>> {
         return try {
             val dtos = api.getAllBasic() // si status 4xx/5xx => excepción
-            ApiResult.Success(dtos.map { PeliculaAdapter.toPelicula(it)})
+            ApiResult.Success(dtos.map { it.toDomain() })
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
         }
@@ -30,7 +30,7 @@ class PeliculaRepositoryImpl(
     override suspend fun getAllCompleto(): ApiResult<List<Pelicula>> {
         return try {
             val dtos = api.getAllCompleto()
-            ApiResult.Success(dtos.map { PeliculaAdapter.toPelicula(it) })
+            ApiResult.Success(dtos.map { it.toDomain() })
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
         }
@@ -42,7 +42,7 @@ class PeliculaRepositoryImpl(
     override suspend fun getAllBasicByNombre(nombre: String): ApiResult<List<Pelicula>> {
         return try {
             val dtos = api.getAllBasicByNombre(nombre)
-            ApiResult.Success(dtos.map { PeliculaAdapter.toPelicula(it) })
+            ApiResult.Success(dtos.map { it.toDomain() })
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
         }
@@ -54,7 +54,7 @@ class PeliculaRepositoryImpl(
     override suspend fun getAllCompletoByNombre(nombre: String): ApiResult<List<Pelicula>> {
         return try {
             val dtos = api.getAllCompletoByNombre(nombre)
-            ApiResult.Success(dtos.map { PeliculaAdapter.toPelicula(it) })
+            ApiResult.Success(dtos.map { it.toDomain() })
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
         }
@@ -66,7 +66,16 @@ class PeliculaRepositoryImpl(
     override suspend fun getById(id: String): ApiResult<Pelicula> {
         return try {
             val dto = api.getById(id)
-            ApiResult.Success(PeliculaAdapter.toPelicula(dto))
+            ApiResult.Success(dto.toDomain())
+        } catch (t: Throwable) {
+            ApiResult.Error(t.toAppError())
+        }
+    }
+
+    override suspend fun getByIdWithSesiones(id: String): ApiResult<Pelicula> {
+        return try {
+            val dto = api.getWithSesiones(id)
+            ApiResult.Success(dto.toDomain())
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
         }
@@ -78,7 +87,7 @@ class PeliculaRepositoryImpl(
     override suspend fun createPelicula(pelicula: PeliculaCreateDTO): ApiResult<Pelicula> {
         return try {
             val dto = api.createPelicula(pelicula)
-            ApiResult.Success(PeliculaAdapter.toPelicula(dto))
+            ApiResult.Success(dto.toDomain())
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
         }
@@ -93,7 +102,7 @@ class PeliculaRepositoryImpl(
     ): ApiResult<Pelicula> {
         return try {
             val dto = api.updatePelicula(id, pelicula)
-            ApiResult.Success(PeliculaAdapter.toPelicula(dto))
+            ApiResult.Success(dto.toDomain())
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
         }
@@ -105,7 +114,7 @@ class PeliculaRepositoryImpl(
     override suspend fun deletePelicula(id: String): ApiResult<Pelicula> {
         return try {
             val dto = api.deletePelicula(id)
-            ApiResult.Success(PeliculaAdapter.toPelicula(dto))
+            ApiResult.Success(dto.toDomain())
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
         }

@@ -40,6 +40,14 @@ fun BarStep(
             color = TextWhite
         )
 
+        if (products.isEmpty()) {
+            Text(
+                text = "No hay productos disponibles.",
+                color = TextGray,
+                style = MaterialTheme.typography.bodyLarge
+            )
+        }
+
         products.forEachIndexed { index, item ->
             val canAddMore = item.cantidad < item.producto.stock
 

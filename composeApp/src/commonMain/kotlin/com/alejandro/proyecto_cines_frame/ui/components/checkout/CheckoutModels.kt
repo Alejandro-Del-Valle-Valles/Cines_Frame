@@ -1,6 +1,7 @@
 package com.alejandro.proyecto_cines_frame.ui.components.checkout
 
 import com.alejandro.proyecto_cines_frame.domain.model.Producto
+import com.alejandro.proyecto_cines_frame.domain.model.TipoEntrada
 
 enum class CheckoutStep {
     SEATS,
@@ -17,14 +18,38 @@ data class SeatPosition(
 
 typealias SeatMatrix = List<List<Boolean?>>
 
-data class TicketSelection(
-    val adulto: Int = 0,
-    val nino: Int = 0,
-    val senior: Int = 0
+data class TipoEntradaSelection(
+    val cantidades: Map<Int, Int> = emptyMap()
 ) {
-    fun total(): Int = adulto + nino + senior
+    fun total(): Int = cantidades.values.sum()
 
-    fun totalPrice(): Float = adulto * 8.5f + nino * 6.0f + senior * 7.0f
+    fun cantidadFor(tipoId: Int): Int = cantidades[tipoId] ?: 0
+
+    fun update(tipoId: Int, cantidad: Int): TipoEntradaSelection {
+        val next = cantidades.toMutableMap()
+        if (cantidad <= 0) {
+            next.remove(tipoId)
+        } else {
+            next[tipoId] = cantidad
+        }
+        return copy(cantidades = next)
+    }
+
+    fun totalPrice(tipos: List<TipoEntrada>): Float {
+        val tiposById = tipos.associateBy { it.id }
+        return cantidades.entries.sumOf { (id, qty) ->
+            val precio = tiposById[id]?.precio ?: 0f
+            (precio * qty).toDouble()
+        }.toFloat()
+    }
+
+    fun toEntradaTipos(tipos: List<TipoEntrada>): List<TipoEntrada> {
+        val tiposById = tipos.associateBy { it.id }
+        return cantidades.entries.flatMap { (id, qty) ->
+            val tipo = tiposById[id] ?: return@flatMap emptyList()
+            List(qty) { tipo }
+        }
+    }
 }
 
 data class CartProduct(

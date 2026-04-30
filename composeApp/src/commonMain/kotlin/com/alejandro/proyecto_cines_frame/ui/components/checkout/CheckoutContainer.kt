@@ -21,8 +21,8 @@ import com.alejandro.proyecto_cines_frame.core.session.SessionManager
 import com.alejandro.proyecto_cines_frame.data.remote.dto.*
 import com.alejandro.proyecto_cines_frame.domain.extension.toFirstUiMessagePerField
 import com.alejandro.proyecto_cines_frame.domain.model.Compra
-import com.alejandro.proyecto_cines_frame.domain.model.Producto
 import com.alejandro.proyecto_cines_frame.domain.model.Sesion
+import com.alejandro.proyecto_cines_frame.domain.model.TipoEntrada
 import com.alejandro.proyecto_cines_frame.domain.validation.CheckoutPaymentValidator
 import com.alejandro.proyecto_cines_frame.ui.theme.SurfaceDark
 import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
@@ -34,6 +34,9 @@ fun CheckoutContainer(
     state: CheckoutState,
     seatMatrix: SeatMatrix,
     remainingSeconds: Long,
+    tiposEntrada: List<TipoEntrada>,
+    products: List<CartProduct>,
+    onProductsChange: (List<CartProduct>) -> Unit,
     onCancelCheckout: () -> Unit,
     onPurchaseCompleted: () -> Unit,
     onPreviousStep: () -> Unit,
@@ -46,20 +49,9 @@ fun CheckoutContainer(
     val sessionEmail = authState.cuenta?.usuario?.correo.orEmpty()
     val isAuthenticated = authState.isAuthenticated && sessionEmail.isNotBlank()
 
-    var tickets by remember { mutableStateOf(TicketSelection()) }
+    var tickets by remember { mutableStateOf(TipoEntradaSelection()) }
     var paymentFormData by remember { mutableStateOf(PaymentFormData()) }
     var paymentFieldErrors by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
-
-    var products by remember {
-        mutableStateOf(
-            listOf(
-                CartProduct(Producto(nombre = "Palomitas", precio = 6.5f, stock = 20)),
-                CartProduct(Producto(nombre = "Refresco", precio = 4.0f, stock = 18)),
-                CartProduct(Producto(nombre = "Nachos", precio = 5.5f, stock = 10)),
-                CartProduct(Producto(nombre = "Agua", precio = 2.5f, stock = 25))
-            )
-        )
-    }
 
     var paymentDone by remember { mutableStateOf(false) }
     var isPaying by remember { mutableStateOf(false) }
@@ -120,6 +112,7 @@ fun CheckoutContainer(
                         CheckoutStep.TICKETS -> {
                             TicketsStep(
                                 seatsSelected = state.selectedSeats.size,
+                                tiposEntrada = tiposEntrada,
                                 tickets = tickets,
                                 onChange = { tickets = it }
                             )
@@ -128,7 +121,7 @@ fun CheckoutContainer(
                         CheckoutStep.BAR -> {
                             BarStep(
                                 products = products,
-                                onUpdate = { products = it }
+                                onUpdate = onProductsChange
                             )
                         }
 
@@ -138,6 +131,7 @@ fun CheckoutContainer(
                                 seats = state.selectedSeats.map {
                                     "Fila ${it.row + 1} · Butaca ${it.column + 1}"
                                 },
+                                tiposEntrada = tiposEntrada,
                                 tickets = tickets,
                                 products = products
                             )
@@ -202,6 +196,8 @@ fun CheckoutContainer(
                                                 holdToken = holdTokenString,
                                                 session = session,
                                                 selectedSeats = state.selectedSeats,
+                                                tiposEntrada = tiposEntrada,
+                                                tickets = tickets,
                                                 products = products
                                             )
 
@@ -232,7 +228,11 @@ fun CheckoutContainer(
                         onContinue = onContinue,
                         continueEnabled = when (state.step) {
                             CheckoutStep.SEATS -> state.selectedSeats.isNotEmpty()
-                            CheckoutStep.TICKETS -> tickets.total() == state.selectedSeats.size && state.selectedSeats.isNotEmpty()
+                            CheckoutStep.TICKETS -> {
+                                tickets.total() == state.selectedSeats.size &&
+                                    state.selectedSeats.isNotEmpty() &&
+                                    tiposEntrada.isNotEmpty()
+                            }
                             CheckoutStep.BAR -> true
                             CheckoutStep.SUMMARY -> true
                             else -> true
@@ -266,13 +266,19 @@ private fun buildCompraDto(
     holdToken: String,
     session: Sesion,
     selectedSeats: Set<SeatPosition>,
+    tiposEntrada: List<TipoEntrada>,
+    tickets: TipoEntradaSelection,
     products: List<CartProduct>
 ): CompraDTO {
     val lineas = mutableListOf<LineaCompraDTO>()
     var numeroLinea = 1
 
+    val orderedSeats = selectedSeats
+        .sortedWith(compareBy<SeatPosition> { it.row }.thenBy { it.column })
+    val selectedTipos = tickets.toEntradaTipos(tiposEntrada)
+
     // Entradas
-    selectedSeats.forEach { seat ->
+    orderedSeats.zip(selectedTipos).forEach { (seat, tipo) ->
         lineas.add(
             LineaCompraEntradaDTO(
                 numero = numeroLinea++,
@@ -286,7 +292,12 @@ private fun buildCompraDto(
                     ),
                     numFila = seat.row + 1,
                     numButaca = seat.column + 1,
-                    precio = 8.5f // Precio base de ejemplo
+                    tipo = TipoEntradaDTO(
+                        id = tipo.id,
+                        nombre = tipo.nombre,
+                        descripcion = tipo.descripcion,
+                        precio = tipo.precio
+                    )
                 )
             )
         )

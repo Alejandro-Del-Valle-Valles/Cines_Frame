@@ -46,11 +46,8 @@ class KtorCompraApi(
             }
         }
 
-        if (!response.status.isSuccess()) {
-            throw response.toStatusException()
-        }
+        if (!response.status.isSuccess()) throw response.toStatusException()
 
-        // Algunos endpoints de compra confirman con 2xx pero devuelven cuerpo vacío/parcial.
         return runCatching { response.body<CompraDTO>() }
             .getOrElse { compra }
     }

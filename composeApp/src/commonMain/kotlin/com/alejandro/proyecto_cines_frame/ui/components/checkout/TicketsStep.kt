@@ -21,14 +21,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.alejandro.proyecto_cines_frame.domain.model.TipoEntrada
 import com.alejandro.proyecto_cines_frame.ui.theme.TextGray
 import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
 
 @Composable
 fun TicketsStep(
     seatsSelected: Int,
-    tickets: TicketSelection,
-    onChange: (TicketSelection) -> Unit
+    tiposEntrada: List<TipoEntrada>,
+    tickets: TipoEntradaSelection,
+    onChange: (TipoEntradaSelection) -> Unit
 ) {
     val total = tickets.total()
     val canAddMore = total < seatsSelected
@@ -46,44 +48,36 @@ fun TicketsStep(
             color = TextWhite
         )
 
-        TicketRow(
-            title = "Adulto",
-            description = "Desde 13 años · 8,50 €",
-            value = tickets.adulto,
-            canAdd = canAddMore,
-            onMinus = {
-                if (tickets.adulto > 0) onChange(tickets.copy(adulto = tickets.adulto - 1))
-            },
-            onPlus = {
-                if (canAddMore) onChange(tickets.copy(adulto = tickets.adulto + 1))
-            }
-        )
+        if (tiposEntrada.isEmpty()) {
+            Text(
+                text = "No hay tipos de entrada disponibles.",
+                color = TextGray,
+                style = MaterialTheme.typography.bodyLarge
+            )
+        } else {
+            tiposEntrada.forEach { tipo ->
+                val value = tickets.cantidadFor(tipo.id)
+                val priceLabel = "${"%.2f".format(tipo.precio)} €"
+                val description = if (tipo.descripcion.isNotBlank()) {
+                    "${tipo.descripcion} · $priceLabel"
+                } else {
+                    priceLabel
+                }
 
-        TicketRow(
-            title = "Niño",
-            description = "Hasta 12 años (Incluidos) · 6,00 €",
-            value = tickets.nino,
-            canAdd = canAddMore,
-            onMinus = {
-                if (tickets.nino > 0) onChange(tickets.copy(nino = tickets.nino - 1))
-            },
-            onPlus = {
-                if (canAddMore) onChange(tickets.copy(nino = tickets.nino + 1))
+                TicketRow(
+                    title = tipo.nombre,
+                    description = description,
+                    value = value,
+                    canAdd = canAddMore,
+                    onMinus = {
+                        if (value > 0) onChange(tickets.update(tipo.id, value - 1))
+                    },
+                    onPlus = {
+                        if (canAddMore) onChange(tickets.update(tipo.id, value + 1))
+                    }
+                )
             }
-        )
-
-        TicketRow(
-            title = "Senior",
-            description = "Mayores de 65 años · 7,00 €",
-            value = tickets.senior,
-            canAdd = canAddMore,
-            onMinus = {
-                if (tickets.senior > 0) onChange(tickets.copy(senior = tickets.senior - 1))
-            },
-            onPlus = {
-                if (canAddMore) onChange(tickets.copy(senior = tickets.senior + 1))
-            }
-        )
+        }
 
         Spacer(Modifier.height(8.dp))
 

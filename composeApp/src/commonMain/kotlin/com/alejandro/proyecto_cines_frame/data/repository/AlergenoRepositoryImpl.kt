@@ -1,7 +1,7 @@
 package com.alejandro.proyecto_cines_frame.data.repository
 
 import com.alejandro.proyecto_cines_frame.core.error.ApiResult
-import com.alejandro.proyecto_cines_frame.data.adapter.AlergenoAdapter
+import com.alejandro.proyecto_cines_frame.data.adapter.toDomain
 import com.alejandro.proyecto_cines_frame.data.remote.api.interfaces.AlergenoApi
 import com.alejandro.proyecto_cines_frame.data.remote.dto.AlergenoDTO
 import com.alejandro.proyecto_cines_frame.data.remote.error.toAppError
@@ -18,7 +18,7 @@ class AlergenoRepositoryImpl(
     override suspend fun getAll(): ApiResult<List<Alergeno>> {
         return try {
             val dtos = api.getAll()
-            ApiResult.Success(dtos.map { AlergenoAdapter.toAlergeno(it) })
+            ApiResult.Success(dtos.map { it.toDomain() })
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
         }
@@ -30,7 +30,7 @@ class AlergenoRepositoryImpl(
     override suspend fun getByNombre(nombre: String): ApiResult<Alergeno> {
         return try {
             val dto = api.getByNombre(nombre)
-            ApiResult.Success(AlergenoAdapter.toAlergeno(dto))
+            ApiResult.Success(dto.toDomain())
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
         }
@@ -42,7 +42,7 @@ class AlergenoRepositoryImpl(
     override suspend fun createAlergeno(alergeno: AlergenoDTO): ApiResult<Alergeno> {
         return try {
             val dto = api.createAlergeno(alergeno)
-            ApiResult.Success(AlergenoAdapter.toAlergeno(dto))
+            ApiResult.Success(dto.toDomain())
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
         }
@@ -57,7 +57,7 @@ class AlergenoRepositoryImpl(
     ): ApiResult<Alergeno> {
         return try {
             val dto = api.updateAlergeno(nombre, alergeno)
-            ApiResult.Success(AlergenoAdapter.toAlergeno(dto))
+            ApiResult.Success(dto.toDomain())
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
         }
@@ -69,7 +69,7 @@ class AlergenoRepositoryImpl(
     override suspend fun deleteAlergeno(nombre: String): ApiResult<Alergeno> {
         return try {
             val dto = api.deleteAlergeno(nombre)
-            ApiResult.Success(AlergenoAdapter.toAlergeno(dto))
+            ApiResult.Success(dto.toDomain())
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
         }

@@ -7,5 +7,5 @@ data class EntradaDTO(
     val sesion: SesionDTO,
     val numFila: Int,
     val numButaca: Int,
-    val precio: Float
+    val tipo: TipoEntradaDTO
 )

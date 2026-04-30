@@ -13,7 +13,8 @@ class Pelicula(
     val duracion: LocalTime,
     val calificacionEdad: Int? = 0,
     val genero: PeliculaGenero,
-    val creditos: List<Credito> = listOf()
+    val creditos: List<Credito> = listOf(),
+    val sesiones: List<Sesion> = listOf()
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
