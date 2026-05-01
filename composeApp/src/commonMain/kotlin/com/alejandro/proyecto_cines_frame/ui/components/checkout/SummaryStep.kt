@@ -9,29 +9,28 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.alejandro.proyecto_cines_frame.ui.theme.TextGray
+import com.alejandro.proyecto_cines_frame.domain.model.TipoEntrada
 import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
 
 @Composable
 fun SummaryStep(
     movie: String,
     seats: List<String>,
-    tickets: TicketSelection,
+    tiposEntrada: List<TipoEntrada>,
+    tickets: TipoEntradaSelection,
     products: List<CartProduct>
 ) {
     val selectedProducts = products.filter { it.cantidad > 0 }
     val barTotal = selectedProducts.sumOf {
         (it.producto.precio * it.cantidad).toDouble()
     }.toFloat()
-    val ticketsTotal = tickets.totalPrice()
+    val ticketsTotal = tickets.totalPrice(tiposEntrada)
     val total = ticketsTotal + barTotal
 
     Column(
@@ -56,6 +55,18 @@ fun SummaryStep(
 
         Text("Entradas", color = TextWhite, style = MaterialTheme.typography.titleMedium)
         Text("Total entradas: ${tickets.total()}", color = TextWhite)
+
+        tiposEntrada.forEach { tipo ->
+            val cantidad = tickets.cantidadFor(tipo.id)
+            if (cantidad > 0) {
+                val lineTotal = tipo.precio * cantidad
+                Text(
+                    text = "${tipo.nombre} x$cantidad · ${"%.2f".format(lineTotal)} €",
+                    color = TextWhite
+                )
+            }
+        }
+
         Text("Precio entradas: ${"%.2f".format(ticketsTotal)} €", color = TextWhite)
 
         if (selectedProducts.isNotEmpty()) {

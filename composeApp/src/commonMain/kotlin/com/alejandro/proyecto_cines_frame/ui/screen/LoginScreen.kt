@@ -30,7 +30,6 @@ fun LoginScreen(
                 message = "Sesión iniciada correctamente",
                 duration = SnackbarDuration.Short
             )
-            delay(1000)
             presenter.consumeLoginSuccess()
             onLoginSuccess()
         }

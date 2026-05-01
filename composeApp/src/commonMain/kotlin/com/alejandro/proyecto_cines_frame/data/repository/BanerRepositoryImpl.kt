@@ -1,7 +1,7 @@
 package com.alejandro.proyecto_cines_frame.data.repository
 
 import com.alejandro.proyecto_cines_frame.core.error.ApiResult
-import com.alejandro.proyecto_cines_frame.data.adapter.BanerAdapter
+import com.alejandro.proyecto_cines_frame.data.adapter.toDomain
 import com.alejandro.proyecto_cines_frame.data.remote.api.interfaces.BanerApi
 import com.alejandro.proyecto_cines_frame.data.remote.dto.BanerDTO
 import com.alejandro.proyecto_cines_frame.data.remote.error.toAppError
@@ -18,7 +18,7 @@ class BanerRepositoryImpl(
     override suspend fun getBanersToday(): ApiResult<List<Baner>> {
         return try {
             val dtos = api.getBanersToday()
-            ApiResult.Success(dtos.map { BanerAdapter.toBaner(it) })
+            ApiResult.Success(dtos.map { it.toDomain() })
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
         }
@@ -30,7 +30,7 @@ class BanerRepositoryImpl(
     override suspend fun createBaner(baner: BanerDTO): ApiResult<Baner> {
         return try {
             val dto = api.createBaner(baner)
-            ApiResult.Success(BanerAdapter.toBaner(dto))
+            ApiResult.Success(dto.toDomain())
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
         }
@@ -42,7 +42,7 @@ class BanerRepositoryImpl(
     override suspend fun updateBaner(url: String,  baner: BanerDTO): ApiResult<Baner> {
         return try {
             val dto = api.updateBaner(url, baner)
-            ApiResult.Success(BanerAdapter.toBaner(dto))
+            ApiResult.Success(dto.toDomain())
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
         }
@@ -54,7 +54,7 @@ class BanerRepositoryImpl(
     override suspend fun deleteBaner(url: String): ApiResult<Baner> {
         return try {
             val dto = api.deleteBaner(url)
-            ApiResult.Success(BanerAdapter.toBaner(dto))
+            ApiResult.Success(dto.toDomain())
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
         }

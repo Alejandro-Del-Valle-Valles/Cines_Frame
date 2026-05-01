@@ -5,4 +5,5 @@ class Compra(
     val usuario: Usuario,
     val lineasCompra: Set<LineaCompra>
 ) {
+    companion object
 }

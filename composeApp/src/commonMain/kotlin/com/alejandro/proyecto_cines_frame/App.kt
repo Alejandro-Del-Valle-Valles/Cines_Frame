@@ -11,7 +11,6 @@ import com.alejandro.proyecto_cines_frame.ui.screen.UserProfileScreen
 import com.alejandro.proyecto_cines_frame.ui.theme.AppTheme
 import org.jetbrains.compose.resources.painterResource
 import proyecto_cines_frame.composeapp.generated.resources.Res
-import proyecto_cines_frame.composeapp.generated.resources.banner
 import proyecto_cines_frame.composeapp.generated.resources.logo_frames
 
 

@@ -1,8 +1,12 @@
 package com.alejandro.proyecto_cines_frame.data.remote.dto
 
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonClassDiscriminator
 
+@OptIn(ExperimentalSerializationApi::class)
+@JsonClassDiscriminator("type")
 @Serializable
 sealed class LineaCompraDTO {
     abstract val numero: Int

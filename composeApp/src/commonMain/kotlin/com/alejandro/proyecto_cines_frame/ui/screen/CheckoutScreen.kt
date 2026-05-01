@@ -1,7 +1,9 @@
 package com.alejandro.proyecto_cines_frame.ui.screen
 
-import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.background
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -10,18 +12,30 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.alejandro.proyecto_cines_frame.core.error.ApiResult
 import com.alejandro.proyecto_cines_frame.core.error.AppError
+import com.alejandro.proyecto_cines_frame.data.remote.api.KtorCompraApi
+import com.alejandro.proyecto_cines_frame.data.remote.api.KtorProductoApi
 import com.alejandro.proyecto_cines_frame.data.remote.api.KtorSesionApi
+import com.alejandro.proyecto_cines_frame.data.remote.api.KtorTipoEntradaApi
 import com.alejandro.proyecto_cines_frame.data.remote.client.HttpClientFactory
-import com.alejandro.proyecto_cines_frame.data.remote.dto.HoldButacaRequest
+import com.alejandro.proyecto_cines_frame.data.remote.dto.*
+import com.alejandro.proyecto_cines_frame.data.repository.CompraRepositoryImpl
+import com.alejandro.proyecto_cines_frame.data.repository.ProductoRepositoryImpl
 import com.alejandro.proyecto_cines_frame.data.repository.SesionRepositoryImpl
+import com.alejandro.proyecto_cines_frame.data.repository.TipoEntradaRepositoryImpl
+import com.alejandro.proyecto_cines_frame.domain.model.HoldToken
 import com.alejandro.proyecto_cines_frame.domain.model.Sesion
+import com.alejandro.proyecto_cines_frame.domain.model.TipoEntrada
+import com.alejandro.proyecto_cines_frame.domain.repository.CompraRepository
+import com.alejandro.proyecto_cines_frame.domain.repository.ProductoRepository
 import com.alejandro.proyecto_cines_frame.domain.repository.SesionRepository
+import com.alejandro.proyecto_cines_frame.domain.repository.TipoEntradaRepository
 import com.alejandro.proyecto_cines_frame.ui.components.checkout.*
 import com.alejandro.proyecto_cines_frame.ui.components.footer.Footer
 import com.alejandro.proyecto_cines_frame.ui.theme.BackgroundDark
 import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
@@ -32,11 +46,32 @@ fun CheckoutScreen(
     session: Sesion,
     salaCapacity: Int,
     onBack: () -> Unit,
-    sesionRepository: SesionRepository? = null
+    sesionRepository: SesionRepository? = null,
+    compraRepository: CompraRepository? = null,
+    tipoEntradaRepository: TipoEntradaRepository? = null,
+    productoRepository: ProductoRepository? = null
 ) {
     val repository = sesionRepository ?: remember {
         SesionRepositoryImpl(
             api = KtorSesionApi(HttpClientFactory.create())
+        )
+    }
+
+    val purchaseRepository = compraRepository ?: remember {
+        CompraRepositoryImpl(
+            api = KtorCompraApi(HttpClientFactory.create())
+        )
+    }
+
+    val tipoEntradaRepo = tipoEntradaRepository ?: remember {
+        TipoEntradaRepositoryImpl(
+            api = KtorTipoEntradaApi(HttpClientFactory.create())
+        )
+    }
+
+    val productoRepo = productoRepository ?: remember {
+        ProductoRepositoryImpl(
+            api = KtorProductoApi(HttpClientFactory.create())
         )
     }
 
@@ -47,11 +82,35 @@ fun CheckoutScreen(
 
     var state by remember { mutableStateOf(CheckoutState()) }
     var seatMatrix by remember(baseSeatMatrix) { mutableStateOf(baseSeatMatrix) }
-    var holdToken by remember { mutableStateOf<com.alejandro.proyecto_cines_frame.domain.model.HoldToken?>(null) }
+    var holdToken by remember { mutableStateOf<HoldToken?>(null) }
     var remainingSeconds by remember { mutableStateOf(0L) }
     var isLoadingCheckout by remember { mutableStateOf(true) }
     var isClosingCheckout by remember { mutableStateOf(false) }
     var checkoutMessage by remember { mutableStateOf<String?>(null) }
+    var tiposEntrada by remember { mutableStateOf<List<TipoEntrada>>(emptyList()) }
+    var products by remember { mutableStateOf<List<CartProduct>>(emptyList()) }
+
+    LaunchedEffect(Unit) {
+        when (val tiposResult = tipoEntradaRepo.getAll()) {
+            is ApiResult.Success -> {
+                tiposEntrada = tiposResult.data
+            }
+            is ApiResult.Error -> {
+                checkoutMessage = "No se pudieron cargar los tipos de entrada."
+            }
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        when (val productsResult = productoRepo.getAll()) {
+            is ApiResult.Success -> {
+                products = productsResult.data.map { CartProduct(it) }
+            }
+            is ApiResult.Error -> {
+                checkoutMessage = "No se pudieron cargar los productos del bar."
+            }
+        }
+    }
 
     LaunchedEffect(session.numSala, session.pelicula.id, horarioApi, salaCapacity) {
         isLoadingCheckout = true
@@ -141,6 +200,9 @@ fun CheckoutScreen(
                         state = state,
                         seatMatrix = seatMatrix,
                         remainingSeconds = remainingSeconds,
+                        tiposEntrada = tiposEntrada,
+                        products = products,
+                        onProductsChange = { products = it },
                         onCancelCheckout = {
                             if (!isClosingCheckout) {
                                 isClosingCheckout = true
@@ -183,9 +245,7 @@ fun CheckoutScreen(
                                 checkoutMessage = "El tiempo para comprar ha expirado y no se pueden bloquear butacas."
                             } else {
                                 val activeToken = holdToken
-                                if (activeToken == null) {
-                                    checkoutMessage = "No hay token activo para bloquear butacas."
-                                } else {
+                                if (activeToken != null) {
                                     val request = HoldButacaRequest(
                                         token = activeToken.holdToken,
                                         fila = clicked.row + 1,
@@ -245,7 +305,11 @@ fun CheckoutScreen(
                             } else {
                                 state = state.copy(step = nextStep(state.step))
                             }
-                        }
+                        },
+                        onPerformPayment = { compraDto ->
+                            purchaseRepository.createCompra(compraDto)
+                        },
+                        holdTokenString = holdToken?.holdToken ?: ""
                     )
                 }
             }
@@ -267,7 +331,7 @@ private suspend fun cleanupCheckoutAndExit(
     repository: SesionRepository,
     session: Sesion,
     horarioApi: String,
-    activeToken: com.alejandro.proyecto_cines_frame.domain.model.HoldToken?,
+    activeToken: HoldToken?,
     seatsToRelease: Set<SeatPosition>,
     releaseSelectedSeats: Boolean,
     onCleanupError: (String) -> Unit
@@ -276,7 +340,7 @@ private suspend fun cleanupCheckoutAndExit(
 
     if (releaseSelectedSeats && seatsToRelease.isNotEmpty()) {
         seatsToRelease.forEach { seat ->
-            val result = repository.releaseButaca(
+            repository.releaseButaca(
                 numSala = session.numSala,
                 peliculaId = session.pelicula.id,
                 horario = horarioApi,
@@ -286,39 +350,27 @@ private suspend fun cleanupCheckoutAndExit(
                     butaca = seat.column + 1
                 )
             )
-
-            if (result is ApiResult.Error) {
-                onCleanupError("No se pudo liberar alguna butaca seleccionada.")
-            }
         }
     }
+}
 
-    when (
-        val releaseTokenResult = repository.releaseHoldToken(
-            numSala = session.numSala,
-            peliculaId = session.pelicula.id,
-            horario = horarioApi,
-            token = token.holdToken
-        )
-    ) {
-        is ApiResult.Success -> Unit
-        is ApiResult.Error -> onCleanupError("No se pudo liberar el token de reserva.")
+private fun toCheckoutErrorMessage(error: AppError): String {
+    return when (error) {
+        is AppError.Network -> "Error de conexión."
+        is AppError.Server -> "Error del servidor."
+        is AppError.Conflict -> "La butaca ya no está disponible."
+        is AppError.Unauthorized -> "No autorizado."
+        else -> "Ha ocurrido un error inesperado."
     }
 }
 
 private fun secondsUntilExpiry(expiryEpochSeconds: Long): Long {
-    val nowEpochSeconds = Clock.System.now().epochSeconds
-    return expiryEpochSeconds - nowEpochSeconds
+    val now = Clock.System.now().epochSeconds
+    return (expiryEpochSeconds - now).coerceAtLeast(0L)
 }
 
-private fun toCheckoutErrorMessage(error: AppError): String =
-    when (error) {
-        is AppError.Network -> error.message ?: "No hay conexion con el servidor"
-        is AppError.Unknown -> error.message ?: "Error desconocido"
-        is AppError.Validation -> "No se pudo procesar la petición"
-        is AppError.Unauthorized -> "No autorizado"
-        is AppError.Forbidden -> "Acceso denegado"
-        is AppError.NotFound -> "Sesion no encontrada"
-        is AppError.Conflict -> "La butaca ya esta ocupada o bloqueada"
-        is AppError.Server -> "Error del servidor (${error.code})"
-    }
+private fun canUseHoldToken(token: HoldToken?, now: LocalDateTime): Boolean {
+    if (token == null) return false
+    val timeZone = TimeZone.currentSystemDefault()
+    return token.expira.toInstant(timeZone).epochSeconds > now.toInstant(timeZone).epochSeconds
+}

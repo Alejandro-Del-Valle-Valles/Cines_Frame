@@ -3,6 +3,7 @@ package com.alejandro.proyecto_cines_frame.data.repository
 import com.alejandro.proyecto_cines_frame.core.error.ApiResult
 import com.alejandro.proyecto_cines_frame.data.remote.api.interfaces.CompraApi
 import com.alejandro.proyecto_cines_frame.data.remote.dto.CompraDTO
+import com.alejandro.proyecto_cines_frame.data.remote.dto.LineaCompraProductoCreateDTO
 import com.alejandro.proyecto_cines_frame.data.remote.dto.LineaCompraProductoDTO
 import com.alejandro.proyecto_cines_frame.data.remote.dto.ProductoDTO
 import io.mockk.coEvery
@@ -11,6 +12,7 @@ import io.mockk.mockk
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertTrue
 import kotlinx.coroutines.test.runTest
 
 class CompraRepositoryImplTest {
@@ -53,6 +55,44 @@ class CompraRepositoryImplTest {
         assertEquals(5.5f, linea.producto.precio)
         assertEquals(10, linea.producto.stock)
         coVerify(exactly = 1) { api.createCompra(input) }
+    }
+
+    @Test
+    fun createCompra_success_whenBackendReturnsProductoCreateLine() = runTest {
+        val input = CompraDTO(
+            correo = "cliente@correo.com",
+            holdToken = "token-123",
+            lineasCompra = listOf(
+                LineaCompraProductoCreateDTO(
+                    numero = 1,
+                    nombreProducto = "Refresco"
+                )
+            )
+        )
+        coEvery { api.createCompra(input) } returns input
+
+        val result = repository.createCompra(input)
+
+        assertIs<ApiResult.Success<*>>(result)
+        val compra = (result as ApiResult.Success<com.alejandro.proyecto_cines_frame.domain.model.Compra>).data
+        assertEquals("cliente@correo.com", compra.usuario.correo)
+        assertTrue(compra.lineasCompra.isNotEmpty())
+    }
+
+    @Test
+    fun createCompra_success_whenBackendReturnsPartialPayload() = runTest {
+        val input = CompraDTO(
+            correo = "cliente@correo.com",
+            holdToken = "token-123",
+            lineasCompra = emptyList()
+        )
+        coEvery { api.createCompra(input) } returns CompraDTO(correo = "cliente@correo.com")
+
+        val result = repository.createCompra(input)
+
+        assertIs<ApiResult.Success<*>>(result)
+        val compra = (result as ApiResult.Success<com.alejandro.proyecto_cines_frame.domain.model.Compra>).data
+        assertEquals("cliente@correo.com", compra.usuario.correo)
     }
 }
 

@@ -8,7 +8,7 @@ class Entrada(
     val horario: LocalDateTime,
     val fila: Int,
     val butaca: Int,
-    val precio: Float
+    val tipo: TipoEntrada
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

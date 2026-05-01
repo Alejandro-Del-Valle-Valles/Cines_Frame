@@ -31,7 +31,6 @@ fun RegisterScreen(
                 message = "Cuenta creada correctamente",
                 duration = SnackbarDuration.Short
             )
-            delay(1500)
             presenter.consumeRegisterSuccess()
             onRegisterSuccess()
         }

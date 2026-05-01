@@ -1,7 +1,7 @@
 package com.alejandro.proyecto_cines_frame.data.repository
 
 import com.alejandro.proyecto_cines_frame.core.error.ApiResult
-import com.alejandro.proyecto_cines_frame.data.adapter.SalaAdapter
+import com.alejandro.proyecto_cines_frame.data.adapter.toDomain
 import com.alejandro.proyecto_cines_frame.data.remote.api.interfaces.SalaApi
 import com.alejandro.proyecto_cines_frame.data.remote.dto.SalaDTO
 import com.alejandro.proyecto_cines_frame.data.remote.error.toAppError
@@ -18,7 +18,7 @@ class SalaRepositoryImpl(
     override suspend fun getAll(): ApiResult<List<Sala>> {
         return try {
             val dtos = api.getAll()
-            ApiResult.Success(dtos.map { SalaAdapter.toSala(it) })
+            ApiResult.Success(dtos.map { it.toDomain() })
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
         }
@@ -30,7 +30,7 @@ class SalaRepositoryImpl(
     override suspend fun getByNumero(numero: Int): ApiResult<Sala> {
         return try {
             val dto = api.getByNumero(numero)
-            ApiResult.Success(SalaAdapter.toSala(dto))
+            ApiResult.Success(dto.toDomain())
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
         }
@@ -42,7 +42,7 @@ class SalaRepositoryImpl(
     override suspend fun createSala(sala: SalaDTO): ApiResult<Sala> {
         return try {
             val dto = api.createSala(sala)
-            ApiResult.Success(SalaAdapter.toSala(dto))
+            ApiResult.Success(dto.toDomain())
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
         }
@@ -54,7 +54,7 @@ class SalaRepositoryImpl(
     override suspend fun updateSala(sala: SalaDTO): ApiResult<Sala> {
         return try {
             val dto = api.updateSala(sala)
-            ApiResult.Success(SalaAdapter.toSala(dto))
+            ApiResult.Success(dto.toDomain())
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
         }
@@ -66,7 +66,7 @@ class SalaRepositoryImpl(
     override suspend fun deleteSala(numero: Int): ApiResult<Sala> {
         return try {
             val dto = api.deleteSala(numero)
-            ApiResult.Success(SalaAdapter.toSala(dto))
+            ApiResult.Success(dto.toDomain())
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
         }

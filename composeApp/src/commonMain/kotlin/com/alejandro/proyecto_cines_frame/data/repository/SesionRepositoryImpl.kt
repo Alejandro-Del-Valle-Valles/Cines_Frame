@@ -2,8 +2,7 @@ package com.alejandro.proyecto_cines_frame.data.repository
 
 import com.alejandro.proyecto_cines_frame.core.error.ApiResult
 import com.alejandro.proyecto_cines_frame.core.error.AppError
-import com.alejandro.proyecto_cines_frame.data.adapter.HoldTokenAdapter
-import com.alejandro.proyecto_cines_frame.data.adapter.SesionAdapter
+import com.alejandro.proyecto_cines_frame.data.adapter.toDomain
 import com.alejandro.proyecto_cines_frame.data.remote.api.interfaces.SesionApi
 import com.alejandro.proyecto_cines_frame.data.remote.dto.ButacasStatusResponse
 import com.alejandro.proyecto_cines_frame.data.remote.dto.HoldButacaRequest
@@ -24,7 +23,7 @@ class SesionRepositoryImpl(
     override suspend fun getAll(): ApiResult<List<Sesion>> {
         return try {
             val dtos = api.getAll()
-            ApiResult.Success(dtos.map { SesionAdapter.toSesion(it) })
+            ApiResult.Success(dtos.map { it.toDomain() })
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
         }
@@ -39,7 +38,7 @@ class SesionRepositoryImpl(
     ): ApiResult<List<Sesion>> {
         return try {
             val dtos = api.getByRangoHorario(inicio, fin)
-            ApiResult.Success(dtos.map { SesionAdapter.toSesion(it) })
+            ApiResult.Success(dtos.map { it.toDomain() })
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
         }
@@ -55,7 +54,7 @@ class SesionRepositoryImpl(
     ): ApiResult<Sesion> {
         return try {
             val dto = api.getSesion(numSala, peliculaId, horario)
-            ApiResult.Success(SesionAdapter.toSesion(dto))
+            ApiResult.Success(dto.toDomain())
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
         }
@@ -67,7 +66,7 @@ class SesionRepositoryImpl(
     override suspend fun createSesion(sesion: SesionCrudDTO): ApiResult<Sesion> {
         return try {
             val dto = api.createSesion(sesion)
-            ApiResult.Success(SesionAdapter.toSesion(dto))
+            ApiResult.Success(dto.toDomain())
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
         }
@@ -79,7 +78,7 @@ class SesionRepositoryImpl(
     override suspend fun deleteSesion(sesion: SesionCrudDTO): ApiResult<Sesion> {
         return try {
             val dto = api.deleteSesion(sesion)
-            ApiResult.Success(SesionAdapter.toSesion(dto))
+            ApiResult.Success(dto.toDomain())
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
         }
@@ -91,7 +90,7 @@ class SesionRepositoryImpl(
     override suspend fun createHoldToken(numSala: Int, peliculaId: String, horario: String): ApiResult<HoldToken> {
         return try {
             val holdTokenResponse = api.createHoldToken(numSala, peliculaId, horario)
-            ApiResult.Success(HoldTokenAdapter.toHoldToken(holdTokenResponse))
+            ApiResult.Success(holdTokenResponse.toDomain())
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
         }

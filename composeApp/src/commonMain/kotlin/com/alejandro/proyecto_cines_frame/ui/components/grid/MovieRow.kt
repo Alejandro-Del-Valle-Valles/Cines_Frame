@@ -14,6 +14,7 @@ import com.alejandro.proyecto_cines_frame.ui.components.features.movies.MovieCar
 fun MovieRow(
     movies: List<Pelicula>,
     sessions: List<Sesion>,
+    onMovieClick: (Pelicula) -> Unit = {},
     onSessionClick: (Sesion) -> Unit = {},
     columns: Int,
     cardWidth: Dp,
@@ -29,6 +30,7 @@ fun MovieRow(
                 MovieCard(
                     movie = movie,
                     sessions = sessions,
+                    onMovieClick = onMovieClick,
                     onSessionClick = onSessionClick,
                     cardWidth = cardWidth,
                     posterHeight = posterHeight,
