@@ -9,16 +9,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.alejandro.proyecto_cines_frame.domain.model.Entrada
 import com.alejandro.proyecto_cines_frame.ui.components.footer.FooterUtils
+import com.alejandro.proyecto_cines_frame.ui.components.profileAndTickets.EntradasListaModel
 import com.alejandro.proyecto_cines_frame.ui.components.profileAndTickets.UserProfileDesktop
 import com.alejandro.proyecto_cines_frame.ui.components.profileAndTickets.UserProfileMovile
 import com.alejandro.proyecto_cines_frame.ui.theme.ColorFondoHeader
 
 @Composable
-fun UseProfileScreen(
+fun UserProfileScreen(
     userName: String,
-    tickets: List<Entrada>,
+    tickets: List<EntradasListaModel>,
     onChangeName: () -> Unit,
-    onChangePassword: () -> Unit
+    onChangePassword: () -> Unit,
+    onNameChanged: (String) -> Unit
 ) {
     BoxWithConstraints(
         modifier = Modifier
@@ -30,9 +32,9 @@ fun UseProfileScreen(
         val esEscritorio = FooterUtils.esEscritorio(maxWidth)
 
         if (esEscritorio) {
-            UserProfileDesktop(userName, tickets, onChangeName, onChangePassword)
+            UserProfileDesktop(userName, tickets, onChangeName, onChangePassword, onNameChanged)
         } else {
-            UserProfileMovile(userName, tickets, onChangeName, onChangePassword)
+            UserProfileMovile(userName, tickets, onChangeName, onChangePassword, onNameChanged)
         }
     }
 }

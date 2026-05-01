@@ -1,2 +1,26 @@
 package com.alejandro.proyecto_cines_frame.ui.components.profileAndTickets
 
+import com.alejandro.proyecto_cines_frame.domain.model.Usuario
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
+
+data class EntradasListaModel(
+    val correo: String //,
+    //val tipoEntrada: String
+) {
+    var fecha = LocalDate(2023, 10, 1)
+    var tituloPelicula = "Titulo de la película"
+    var cantidadEntradas = 1
+    var tipoEntrada= "Adulto"
+    var precioTotal = 2f
+
+    private fun tipoEntradas (tipoEntrada: String): Float {
+        if (tipoEntrada == "Adulto") {
+            return 8.5f
+        } else if (tipoEntrada == "Nino"){
+            return 6.0f
+        } else {
+            return 7.0f
+        }
+    }
+}
