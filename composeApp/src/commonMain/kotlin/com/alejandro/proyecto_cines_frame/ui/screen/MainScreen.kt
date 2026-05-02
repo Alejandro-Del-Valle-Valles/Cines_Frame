@@ -294,6 +294,44 @@ fun MainScreen(
         return
     }
 
+    val openCheckoutForSession: (Sesion) -> Unit = { sessionClicked ->
+        scope.launch {
+            isOpeningCheckout = true
+            checkoutErrorMessage = null
+
+            val sesionResult = moviesRepository.getSesion(
+                numSala = sessionClicked.numSala,
+                peliculaId = sessionClicked.pelicula.id,
+                horario = sessionClicked.horario.toString()
+            )
+
+            val sesionDetalle = when (sesionResult) {
+                is ApiResult.Success -> sesionResult.data
+                is ApiResult.Error -> {
+                    checkoutErrorMessage = toMainScreenErrorMessage(sesionResult.error)
+                    isOpeningCheckout = false
+                    return@launch
+                }
+            }
+
+            val salaResult = salasRepository.getByNumero(sesionDetalle.numSala)
+
+            when (salaResult) {
+                is ApiResult.Success -> {
+                    checkoutSession = sesionDetalle
+                    checkoutSalaCapacity = salaResult.data.aforo
+                    currentScreen = "checkout"
+                }
+
+                is ApiResult.Error -> {
+                    checkoutErrorMessage = toMainScreenErrorMessage(salaResult.error)
+                }
+            }
+
+            isOpeningCheckout = false
+        }
+    }
+
     if (currentScreen == "movie_detail" && selectedMovieDetail != null) {
         MovieDetailScreen(
             title = selectedMovieDetail!!.nombre,
@@ -307,6 +345,8 @@ fun MainScreen(
             duration = selectedMovieDetail!!.duracion.toString().substring(0, 5), // HH:mm
             ageRating = "+${selectedMovieDetail!!.calificacionEdad ?: 0}",
             imagePainter = rememberAsyncImagePainter(selectedMovieDetail!!.portada),
+            sessions = selectedMovieDetail!!.sesiones,
+            onSessionClick = openCheckoutForSession,
             onBackClick = {
                 currentScreen = "main"
                 selectedMovieDetail = null
@@ -446,7 +486,7 @@ fun MainScreen(
                             onMovieClick = { movieClicked ->
                                 scope.launch {
                                     isLoadingMovieDetail = true
-                                    when (val result = pelisRepository.getById(movieClicked.id)) {
+                                    when (val result = pelisRepository.getByIdWithSesiones(movieClicked.id)) {
                                         is ApiResult.Success -> {
                                             selectedMovieDetail = result.data
                                             currentScreen = "movie_detail"
@@ -463,44 +503,7 @@ fun MainScreen(
                                 }
                             },
                             onSessionClick = { sessionClicked ->
-                                scope.launch {
-                                    isOpeningCheckout = true
-                                    checkoutErrorMessage = null
-
-                                    val sesionResult = moviesRepository.getSesion(
-                                        numSala = sessionClicked.numSala,
-                                        peliculaId = sessionClicked.pelicula.id,
-                                        horario = sessionClicked.horario.toString()
-                                    )
-
-                                    val sesionDetalle = when (sesionResult) {
-                                        is ApiResult.Success -> sesionResult.data
-                                        is ApiResult.Error -> {
-                                            checkoutErrorMessage =
-                                                toMainScreenErrorMessage(sesionResult.error)
-                                            isOpeningCheckout = false
-                                            return@launch
-                                        }
-                                    }
-
-                                    val salaResult =
-                                        salasRepository.getByNumero(sesionDetalle.numSala)
-
-                                    when (salaResult) {
-                                        is ApiResult.Success -> {
-                                            checkoutSession = sesionDetalle
-                                            checkoutSalaCapacity = salaResult.data.aforo
-                                            currentScreen = "checkout"
-                                        }
-
-                                        is ApiResult.Error -> {
-                                            checkoutErrorMessage =
-                                                toMainScreenErrorMessage(salaResult.error)
-                                        }
-                                    }
-
-                                    isOpeningCheckout = false
-                                }
+                                openCheckoutForSession(sessionClicked)
                             }
                         )
                     }

@@ -206,7 +206,6 @@ fun CheckoutContainer(
                                                     paymentDone = true
                                                 }
                                                 is ApiResult.Error -> {
-                                                    //paymentDone = true
                                                     generalPaymentError = "No se ha podido completar la compra. Inténtelo de nuevo."
                                                 }
                                             }
