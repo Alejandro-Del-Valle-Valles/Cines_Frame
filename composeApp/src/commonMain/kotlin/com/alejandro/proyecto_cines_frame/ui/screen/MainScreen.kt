@@ -23,6 +23,7 @@ import com.alejandro.proyecto_cines_frame.data.remote.client.HttpClientFactory
 import com.alejandro.proyecto_cines_frame.data.repository.*
 import com.alejandro.proyecto_cines_frame.domain.enums.ParticipanteRol
 import com.alejandro.proyecto_cines_frame.domain.model.Pelicula
+import com.alejandro.proyecto_cines_frame.domain.model.Compra
 import com.alejandro.proyecto_cines_frame.domain.model.Sesion
 import com.alejandro.proyecto_cines_frame.domain.repository.*
 import com.alejandro.proyecto_cines_frame.ui.components.banner.Banner
@@ -48,6 +49,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun MainScreen(
     sesionRepository: SesionRepository? = null,
+    compraRepository: CompraRepository? = null,
     bannerRepository: BanerRepository? = null,
     salaRepository: SalaRepository? = null,
     peliculaRepository: PeliculaRepository? = null
@@ -55,6 +57,12 @@ fun MainScreen(
     val moviesRepository = sesionRepository ?: remember {
         SesionRepositoryImpl(
             api = KtorSesionApi(HttpClientFactory.create())
+        )
+    }
+    
+    val comprasRepository = compraRepository ?: remember {
+        CompraRepositoryImpl(
+            api = KtorCompraApi(HttpClientFactory.create())
         )
     }
 
@@ -133,6 +141,11 @@ fun MainScreen(
     var checkoutSalaCapacity by remember { mutableStateOf(0) }
     var isOpeningCheckout by remember { mutableStateOf(false) }
     var checkoutErrorMessage by remember { mutableStateOf<String?>(null) }
+
+    var profileCompras by remember { mutableStateOf<List<Compra>>(emptyList()) }
+    var profileMovieTitles by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
+    var isLoadingProfile by remember { mutableStateOf(false) }
+    var profileErrorMessage by remember { mutableStateOf<String?>(null) }
 
     // Detalle Película
     var selectedMovieDetail by remember { mutableStateOf<Pelicula?>(null) }
@@ -229,6 +242,40 @@ fun MainScreen(
                 )
             }
         }
+    }
+
+    LaunchedEffect(currentScreen, authState.isAuthenticated) {
+        if (currentScreen != "profile") return@LaunchedEffect
+
+        if (!authState.isAuthenticated) {
+            profileErrorMessage = "Debes iniciar sesion para ver tus entradas."
+            return@LaunchedEffect
+        }
+
+        isLoadingProfile = true
+        profileErrorMessage = null
+
+        when (val comprasResult = comprasRepository.getAll()) {
+            is ApiResult.Success -> profileCompras = comprasResult.data
+            is ApiResult.Error -> {
+                profileCompras = emptyList()
+                profileErrorMessage = toMainScreenErrorMessage(comprasResult.error)
+            }
+        }
+
+        when (val peliculasResult = pelisRepository.getAllBasic()) {
+            is ApiResult.Success -> {
+                profileMovieTitles = peliculasResult.data.associate { it.id to it.nombre }
+            }
+            is ApiResult.Error -> {
+                profileMovieTitles = emptyMap()
+                if (profileErrorMessage == null) {
+                    profileErrorMessage = toMainScreenErrorMessage(peliculasResult.error)
+                }
+            }
+        }
+
+        isLoadingProfile = false
     }
 
     val allSessions = sessionState.sessions
@@ -355,6 +402,33 @@ fun MainScreen(
         return
     }
 
+    if (currentScreen == "profile") {
+        UserProfileScreen(
+            userName = authState.cuenta?.nombre ?: "",
+            compras = profileCompras,
+            movieTitlesById = profileMovieTitles,
+            errorMessage = profileErrorMessage,
+            onChangeName = {},
+            onChangePassword = {},
+            onNameChanged = {},
+            onBackClick = {
+                currentScreen = "main"
+            }
+        )
+
+        if (isLoadingProfile) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.5f)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = TextWhite)
+            }
+        }
+        return
+    }
+
     if (isRestoringSession) {
         Box(
             modifier = Modifier
@@ -396,15 +470,6 @@ fun MainScreen(
                     buscadorEnfocado = it
                 },
 
-                onEntradasClick = {
-                    scope.launch {
-                        snackbarHostState.showSnackbar(
-                            message = "Está función aún no está implementada :(",
-                            duration = SnackbarDuration.Short
-                        )
-                    }
-                },
-
                 onLoginClick = {
                     currentScreen = "login"
                 },
@@ -425,11 +490,15 @@ fun MainScreen(
                 },
 
                 onMyAccountClick = {
-                    scope.launch {
-                        snackbarHostState.showSnackbar(
-                            message = "Esta función aún no está implementada :(",
-                            duration = SnackbarDuration.Short
-                        )
+                    if (authState.isAuthenticated) {
+                        currentScreen = "profile"
+                    } else {
+                        scope.launch {
+                            snackbarHostState.showSnackbar(
+                                message = "Debes iniciar sesion para ver tu cuenta",
+                                duration = SnackbarDuration.Short
+                            )
+                        }
                     }
                 },
 

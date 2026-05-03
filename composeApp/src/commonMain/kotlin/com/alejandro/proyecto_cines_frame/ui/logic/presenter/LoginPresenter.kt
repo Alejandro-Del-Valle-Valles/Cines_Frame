@@ -1,6 +1,7 @@
 package com.alejandro.proyecto_cines_frame.ui.logic.presenter
 
 import com.alejandro.proyecto_cines_frame.core.error.ApiResult
+import com.alejandro.proyecto_cines_frame.core.error.AppError
 import com.alejandro.proyecto_cines_frame.core.session.SessionManager
 import com.alejandro.proyecto_cines_frame.domain.extension.toFieldErrorMessagesIfAny
 import com.alejandro.proyecto_cines_frame.domain.extension.toFirstUiMessagePerField
@@ -42,12 +43,17 @@ class LoginPresenter(
                     _state.update { it.copy(isLoading = false, loginSuccess = true) }
                 }
                 is ApiResult.Error -> {
+                    val errorMsg = if (res.error is AppError.Unauthorized) {
+                        res.error.details["message"] ?: "La cuenta no existe"
+                    } else {
+                        "Error desconocido, es probable que no exista la cuenta o el correo y la contraseña no coincidan"
+                    }
                     _state.update {
                         it.copy(
                             isLoading = false,
                             loginSuccess = false,
                             fieldErrors = res.error.toFieldErrorMessagesIfAny(),
-                            generalError = res.error.toString()
+                            generalError = errorMsg
                         )
                     }
                 }

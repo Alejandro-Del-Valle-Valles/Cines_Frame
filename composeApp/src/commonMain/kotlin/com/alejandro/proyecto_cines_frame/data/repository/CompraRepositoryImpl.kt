@@ -20,6 +20,7 @@ class CompraRepositoryImpl(
             val dtos = api.getAll()
             ApiResult.Success(dtos.map { it.toDomain() })
         } catch (t: Throwable) {
+            println(t.stackTraceToString())
             ApiResult.Error(t.toAppError())
         }
     }
@@ -32,6 +33,7 @@ class CompraRepositoryImpl(
             val dtos = api.getFuturas()
             ApiResult.Success(dtos.map { it.toDomain() })
         } catch (t: Throwable) {
+            println(t.stackTraceToString())
             ApiResult.Error(t.toAppError())
         }
     }
@@ -44,6 +46,7 @@ class CompraRepositoryImpl(
             val dto = api.createCompra(compra)
             ApiResult.Success(dto.toDomain())
         } catch (t: Throwable) {
+            println(t.stackTraceToString())
             ApiResult.Error(t.toAppError())
         }
     }

@@ -26,7 +26,7 @@ class KtorCompraApi(
     /**
      * Devuelve el histŕoico de compras del usuario
      */
-    override suspend fun getAll(): List<CompraDTO> = httpClient.get(baseUrl).body()
+    override suspend fun getAll(): List<CompraDTO> = httpClient.get("$baseUrl/todas").body()
 
     /**
      * Devuelve el histórico de compras futuras (A suceder después de hoy)

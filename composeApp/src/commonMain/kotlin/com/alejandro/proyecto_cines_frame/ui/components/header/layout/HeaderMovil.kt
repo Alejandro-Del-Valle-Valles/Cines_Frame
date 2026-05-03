@@ -22,8 +22,6 @@ fun HeaderMovil(
     onSearchChange: (String) -> Unit,
     onSearchSubmit: (String) -> Unit,
     onFocusChange: (Boolean) -> Unit,
-
-    onEntradasClick: () -> Unit,
     onLoginClick: () -> Unit,
     onRegisterClick: () -> Unit,
     onMyAccountClick: () -> Unit,
@@ -46,7 +44,6 @@ fun HeaderMovil(
             }
             Spacer(Modifier.width(16.dp))
             HeaderActions(
-                onEntradasClick,
                 onLoginClick,
                 onRegisterClick,
                 onMyAccountClick,

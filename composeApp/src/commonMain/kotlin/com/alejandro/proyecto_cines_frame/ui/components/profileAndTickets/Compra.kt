@@ -1,10 +1,8 @@
 package com.alejandro.proyecto_cines_frame.ui.components.profileAndTickets
 
-import com.alejandro.proyecto_cines_frame.domain.model.Usuario
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalDateTime
 
-data class EntradasListaModel(
+data class Compra(
     val correo: String //,
     //val tipoEntrada: String
 ) {
