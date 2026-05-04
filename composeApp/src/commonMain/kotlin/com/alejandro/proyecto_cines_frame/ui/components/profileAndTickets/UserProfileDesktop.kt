@@ -21,6 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -34,6 +35,7 @@ import com.alejandro.proyecto_cines_frame.domain.model.Compra
 import com.alejandro.proyecto_cines_frame.domain.model.LineaCompraEntrada
 import com.alejandro.proyecto_cines_frame.domain.model.LineaCompraProducto
 import com.alejandro.proyecto_cines_frame.ui.components.common.HeaderBrand
+import com.alejandro.proyecto_cines_frame.ui.logic.presenter.ProfilePresenter
 import com.alejandro.proyecto_cines_frame.ui.theme.BackgroundDark
 import com.alejandro.proyecto_cines_frame.ui.theme.ColorFondoHeader
 import com.alejandro.proyecto_cines_frame.ui.theme.OtroRojo
@@ -41,26 +43,20 @@ import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
 
 @Composable
 fun UserProfileDesktop(
-    userName: String,
     compras: List<Compra>,
     movieTitlesById: Map<String, String>,
     errorMessage: String?,
-    onChangeName: () -> Unit,
-    onChangePassword: () -> Unit,
-    onNameChanged: (String) -> Unit,
+    presenter: ProfilePresenter,
     onBackClick: () -> Unit
 ) {
 
+    val state = presenter.state.collectAsState().value
     val background = BackgroundDark
     val panelColor = ColorFondoHeader
     var showEditDialog by remember { mutableStateOf(false) }
     var showConfirmDialog by remember { mutableStateOf(false) }
-    var newName by remember { mutableStateOf(userName) }
     var showPasswordDialog by remember { mutableStateOf(false) }
     var showPasswordConfirmDialog by remember { mutableStateOf(false) }
-
-    var currentPassword by remember { mutableStateOf("") }
-    var newPassword by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -95,7 +91,7 @@ fun UserProfileDesktop(
                 }
 
                 Text(
-                    "¡Hola $userName!",
+                    "¡Hola ${state.currentName}!",
                     color = TextWhite,
                     style = MaterialTheme.typography.titleLarge
                 )
@@ -104,7 +100,7 @@ fun UserProfileDesktop(
 
                 Column {
                     Text("Nombre", color = TextWhite)
-                    Text(userName, color = TextWhite)
+                    Text(state.currentName, color = TextWhite)
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -128,16 +124,40 @@ fun UserProfileDesktop(
                                 Spacer(Modifier.height(8.dp))
 
                                 TextField(
-                                    value = newName,
-                                    onValueChange = { newName = it }
+                                    value = state.newName,
+                                    onValueChange = presenter::onNewNameChange
                                 )
+                                state.fieldErrors["nombre"]?.let {
+                                    Text(it, color = Color.Red)
+                                }
+
+                                Spacer(Modifier.height(12.dp))
+
+                                Text("Introduce tu contraseña actual")
+                                Spacer(Modifier.height(8.dp))
+
+                                TextField(
+                                    value = state.currentPasswordForName,
+                                    onValueChange = presenter::onCurrentPasswordForNameChange,
+                                    visualTransformation = PasswordVisualTransformation()
+                                )
+                                state.fieldErrors["contrasenaActualNombre"]?.let {
+                                    Text(it, color = Color.Red)
+                                }
+
+                                state.generalError?.let {
+                                    Spacer(Modifier.height(8.dp))
+                                    Text(it, color = Color.Red)
+                                }
                             }
                         },
                         confirmButton = {
                             Button(
                                 onClick = {
-                                    showEditDialog = false
-                                    showConfirmDialog = true
+                                    if (presenter.validateNameInputs()) {
+                                        showEditDialog = false
+                                        showConfirmDialog = true
+                                    }
                                 }
                             ) {
                                 Text("Aceptar")
@@ -158,18 +178,15 @@ fun UserProfileDesktop(
                         onDismissRequest = { showConfirmDialog = false },
                         title = { Text("Confirmar cambio") },
                         text = {
-                            Text("¿Seguro que quieres cambiar el nombre a \"$newName\"?")
+                            Text("¿Seguro que quieres cambiar el nombre a \"${state.newName}\"?")
                         },
                         confirmButton = {
                             Button(
                                 onClick = {
                                     showConfirmDialog = false
-                                    onNameChanged(newName)
-
-                                    // TODO: llamar a la API para actualizar nombre
-
+                                    presenter.submitNameChange(rememberMe = true)
                                 },
-                                enabled = newName.isNotBlank()
+                                enabled = state.newName.isNotBlank()
                             ) {
                                 Text("Confirmar")
                             }
@@ -205,10 +222,13 @@ fun UserProfileDesktop(
                                 Spacer(Modifier.height(8.dp))
 
                                 TextField(
-                                    value = currentPassword,
-                                    onValueChange = { currentPassword = it },
+                                    value = state.currentPassword,
+                                    onValueChange = presenter::onCurrentPasswordChange,
                                     visualTransformation = PasswordVisualTransformation()
                                 )
+                                state.fieldErrors["contrasenaActual"]?.let {
+                                    Text(it, color = Color.Red)
+                                }
 
                                 Spacer(Modifier.height(16.dp))
 
@@ -216,17 +236,44 @@ fun UserProfileDesktop(
                                 Spacer(Modifier.height(8.dp))
 
                                 TextField(
-                                    value = newPassword,
-                                    onValueChange = { newPassword = it },
+                                    value = state.newPassword,
+                                    onValueChange = presenter::onNewPasswordChange,
                                     visualTransformation = PasswordVisualTransformation()
                                 )
+                                state.fieldErrors["contrasena"]?.let {
+                                    Text(it, color = Color.Red)
+                                }
+                                state.fieldErrors["contrasenaIgual"]?.let {
+                                    Text(it, color = Color.Red)
+                                }
+
+                                Spacer(Modifier.height(16.dp))
+
+                                Text("Confirma la nueva contraseña")
+                                Spacer(Modifier.height(8.dp))
+
+                                TextField(
+                                    value = state.confirmNewPassword,
+                                    onValueChange = presenter::onConfirmNewPasswordChange,
+                                    visualTransformation = PasswordVisualTransformation()
+                                )
+                                state.fieldErrors["confirmarContrasena"]?.let {
+                                    Text(it, color = Color.Red)
+                                }
+
+                                state.generalError?.let {
+                                    Spacer(Modifier.height(8.dp))
+                                    Text(it, color = Color.Red)
+                                }
                             }
                         },
                         confirmButton = {
                             Button(
                                 onClick = {
-                                    showPasswordDialog = false
-                                    showPasswordConfirmDialog = true
+                                    if (presenter.validatePasswordInputs()) {
+                                        showPasswordDialog = false
+                                        showPasswordConfirmDialog = true
+                                    }
                                 }
                             ) {
                                 Text("Aceptar")
@@ -254,18 +301,11 @@ fun UserProfileDesktop(
                             Button(
                                 onClick = {
                                     showPasswordConfirmDialog = false
-
-                                    // 🔥 AQUÍ irá tu lógica real
-                                    // TODO: validar contraseña actual con backend
-                                    // TODO: enviar nueva contraseña
-                                    // TODO: llamar a la API para actualizar nombre
-
-
-                                    // limpiar campos
-                                    currentPassword = ""
-                                    newPassword = ""
+                                    presenter.submitPasswordChange(rememberMe = true)
                                 },
-                                enabled = currentPassword.isNotBlank() && newPassword.isNotBlank()
+                                enabled = state.currentPassword.isNotBlank() &&
+                                        state.newPassword.isNotBlank() &&
+                                        state.confirmNewPassword.isNotBlank()
                             ) {
                                 Text("Confirmar")
                             }

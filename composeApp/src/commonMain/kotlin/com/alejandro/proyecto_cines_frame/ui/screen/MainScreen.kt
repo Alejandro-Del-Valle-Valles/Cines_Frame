@@ -36,6 +36,7 @@ import com.alejandro.proyecto_cines_frame.ui.logic.MovieUiMapper
 import com.alejandro.proyecto_cines_frame.ui.logic.formatters.SessionRangeFormatter
 import com.alejandro.proyecto_cines_frame.ui.logic.presenter.LoginPresenter
 import com.alejandro.proyecto_cines_frame.ui.logic.presenter.RegisterPresenter
+import com.alejandro.proyecto_cines_frame.ui.logic.presenter.ProfilePresenter
 import com.alejandro.proyecto_cines_frame.ui.logic.state.BannersUiState
 import com.alejandro.proyecto_cines_frame.ui.logic.state.MainSessionsUiState
 import com.alejandro.proyecto_cines_frame.ui.theme.BackgroundDark
@@ -112,6 +113,13 @@ fun MainScreen(
         )
     }
 
+    val profilePresenter = remember(cuentaRepository, scope) {
+        ProfilePresenter(
+            cuentaRepo = cuentaRepository,
+            scope = scope
+        )
+    }
+
     val listState = rememberLazyListState()
 
     //SEARCH
@@ -119,6 +127,10 @@ fun MainScreen(
 
     val authState by SessionManager.state.collectAsState()
     var isRestoringSession by remember { mutableStateOf(true) }
+
+    LaunchedEffect(authState.cuenta) {
+        profilePresenter.setCuenta(authState.cuenta)
+    }
 
     //FILTER
     val availableDays = remember { buildCarteleraDays() }
@@ -404,13 +416,17 @@ fun MainScreen(
 
     if (currentScreen == "profile") {
         UserProfileScreen(
-            userName = authState.cuenta?.nombre ?: "",
             compras = profileCompras,
             movieTitlesById = profileMovieTitles,
             errorMessage = profileErrorMessage,
-            onChangeName = {},
-            onChangePassword = {},
-            onNameChanged = {},
+            presenter = profilePresenter,
+            onPasswordUpdated = {
+                scope.launch {
+                    cuentaRepository.logout(clearRememberedCredentials = true)
+                    SessionManager.clearSession()
+                    currentScreen = "login"
+                }
+            },
             onBackClick = {
                 currentScreen = "main"
             }
