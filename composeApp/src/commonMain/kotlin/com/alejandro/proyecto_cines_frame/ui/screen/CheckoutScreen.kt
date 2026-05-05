@@ -323,7 +323,14 @@ fun CheckoutScreen(
             )
         }
 
-        Footer()
+        BoxWithConstraints {
+
+            val hideFooter = maxWidth < hideFooter
+
+            if (!hideFooter) {
+                Footer()
+            }
+        }
     }
 }
 
