@@ -11,7 +11,6 @@ import com.alejandro.proyecto_cines_frame.ui.theme.AppTheme
 @Preview
 fun App() {
     AppTheme {
-        //MainScreen()
-        MainAdminScreen()
+        MainScreen()
     }
 }

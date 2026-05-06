@@ -21,11 +21,19 @@ fun HeaderActions(
     onRegisterClick: () -> Unit,
     onMyAccountClick: () -> Unit,
     onLogoutClick: () -> Unit,
-    isSessionActive: Boolean
+    onAdminClick: () -> Unit,
+    isSessionActive: Boolean,
+    isAdmin: Boolean
 ) {
     var expanded by remember { mutableStateOf(false) }
 
     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+        if (isAdmin) {
+            HeaderActionButton(
+                texto = "Admin",
+                alClick = onAdminClick
+            )
+        }
         // Dropdown cuenta
         Box {
             HeaderActionButton(

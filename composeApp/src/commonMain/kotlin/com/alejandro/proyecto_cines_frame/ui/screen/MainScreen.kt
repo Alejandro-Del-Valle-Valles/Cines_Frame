@@ -21,6 +21,7 @@ import com.alejandro.proyecto_cines_frame.core.session.SessionManager
 import com.alejandro.proyecto_cines_frame.data.remote.api.*
 import com.alejandro.proyecto_cines_frame.data.remote.client.HttpClientFactory
 import com.alejandro.proyecto_cines_frame.data.repository.*
+import com.alejandro.proyecto_cines_frame.domain.enums.CuentaRol
 import com.alejandro.proyecto_cines_frame.domain.enums.ParticipanteRol
 import com.alejandro.proyecto_cines_frame.domain.model.Pelicula
 import com.alejandro.proyecto_cines_frame.domain.model.Compra
@@ -127,6 +128,7 @@ fun MainScreen(
 
     val authState by SessionManager.state.collectAsState()
     var isRestoringSession by remember { mutableStateOf(true) }
+    val isAdmin = authState.isAuthenticated && authState.cuenta?.rol == CuentaRol.ADMINISTRADOR
 
     LaunchedEffect(authState.cuenta) {
         profilePresenter.setCuenta(authState.cuenta)
@@ -326,9 +328,6 @@ fun MainScreen(
             onLoginSuccess = {
                 currentScreen = "main"
             },
-            onBack = {
-                currentScreen = "main"
-            },
             presenter = loginPresenter
         )
         return
@@ -338,9 +337,6 @@ fun MainScreen(
         RegisterScreen(
             onRegisterSuccess = {
                 currentScreen = "login"
-            },
-            onBack = {
-                currentScreen = "main"
             },
             presenter = registerPresenter
         )
@@ -355,6 +351,15 @@ fun MainScreen(
                 currentScreen = "main"
             },
             sesionRepository = moviesRepository
+        )
+        return
+    }
+
+    if (currentScreen == "admin") {
+        MainAdminScreen(
+            onBack = {
+                currentScreen = "main"
+            }
         )
         return
     }
@@ -524,7 +529,12 @@ fun MainScreen(
                     }
                 },
 
-                isSessionActive = authState.isAuthenticated
+                onAdminClick = {
+                    currentScreen = "admin"
+                },
+
+                isSessionActive = authState.isAuthenticated,
+                isAdmin = isAdmin
             )
 
             Box(modifier = Modifier.fillMaxSize()) {
