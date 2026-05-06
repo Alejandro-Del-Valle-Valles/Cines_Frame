@@ -20,6 +20,7 @@ class PeliculaRepositoryImpl(
             val dtos = api.getAllBasic() // si status 4xx/5xx => excepción
             ApiResult.Success(dtos.map { it.toDomain() })
         } catch (t: Throwable) {
+            println(t.stackTraceToString())
             ApiResult.Error(t.toAppError())
         }
     }
@@ -32,6 +33,7 @@ class PeliculaRepositoryImpl(
             val dtos = api.getAllCompleto()
             ApiResult.Success(dtos.map { it.toDomain() })
         } catch (t: Throwable) {
+            println(t.stackTraceToString())
             ApiResult.Error(t.toAppError())
         }
     }
@@ -44,6 +46,7 @@ class PeliculaRepositoryImpl(
             val dtos = api.getAllBasicByNombre(nombre)
             ApiResult.Success(dtos.map { it.toDomain() })
         } catch (t: Throwable) {
+            println(t.stackTraceToString())
             ApiResult.Error(t.toAppError())
         }
     }
@@ -56,6 +59,7 @@ class PeliculaRepositoryImpl(
             val dtos = api.getAllCompletoByNombre(nombre)
             ApiResult.Success(dtos.map { it.toDomain() })
         } catch (t: Throwable) {
+            println(t.stackTraceToString())
             ApiResult.Error(t.toAppError())
         }
     }
@@ -68,6 +72,7 @@ class PeliculaRepositoryImpl(
             val dto = api.getById(id)
             ApiResult.Success(dto.toDomain())
         } catch (t: Throwable) {
+            println(t.stackTraceToString())
             ApiResult.Error(t.toAppError())
         }
     }
@@ -77,6 +82,7 @@ class PeliculaRepositoryImpl(
             val dto = api.getWithSesiones(id)
             ApiResult.Success(dto.toDomain())
         } catch (t: Throwable) {
+            println(t.stackTraceToString())
             ApiResult.Error(t.toAppError())
         }
     }
@@ -89,6 +95,7 @@ class PeliculaRepositoryImpl(
             val dto = api.createPelicula(pelicula)
             ApiResult.Success(dto.toDomain())
         } catch (t: Throwable) {
+            println(t.stackTraceToString())
             ApiResult.Error(t.toAppError())
         }
     }
@@ -104,6 +111,7 @@ class PeliculaRepositoryImpl(
             val dto = api.updatePelicula(id, pelicula)
             ApiResult.Success(dto.toDomain())
         } catch (t: Throwable) {
+            println(t.stackTraceToString())
             ApiResult.Error(t.toAppError())
         }
     }
@@ -116,6 +124,7 @@ class PeliculaRepositoryImpl(
             val dto = api.deletePelicula(id)
             ApiResult.Success(dto.toDomain())
         } catch (t: Throwable) {
+            println(t.stackTraceToString())
             ApiResult.Error(t.toAppError())
         }
     }

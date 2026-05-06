@@ -8,6 +8,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.alejandro.proyecto_cines_frame.domain.model.Pelicula
+import com.alejandro.proyecto_cines_frame.domain.model.Sesion
 import com.alejandro.proyecto_cines_frame.ui.components.features.movies.layout.MovieDetailDesktop
 import com.alejandro.proyecto_cines_frame.ui.components.features.movies.layout.MovieDetailMovile
 import com.alejandro.proyecto_cines_frame.ui.components.footer.FooterUtils
@@ -25,6 +27,8 @@ fun MovieDetailScreen(
     duration: String,
     ageRating: String,
     imagePainter: Painter,
+    sessions: List<Sesion>,
+    onSessionClick: (Sesion) -> Unit,
     onBackClick: () -> Unit
 ) {
     BoxWithConstraints(
@@ -37,9 +41,31 @@ fun MovieDetailScreen(
         val esEscritorio = FooterUtils.esEscritorio(maxWidth)
 
         if (esEscritorio) {
-            MovieDetailDesktop(title, description, directors, actors, duration, ageRating, imagePainter, onBackClick)
+            MovieDetailDesktop(
+                title,
+                description,
+                directors,
+                actors,
+                duration,
+                ageRating,
+                imagePainter,
+                sessions,
+                onSessionClick,
+                onBackClick
+            )
         } else {
-            MovieDetailMovile(title, description, directors, actors, duration, ageRating, imagePainter, onBackClick)
+            MovieDetailMovile(
+                title,
+                description,
+                directors,
+                actors,
+                duration,
+                ageRating,
+                imagePainter,
+                sessions,
+                onSessionClick,
+                onBackClick
+            )
         }
     }
 }
@@ -56,6 +82,8 @@ fun PreviewMovieDetailScreen() {
             duration = "169 min",
             ageRating = "+12",
             imagePainter = painterResource(Res.drawable.logo_frames), // Aquí va la imagen de prueba
+            sessions = emptyList(),
+            onSessionClick = {},
             onBackClick = {}
         )
     }

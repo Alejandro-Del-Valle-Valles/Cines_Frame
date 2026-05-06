@@ -2,7 +2,10 @@ package com.alejandro.proyecto_cines_frame.ui.components.features.movies.layout
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
@@ -13,11 +16,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import com.alejandro.proyecto_cines_frame.domain.model.Sesion
 import com.alejandro.proyecto_cines_frame.ui.components.common.BackButton
+import com.alejandro.proyecto_cines_frame.ui.components.common.ToggleText
+import com.alejandro.proyecto_cines_frame.ui.components.session.formatDate
+import com.alejandro.proyecto_cines_frame.ui.components.session.formatTime
 import com.alejandro.proyecto_cines_frame.ui.theme.OtroRojo
+import com.alejandro.proyecto_cines_frame.ui.theme.TextGray
 import org.jetbrains.compose.resources.painterResource
 import proyecto_cines_frame.composeapp.generated.resources.Res
 import proyecto_cines_frame.composeapp.generated.resources.logo_frames
@@ -32,11 +41,30 @@ fun MovieDetailDesktop(
     duration: String,
     ageRating: String,
     imagePainter: Painter,
+    sessions: List<Sesion>,
+    onSessionClick: (Sesion) -> Unit,
     onBackClick: () -> Unit
 ) {
 
     val background = Color(0xFF121212)
     val cardBackground = Color(0xFF1A1A1A)
+    var is3D by remember { mutableStateOf<Boolean?>(null) }
+    var isVOSE by remember { mutableStateOf(false) }
+
+    val filteredSessions = remember(sessions, is3D, isVOSE) {
+        sessions
+            .filter { session ->
+                val match3D = is3D?.let { session.tresD == it } ?: true
+                val matchVOSE = if (isVOSE) session.vose else true
+                match3D && matchVOSE
+            }
+            .sortedBy { it.horario }
+    }
+
+    val sessionsByDate = remember(filteredSessions) {
+        filteredSessions.groupBy { it.horario.date }.toSortedMap()
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -95,8 +123,46 @@ fun MovieDetailDesktop(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                ScheduleRow("3D", listOf("18:00", "21:00"))
-                ScheduleRow("VOSE", listOf("17:30", "19:45"))
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    ToggleText("2D", is3D == false) {
+                        is3D = if (is3D == false) null else false
+                    }
+
+                    Text("/", color = TextGray)
+
+                    ToggleText("3D", is3D == true) {
+                        is3D = if (is3D == true) null else true
+                    }
+
+                    ToggleText("VOSE", isVOSE) {
+                        isVOSE = !isVOSE
+                    }
+                }
+
+                if (sessionsByDate.isEmpty()) {
+                    Text(
+                        text = "No hay sesiones disponibles.",
+                        color = Color.LightGray
+                    )
+                } else {
+                    FlowRow(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        sessionsByDate.forEach { (_, daySessions) ->
+                            val label = formatDate(daySessions.first().horario)
+
+                            DaySessionsBlock(
+                                label = label,
+                                sessions = daySessions.sortedBy { it.horario },
+                                onSessionClick = onSessionClick
+                            )
+                        }
+                    }
+                }
             }
 
             // 📊 PANEL DERECHO
@@ -126,45 +192,52 @@ fun InfoSection(title: String, content: String) {
 }
 
 @Composable
-fun ScheduleRow(format: String, times: List<String>) {
+private fun DaySessionsBlock(
+    label: String,
+    sessions: List<Sesion>,
+    onSessionClick: (Sesion) -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            text = label,
+            color = Color.White,
+            style = MaterialTheme.typography.titleSmall
+        )
 
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color(0xFF1A1A1A), RoundedCornerShape(12.dp))
-            .padding(16.dp)
-    ) {
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-
-            Text(
-                text = format,
-                color = Color.White,
-                modifier = Modifier.width(40.dp)
-            )
-
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                times.forEach {
-                    TimeChip(it)
-                }
+            sessions.forEach { session ->
+                TimeChipRed(
+                    text = formatTime(session),
+                    onClick = { onSessionClick(session) }
+                )
             }
         }
     }
 }
 
 @Composable
-fun TimeChip(text: String) {
+private fun TimeChipRed(
+    text: String,
+    onClick: () -> Unit
+) {
     Box(
         modifier = Modifier
             .background(OtroRojo, RoundedCornerShape(6.dp))
             .padding(horizontal = 12.dp, vertical = 6.dp)
+            .clickable(onClick = onClick)
     ) {
-        Text(text, color = Color.White)
+        Text(
+            text = text,
+            color = Color.White,
+            style = MaterialTheme.typography.labelMedium,
+            textAlign = TextAlign.Center
+        )
     }
 }
+
 
 @Composable
 fun SideInfo(label: String, value: String) {
@@ -186,6 +259,8 @@ fun PreviewMovieDetailScreen() {
             duration = "169 min",
             ageRating = "+12",
             imagePainter = painterResource(Res.drawable.logo_frames), // Aquí va la imagen de prueba
+            sessions = emptyList(),
+            onSessionClick = {},
             onBackClick = {}
         )
     }

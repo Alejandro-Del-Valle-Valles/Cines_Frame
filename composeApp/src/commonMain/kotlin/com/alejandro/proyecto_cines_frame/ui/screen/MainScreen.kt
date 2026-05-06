@@ -23,6 +23,7 @@ import com.alejandro.proyecto_cines_frame.data.remote.client.HttpClientFactory
 import com.alejandro.proyecto_cines_frame.data.repository.*
 import com.alejandro.proyecto_cines_frame.domain.enums.ParticipanteRol
 import com.alejandro.proyecto_cines_frame.domain.model.Pelicula
+import com.alejandro.proyecto_cines_frame.domain.model.Compra
 import com.alejandro.proyecto_cines_frame.domain.model.Sesion
 import com.alejandro.proyecto_cines_frame.domain.repository.*
 import com.alejandro.proyecto_cines_frame.ui.components.banner.Banner
@@ -35,6 +36,7 @@ import com.alejandro.proyecto_cines_frame.ui.logic.MovieUiMapper
 import com.alejandro.proyecto_cines_frame.ui.logic.formatters.SessionRangeFormatter
 import com.alejandro.proyecto_cines_frame.ui.logic.presenter.LoginPresenter
 import com.alejandro.proyecto_cines_frame.ui.logic.presenter.RegisterPresenter
+import com.alejandro.proyecto_cines_frame.ui.logic.presenter.ProfilePresenter
 import com.alejandro.proyecto_cines_frame.ui.logic.state.BannersUiState
 import com.alejandro.proyecto_cines_frame.ui.logic.state.MainSessionsUiState
 import com.alejandro.proyecto_cines_frame.ui.theme.BackgroundDark
@@ -48,6 +50,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun MainScreen(
     sesionRepository: SesionRepository? = null,
+    compraRepository: CompraRepository? = null,
     bannerRepository: BanerRepository? = null,
     salaRepository: SalaRepository? = null,
     peliculaRepository: PeliculaRepository? = null
@@ -55,6 +58,12 @@ fun MainScreen(
     val moviesRepository = sesionRepository ?: remember {
         SesionRepositoryImpl(
             api = KtorSesionApi(HttpClientFactory.create())
+        )
+    }
+    
+    val comprasRepository = compraRepository ?: remember {
+        CompraRepositoryImpl(
+            api = KtorCompraApi(HttpClientFactory.create())
         )
     }
 
@@ -104,6 +113,13 @@ fun MainScreen(
         )
     }
 
+    val profilePresenter = remember(cuentaRepository, scope) {
+        ProfilePresenter(
+            cuentaRepo = cuentaRepository,
+            scope = scope
+        )
+    }
+
     val listState = rememberLazyListState()
 
     //SEARCH
@@ -111,6 +127,10 @@ fun MainScreen(
 
     val authState by SessionManager.state.collectAsState()
     var isRestoringSession by remember { mutableStateOf(true) }
+
+    LaunchedEffect(authState.cuenta) {
+        profilePresenter.setCuenta(authState.cuenta)
+    }
 
     //FILTER
     val availableDays = remember { buildCarteleraDays() }
@@ -133,6 +153,11 @@ fun MainScreen(
     var checkoutSalaCapacity by remember { mutableStateOf(0) }
     var isOpeningCheckout by remember { mutableStateOf(false) }
     var checkoutErrorMessage by remember { mutableStateOf<String?>(null) }
+
+    var profileCompras by remember { mutableStateOf<List<Compra>>(emptyList()) }
+    var profileMovieTitles by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
+    var isLoadingProfile by remember { mutableStateOf(false) }
+    var profileErrorMessage by remember { mutableStateOf<String?>(null) }
 
     // Detalle Película
     var selectedMovieDetail by remember { mutableStateOf<Pelicula?>(null) }
@@ -231,6 +256,40 @@ fun MainScreen(
         }
     }
 
+    LaunchedEffect(currentScreen, authState.isAuthenticated) {
+        if (currentScreen != "profile") return@LaunchedEffect
+
+        if (!authState.isAuthenticated) {
+            profileErrorMessage = "Debes iniciar sesion para ver tus entradas."
+            return@LaunchedEffect
+        }
+
+        isLoadingProfile = true
+        profileErrorMessage = null
+
+        when (val comprasResult = comprasRepository.getAll()) {
+            is ApiResult.Success -> profileCompras = comprasResult.data
+            is ApiResult.Error -> {
+                profileCompras = emptyList()
+                profileErrorMessage = toMainScreenErrorMessage(comprasResult.error)
+            }
+        }
+
+        when (val peliculasResult = pelisRepository.getAllBasic()) {
+            is ApiResult.Success -> {
+                profileMovieTitles = peliculasResult.data.associate { it.id to it.nombre }
+            }
+            is ApiResult.Error -> {
+                profileMovieTitles = emptyMap()
+                if (profileErrorMessage == null) {
+                    profileErrorMessage = toMainScreenErrorMessage(peliculasResult.error)
+                }
+            }
+        }
+
+        isLoadingProfile = false
+    }
+
     val allSessions = sessionState.sessions
     val allBaners = bannerState.banners
 
@@ -294,6 +353,44 @@ fun MainScreen(
         return
     }
 
+    val openCheckoutForSession: (Sesion) -> Unit = { sessionClicked ->
+        scope.launch {
+            isOpeningCheckout = true
+            checkoutErrorMessage = null
+
+            val sesionResult = moviesRepository.getSesion(
+                numSala = sessionClicked.numSala,
+                peliculaId = sessionClicked.pelicula.id,
+                horario = sessionClicked.horario.toString()
+            )
+
+            val sesionDetalle = when (sesionResult) {
+                is ApiResult.Success -> sesionResult.data
+                is ApiResult.Error -> {
+                    checkoutErrorMessage = toMainScreenErrorMessage(sesionResult.error)
+                    isOpeningCheckout = false
+                    return@launch
+                }
+            }
+
+            val salaResult = salasRepository.getByNumero(sesionDetalle.numSala)
+
+            when (salaResult) {
+                is ApiResult.Success -> {
+                    checkoutSession = sesionDetalle
+                    checkoutSalaCapacity = salaResult.data.aforo
+                    currentScreen = "checkout"
+                }
+
+                is ApiResult.Error -> {
+                    checkoutErrorMessage = toMainScreenErrorMessage(salaResult.error)
+                }
+            }
+
+            isOpeningCheckout = false
+        }
+    }
+
     if (currentScreen == "movie_detail" && selectedMovieDetail != null) {
         MovieDetailScreen(
             title = selectedMovieDetail!!.nombre,
@@ -307,11 +404,44 @@ fun MainScreen(
             duration = selectedMovieDetail!!.duracion.toString().substring(0, 5), // HH:mm
             ageRating = "+${selectedMovieDetail!!.calificacionEdad ?: 0}",
             imagePainter = rememberAsyncImagePainter(selectedMovieDetail!!.portada),
+            sessions = selectedMovieDetail!!.sesiones,
+            onSessionClick = openCheckoutForSession,
             onBackClick = {
                 currentScreen = "main"
                 selectedMovieDetail = null
             }
         )
+        return
+    }
+
+    if (currentScreen == "profile") {
+        UserProfileScreen(
+            compras = profileCompras,
+            movieTitlesById = profileMovieTitles,
+            errorMessage = profileErrorMessage,
+            presenter = profilePresenter,
+            onPasswordUpdated = {
+                scope.launch {
+                    cuentaRepository.logout(clearRememberedCredentials = true)
+                    SessionManager.clearSession()
+                    currentScreen = "login"
+                }
+            },
+            onBackClick = {
+                currentScreen = "main"
+            }
+        )
+
+        if (isLoadingProfile) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.5f)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = TextWhite)
+            }
+        }
         return
     }
 
@@ -356,15 +486,6 @@ fun MainScreen(
                     buscadorEnfocado = it
                 },
 
-                onEntradasClick = {
-                    scope.launch {
-                        snackbarHostState.showSnackbar(
-                            message = "Está función aún no está implementada :(",
-                            duration = SnackbarDuration.Short
-                        )
-                    }
-                },
-
                 onLoginClick = {
                     currentScreen = "login"
                 },
@@ -385,11 +506,15 @@ fun MainScreen(
                 },
 
                 onMyAccountClick = {
-                    scope.launch {
-                        snackbarHostState.showSnackbar(
-                            message = "Esta función aún no está implementada :(",
-                            duration = SnackbarDuration.Short
-                        )
+                    if (authState.isAuthenticated) {
+                        currentScreen = "profile"
+                    } else {
+                        scope.launch {
+                            snackbarHostState.showSnackbar(
+                                message = "Debes iniciar sesion para ver tu cuenta",
+                                duration = SnackbarDuration.Short
+                            )
+                        }
                     }
                 },
 
@@ -446,7 +571,7 @@ fun MainScreen(
                             onMovieClick = { movieClicked ->
                                 scope.launch {
                                     isLoadingMovieDetail = true
-                                    when (val result = pelisRepository.getById(movieClicked.id)) {
+                                    when (val result = pelisRepository.getByIdWithSesiones(movieClicked.id)) {
                                         is ApiResult.Success -> {
                                             selectedMovieDetail = result.data
                                             currentScreen = "movie_detail"
@@ -463,44 +588,7 @@ fun MainScreen(
                                 }
                             },
                             onSessionClick = { sessionClicked ->
-                                scope.launch {
-                                    isOpeningCheckout = true
-                                    checkoutErrorMessage = null
-
-                                    val sesionResult = moviesRepository.getSesion(
-                                        numSala = sessionClicked.numSala,
-                                        peliculaId = sessionClicked.pelicula.id,
-                                        horario = sessionClicked.horario.toString()
-                                    )
-
-                                    val sesionDetalle = when (sesionResult) {
-                                        is ApiResult.Success -> sesionResult.data
-                                        is ApiResult.Error -> {
-                                            checkoutErrorMessage =
-                                                toMainScreenErrorMessage(sesionResult.error)
-                                            isOpeningCheckout = false
-                                            return@launch
-                                        }
-                                    }
-
-                                    val salaResult =
-                                        salasRepository.getByNumero(sesionDetalle.numSala)
-
-                                    when (salaResult) {
-                                        is ApiResult.Success -> {
-                                            checkoutSession = sesionDetalle
-                                            checkoutSalaCapacity = salaResult.data.aforo
-                                            currentScreen = "checkout"
-                                        }
-
-                                        is ApiResult.Error -> {
-                                            checkoutErrorMessage =
-                                                toMainScreenErrorMessage(salaResult.error)
-                                        }
-                                    }
-
-                                    isOpeningCheckout = false
-                                }
+                                openCheckoutForSession(sessionClicked)
                             }
                         )
                     }
