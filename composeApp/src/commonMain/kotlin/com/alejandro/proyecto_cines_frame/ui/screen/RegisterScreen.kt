@@ -10,7 +10,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import com.alejandro.proyecto_cines_frame.ui.components.common.BackButton
 import com.alejandro.proyecto_cines_frame.ui.logic.presenter.RegisterPresenter
 import com.alejandro.proyecto_cines_frame.ui.theme.BackgroundDark
@@ -21,7 +20,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun RegisterScreen(
     onRegisterSuccess: () -> Unit,
-    onBack: () -> Unit,
     presenter: RegisterPresenter
 ) {
     val state by presenter.state.collectAsState()
@@ -49,11 +47,12 @@ fun RegisterScreen(
             contentAlignment = Alignment.Center
         ) {
             BackButton(
-                onClick = onBack,
+                onClick = {
+                    onRegisterSuccess()
+                },
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .padding(16.dp)
-                    .zIndex(10f)
             )
             Card(
                 modifier = Modifier.fillMaxWidth(0.9f),

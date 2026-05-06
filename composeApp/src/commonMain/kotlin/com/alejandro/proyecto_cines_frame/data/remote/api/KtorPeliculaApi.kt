@@ -2,6 +2,7 @@ package com.alejandro.proyecto_cines_frame.data.remote.api
 
 import com.alejandro.proyecto_cines_frame.core.network.getUrl
 import com.alejandro.proyecto_cines_frame.data.remote.api.interfaces.PeliculaApi
+import com.alejandro.proyecto_cines_frame.data.remote.dto.PeliculaCompletoAndSesionesDTO
 import com.alejandro.proyecto_cines_frame.data.remote.dto.PeliculaCompletoDTO
 import com.alejandro.proyecto_cines_frame.data.remote.dto.PeliculaCreateDTO
 import com.alejandro.proyecto_cines_frame.data.remote.dto.PeliculaDTO
@@ -49,6 +50,12 @@ class KtorPeliculaApi(
      */
     override suspend fun getById(id: String): PeliculaCompletoDTO =
         httpClient.get("$baseUrl/id/$id").body()
+
+    /**
+     * Obtiene toda la info de la película por su id con sus sesiones presente y futuras
+     */
+    override suspend fun getWithSesiones(id: String): PeliculaCompletoAndSesionesDTO =
+        httpClient.get("$baseUrl/completo-sesiones/$id").body()
 
     /**
      * Crea una nueva película con los participantes y sus roles

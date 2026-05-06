@@ -26,7 +26,7 @@ class KtorCompraApi(
     /**
      * Devuelve el histŕoico de compras del usuario
      */
-    override suspend fun getAll(): List<CompraDTO> = httpClient.get(baseUrl).body()
+    override suspend fun getAll(): List<CompraDTO> = httpClient.get("$baseUrl/todas").body()
 
     /**
      * Devuelve el histórico de compras futuras (A suceder después de hoy)
@@ -46,11 +46,8 @@ class KtorCompraApi(
             }
         }
 
-        if (!response.status.isSuccess()) {
-            throw response.toStatusException()
-        }
+        if (!response.status.isSuccess()) throw response.toStatusException()
 
-        // Algunos endpoints de compra confirman con 2xx pero devuelven cuerpo vacío/parcial.
         return runCatching { response.body<CompraDTO>() }
             .getOrElse { compra }
     }

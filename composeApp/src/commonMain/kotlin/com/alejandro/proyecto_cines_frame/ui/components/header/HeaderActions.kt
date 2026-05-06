@@ -17,7 +17,6 @@ import androidx.compose.ui.unit.dp
 //agrupa las acciones del header, como “Cartelera” y “Mi cuenta”, para no dejarlas sueltas por ahi, conclusion "Que me quedo sin comer"
 @Composable
 fun HeaderActions(
-    onEntradasClick: () -> Unit,
     onLoginClick: () -> Unit,
     onRegisterClick: () -> Unit,
     onMyAccountClick: () -> Unit,
@@ -27,13 +26,6 @@ fun HeaderActions(
     var expanded by remember { mutableStateOf(false) }
 
     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-
-        if(isSessionActive) {
-            HeaderActionButton(
-                texto = "Mis Entradas",
-                alClick = onEntradasClick
-            )
-        }
         // Dropdown cuenta
         Box {
             HeaderActionButton(

@@ -1,7 +1,7 @@
 package com.alejandro.proyecto_cines_frame.data.repository
 
 import com.alejandro.proyecto_cines_frame.core.error.ApiResult
-import com.alejandro.proyecto_cines_frame.data.adapter.ParticipanteAdpater
+import com.alejandro.proyecto_cines_frame.data.adapter.toDomain
 import com.alejandro.proyecto_cines_frame.data.remote.api.interfaces.ParticipanteApi
 import com.alejandro.proyecto_cines_frame.data.remote.dto.ParticipanteDTO
 import com.alejandro.proyecto_cines_frame.data.remote.error.toAppError
@@ -18,7 +18,7 @@ class ParticipanteRepositoryImpl(
     override suspend fun getAll(): ApiResult<List<Participante>> {
         return try {
             val dtos = api.getAll()
-            ApiResult.Success(dtos.map { ParticipanteAdpater.toParticipante(it)})
+            ApiResult.Success(dtos.map { it.toDomain() })
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
         }
@@ -30,7 +30,7 @@ class ParticipanteRepositoryImpl(
     override suspend fun getAllByNombre(nombre: String): ApiResult<List<Participante>> {
         return try {
             val dtos = api.getAllByNombre(nombre)
-            ApiResult.Success(dtos.map { ParticipanteAdpater.toParticipante(it)})
+            ApiResult.Success(dtos.map { it.toDomain() })
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
         }
@@ -42,7 +42,7 @@ class ParticipanteRepositoryImpl(
     override suspend fun getById(id: Int): ApiResult<Participante> {
         return try {
             val dto = api.getById(id)
-            ApiResult.Success(ParticipanteAdpater.toParticipante(dto))
+            ApiResult.Success(dto.toDomain())
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
         }
@@ -54,7 +54,7 @@ class ParticipanteRepositoryImpl(
     override suspend fun createParticipante(nombre: String): ApiResult<Participante> {
         return try {
             val dto = api.createParticipante(nombre)
-            ApiResult.Success(ParticipanteAdpater.toParticipante(dto))
+            ApiResult.Success(dto.toDomain())
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
         }
@@ -66,7 +66,7 @@ class ParticipanteRepositoryImpl(
     override suspend fun updateParticipante(participante: ParticipanteDTO): ApiResult<Participante> {
         return try {
             val dto = api.updateParticipante(participante)
-            ApiResult.Success(ParticipanteAdpater.toParticipante(dto))
+            ApiResult.Success(dto.toDomain())
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
         }
@@ -78,7 +78,7 @@ class ParticipanteRepositoryImpl(
     override suspend fun deleteParticipante(id: Int): ApiResult<Participante> {
         return try {
             val dto = api.deleteParticipante(id)
-            ApiResult.Success(ParticipanteAdpater.toParticipante(dto))
+            ApiResult.Success(dto.toDomain())
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
         }

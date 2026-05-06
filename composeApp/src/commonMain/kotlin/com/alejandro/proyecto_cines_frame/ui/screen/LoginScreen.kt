@@ -10,7 +10,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import com.alejandro.proyecto_cines_frame.ui.components.common.BackButton
 import com.alejandro.proyecto_cines_frame.ui.logic.presenter.LoginPresenter
 import com.alejandro.proyecto_cines_frame.ui.theme.BackgroundDark
@@ -20,7 +19,6 @@ import kotlinx.coroutines.delay
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
-    onBack: () -> Unit,
     presenter: LoginPresenter
 ) {
     val state by presenter.state.collectAsState()
@@ -48,11 +46,12 @@ fun LoginScreen(
             contentAlignment = Alignment.Center
         ) {
             BackButton(
-                onClick = onBack,
+                onClick = {
+                    onLoginSuccess() // vuelve al main
+                },
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .padding(16.dp)
-                    .zIndex(10f) // 🔥 clave por si algo lo tapa
             )
             Card(
                 modifier = Modifier.fillMaxWidth(0.9f),

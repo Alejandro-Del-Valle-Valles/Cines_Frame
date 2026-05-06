@@ -43,7 +43,7 @@ class LoginPresenter(
                     _state.update { it.copy(isLoading = false, loginSuccess = true) }
                 }
                 is ApiResult.Error -> {
-                    val errorMsg = if (res.error is AppError.NotFound) {
+                    val errorMsg = if (res.error is AppError.Unauthorized) {
                         res.error.details["message"] ?: "La cuenta no existe"
                     } else {
                         "Error desconocido, es probable que no exista la cuenta o el correo y la contraseña no coincidan"

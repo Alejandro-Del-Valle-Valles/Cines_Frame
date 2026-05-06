@@ -22,8 +22,6 @@ fun HeaderEscritorio(
     onSearchChange: (String) -> Unit,
     onSearchSubmit: (String) -> Unit,
     onFocusChange: (Boolean) -> Unit,
-
-    onEntradasClick: () -> Unit,
     onLoginClick: () -> Unit,
     onRegisterClick: () -> Unit,
     onMyAccountClick: () -> Unit,
@@ -49,7 +47,6 @@ fun HeaderEscritorio(
         }
         Spacer(Modifier.width(24.dp))
         HeaderActions(
-            onEntradasClick,
             onLoginClick,
             onRegisterClick,
             onMyAccountClick,

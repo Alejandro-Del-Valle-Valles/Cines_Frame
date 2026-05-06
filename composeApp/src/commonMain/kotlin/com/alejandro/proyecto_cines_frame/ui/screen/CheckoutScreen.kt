@@ -15,17 +15,20 @@ import com.alejandro.proyecto_cines_frame.core.error.AppError
 import com.alejandro.proyecto_cines_frame.data.remote.api.KtorCompraApi
 import com.alejandro.proyecto_cines_frame.data.remote.api.KtorProductoApi
 import com.alejandro.proyecto_cines_frame.data.remote.api.KtorSesionApi
+import com.alejandro.proyecto_cines_frame.data.remote.api.KtorTipoEntradaApi
 import com.alejandro.proyecto_cines_frame.data.remote.client.HttpClientFactory
 import com.alejandro.proyecto_cines_frame.data.remote.dto.*
 import com.alejandro.proyecto_cines_frame.data.repository.CompraRepositoryImpl
 import com.alejandro.proyecto_cines_frame.data.repository.ProductoRepositoryImpl
 import com.alejandro.proyecto_cines_frame.data.repository.SesionRepositoryImpl
+import com.alejandro.proyecto_cines_frame.data.repository.TipoEntradaRepositoryImpl
 import com.alejandro.proyecto_cines_frame.domain.model.HoldToken
-import com.alejandro.proyecto_cines_frame.domain.model.Producto
 import com.alejandro.proyecto_cines_frame.domain.model.Sesion
+import com.alejandro.proyecto_cines_frame.domain.model.TipoEntrada
 import com.alejandro.proyecto_cines_frame.domain.repository.CompraRepository
 import com.alejandro.proyecto_cines_frame.domain.repository.ProductoRepository
 import com.alejandro.proyecto_cines_frame.domain.repository.SesionRepository
+import com.alejandro.proyecto_cines_frame.domain.repository.TipoEntradaRepository
 import com.alejandro.proyecto_cines_frame.ui.components.checkout.*
 import com.alejandro.proyecto_cines_frame.ui.components.footer.Footer
 import com.alejandro.proyecto_cines_frame.ui.theme.BackgroundDark
@@ -44,8 +47,9 @@ fun CheckoutScreen(
     salaCapacity: Int,
     onBack: () -> Unit,
     sesionRepository: SesionRepository? = null,
-    productoRepository: ProductoRepository? = null,
-    compraRepository: CompraRepository? = null
+    compraRepository: CompraRepository? = null,
+    tipoEntradaRepository: TipoEntradaRepository? = null,
+    productoRepository: ProductoRepository? = null
 ) {
     val repository = sesionRepository ?: remember {
         SesionRepositoryImpl(
@@ -53,15 +57,21 @@ fun CheckoutScreen(
         )
     }
 
-    val productRepository = productoRepository ?: remember {
-        ProductoRepositoryImpl(
-            api = KtorProductoApi(HttpClientFactory.create())
-        )
-    }
-
     val purchaseRepository = compraRepository ?: remember {
         CompraRepositoryImpl(
             api = KtorCompraApi(HttpClientFactory.create())
+        )
+    }
+
+    val tipoEntradaRepo = tipoEntradaRepository ?: remember {
+        TipoEntradaRepositoryImpl(
+            api = KtorTipoEntradaApi(HttpClientFactory.create())
+        )
+    }
+
+    val productoRepo = productoRepository ?: remember {
+        ProductoRepositoryImpl(
+            api = KtorProductoApi(HttpClientFactory.create())
         )
     }
 
@@ -73,11 +83,34 @@ fun CheckoutScreen(
     var state by remember { mutableStateOf(CheckoutState()) }
     var seatMatrix by remember(baseSeatMatrix) { mutableStateOf(baseSeatMatrix) }
     var holdToken by remember { mutableStateOf<HoldToken?>(null) }
-    var products by remember { mutableStateOf<List<Producto>>(emptyList()) }
     var remainingSeconds by remember { mutableStateOf(0L) }
     var isLoadingCheckout by remember { mutableStateOf(true) }
     var isClosingCheckout by remember { mutableStateOf(false) }
     var checkoutMessage by remember { mutableStateOf<String?>(null) }
+    var tiposEntrada by remember { mutableStateOf<List<TipoEntrada>>(emptyList()) }
+    var products by remember { mutableStateOf<List<CartProduct>>(emptyList()) }
+
+    LaunchedEffect(Unit) {
+        when (val tiposResult = tipoEntradaRepo.getAll()) {
+            is ApiResult.Success -> {
+                tiposEntrada = tiposResult.data
+            }
+            is ApiResult.Error -> {
+                checkoutMessage = "No se pudieron cargar los tipos de entrada."
+            }
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        when (val productsResult = productoRepo.getAll()) {
+            is ApiResult.Success -> {
+                products = productsResult.data.map { CartProduct(it) }
+            }
+            is ApiResult.Error -> {
+                checkoutMessage = "No se pudieron cargar los productos del bar."
+            }
+        }
+    }
 
     LaunchedEffect(session.numSala, session.pelicula.id, horarioApi, salaCapacity) {
         isLoadingCheckout = true
@@ -110,16 +143,6 @@ fun CheckoutScreen(
 
             is ApiResult.Error -> {
                 checkoutMessage = toCheckoutErrorMessage(butacasStatusResult.error)
-            }
-        }
-
-        when (val productosStatusResult = productRepository.getAll()) {
-            is ApiResult.Success -> {
-                products = productosStatusResult.data
-            }
-
-            is ApiResult.Error -> {
-                checkoutMessage = toCheckoutErrorMessage(productosStatusResult.error)
             }
         }
 
@@ -174,10 +197,12 @@ fun CheckoutScreen(
 
                     CheckoutContainer(
                         session = session,
-                        products = products,
                         state = state,
                         seatMatrix = seatMatrix,
                         remainingSeconds = remainingSeconds,
+                        tiposEntrada = tiposEntrada,
+                        products = products,
+                        onProductsChange = { products = it },
                         onCancelCheckout = {
                             if (!isClosingCheckout) {
                                 isClosingCheckout = true
@@ -298,7 +323,14 @@ fun CheckoutScreen(
             )
         }
 
-        Footer()
+        BoxWithConstraints {
+
+            val hideFooter = maxWidth < hideFooter
+
+            if (!hideFooter) {
+                Footer()
+            }
+        }
     }
 }
 

@@ -11,6 +11,7 @@ interface PeliculaRepository {
     suspend fun getAllBasicByNombre(nombre: String): ApiResult<List<Pelicula>>
     suspend fun getAllCompletoByNombre(nombre: String): ApiResult<List<Pelicula>>
     suspend fun getById(id: String): ApiResult<Pelicula>
+    suspend fun getByIdWithSesiones(id: String): ApiResult<Pelicula>
     suspend fun createPelicula(pelicula: PeliculaCreateDTO): ApiResult<Pelicula>
     suspend fun updatePelicula(id: String, pelicula: PeliculaCreateDTO): ApiResult<Pelicula>
     suspend fun deletePelicula(id: String): ApiResult<Pelicula>
