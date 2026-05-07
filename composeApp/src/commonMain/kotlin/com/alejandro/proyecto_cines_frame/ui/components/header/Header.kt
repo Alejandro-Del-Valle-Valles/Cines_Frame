@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import com.alejandro.proyecto_cines_frame.ui.components.header.layout.HeaderEscritorio
 import com.alejandro.proyecto_cines_frame.ui.components.header.layout.HeaderMovil
 import com.alejandro.proyecto_cines_frame.ui.theme.ColorFondoHeader

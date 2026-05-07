@@ -114,9 +114,10 @@ fun MainScreen(
         )
     }
 
-    val profilePresenter = remember(cuentaRepository, scope) {
+    val profilePresenter = remember(cuentaRepository, comprasRepository, scope) {
         ProfilePresenter(
             cuentaRepo = cuentaRepository,
+            compraRepo = comprasRepository,
             scope = scope
         )
     }
