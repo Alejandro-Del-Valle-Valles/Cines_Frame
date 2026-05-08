@@ -136,7 +136,7 @@ fun CheckoutScreen(
         when (val butacasStatusResult = repository.butacasStatus(session.numSala, session.pelicula.id, horarioApi)) {
             is ApiResult.Success -> {
                 val unavailableSeats = (butacasStatusResult.data.ocupadas + butacasStatusResult.data.bloqueadas)
-                    .mapNotNull { toSeatPositionOrNull(it.fila, it.butaca) }
+                    .mapNotNull { toSeatPositionOrNull(it.fila, it.butaca, baseSeatMatrix) }
                     .toSet()
                 seatMatrix = applyUnavailableSeats(baseSeatMatrix, unavailableSeats)
             }
@@ -212,6 +212,7 @@ fun CheckoutScreen(
                                         session = session,
                                         horarioApi = horarioApi,
                                         activeToken = holdToken,
+                                        seatMatrix = seatMatrix,
                                         seatsToRelease = state.selectedSeats,
                                         releaseSelectedSeats = true,
                                         onCleanupError = { checkoutMessage = it }
@@ -229,6 +230,7 @@ fun CheckoutScreen(
                                         session = session,
                                         horarioApi = horarioApi,
                                         activeToken = holdToken,
+                                        seatMatrix = seatMatrix,
                                         seatsToRelease = state.selectedSeats,
                                         releaseSelectedSeats = false,
                                         onCleanupError = { checkoutMessage = it }
@@ -245,11 +247,12 @@ fun CheckoutScreen(
                                 checkoutMessage = "El tiempo para comprar ha expirado y no se pueden bloquear butacas."
                             } else {
                                 val activeToken = holdToken
-                                if (activeToken != null) {
+                                val seatNumber = toSeatNumberOrNull(seatMatrix, clicked)
+                                if (activeToken != null && seatNumber != null) {
                                     val request = HoldButacaRequest(
                                         token = activeToken.holdToken,
                                         fila = clicked.row + 1,
-                                        butaca = clicked.column + 1
+                                        butaca = seatNumber
                                     )
 
                                     scope.launch {
@@ -296,6 +299,8 @@ fun CheckoutScreen(
                                             }
                                         }
                                     }
+                                } else if (seatNumber == null) {
+                                    checkoutMessage = "No se pudo identificar la butaca."
                                 }
                             }
                         },
@@ -339,6 +344,7 @@ private suspend fun cleanupCheckoutAndExit(
     session: Sesion,
     horarioApi: String,
     activeToken: HoldToken?,
+    seatMatrix: SeatMatrix,
     seatsToRelease: Set<SeatPosition>,
     releaseSelectedSeats: Boolean,
     onCleanupError: (String) -> Unit
@@ -347,6 +353,7 @@ private suspend fun cleanupCheckoutAndExit(
 
     if (releaseSelectedSeats && seatsToRelease.isNotEmpty()) {
         seatsToRelease.forEach { seat ->
+            val seatNumber = toSeatNumberOrNull(seatMatrix, seat) ?: return@forEach
             repository.releaseButaca(
                 numSala = session.numSala,
                 peliculaId = session.pelicula.id,
@@ -354,7 +361,7 @@ private suspend fun cleanupCheckoutAndExit(
                 req = HoldButacaRequest(
                     token = token.holdToken,
                     fila = seat.row + 1,
-                    butaca = seat.column + 1
+                    butaca = seatNumber
                 )
             )
         }

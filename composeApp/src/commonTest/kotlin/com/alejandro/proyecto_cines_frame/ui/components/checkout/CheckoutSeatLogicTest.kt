@@ -11,35 +11,45 @@ import kotlin.test.assertTrue
 class CheckoutSeatLogicTest {
 
     @Test
-    fun buildSeatMatrixFromCapacity_createsRowsOfTenAndLastPartialRow() {
+    fun buildSeatMatrixFromCapacity_createsAisleLayoutAndPreservesCapacity() {
         val matrix = buildSeatMatrixFromCapacity(capacity = 23)
 
         assertEquals(3, matrix.size)
-        assertEquals(10, matrix[0].size)
-        assertEquals(10, matrix[1].size)
-        assertEquals(3, matrix[2].size)
-        assertTrue(matrix.flatten().all { it == true })
+        assertTrue(matrix.all { it.size == DEFAULT_SEATS_PER_ROW + 1 })
+        assertEquals(23, matrix.sumOf { row -> row.count { it != null } })
+        assertTrue(matrix.flatten().any { it == null })
     }
 
     @Test
     fun applyUnavailableSeats_marksOccupiedAndBlockedAsFalse() {
-        val base = buildSeatMatrixFromCapacity(capacity = 12)
+        val base = buildSeatMatrixFromCapacity(capacity = DEFAULT_SEATS_PER_ROW * 3)
         val unavailable = setOf(
             SeatPosition(0, 0),
-            SeatPosition(1, 1)
+            SeatPosition(1, 2)
         )
 
         val updated = applyUnavailableSeats(base, unavailable)
 
         assertEquals(false, updated[0][0])
-        assertEquals(false, updated[1][1])
-        assertEquals(true, updated[0][1])
+        assertEquals(false, updated[1][2])
+        assertEquals(true, updated[2][2])
     }
 
     @Test
-    fun toSeatPositionOrNull_mapsOneBasedCoordinates() {
-        assertEquals(SeatPosition(2, 4), toSeatPositionOrNull(fila = 3, butaca = 5))
-        assertNull(toSeatPositionOrNull(fila = 0, butaca = 2))
+    fun toSeatPositionOrNull_mapsSeatNumberSkippingAisles() {
+        val matrix = buildSeatMatrixFromCapacity(capacity = 10)
+
+        assertEquals(SeatPosition(0, 0), toSeatPositionOrNull(fila = 1, butaca = 1, seatMatrix = matrix))
+        assertEquals(SeatPosition(0, 6), toSeatPositionOrNull(fila = 1, butaca = 6, seatMatrix = matrix))
+        assertNull(toSeatPositionOrNull(fila = 0, butaca = 2, seatMatrix = matrix))
+    }
+
+    @Test
+    fun toSeatNumberOrNull_mapsPositionToSeatNumberSkippingAisles() {
+        val matrix = buildSeatMatrixFromCapacity(capacity = 10)
+
+        assertEquals(6, toSeatNumberOrNull(matrix, SeatPosition(0, 6)))
+        assertNull(toSeatNumberOrNull(matrix, SeatPosition(0, 5)))
     }
 
     @Test
@@ -65,4 +75,3 @@ class CheckoutSeatLogicTest {
         assertFalse(canUseHoldToken(null, LocalDateTime.parse("2026-01-01T09:00:00")))
     }
 }
-
