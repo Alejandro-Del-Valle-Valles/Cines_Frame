@@ -1,6 +1,5 @@
 package com.alejandro.proyecto_cines_frame.ui.components.header.layout
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,7 +25,9 @@ fun HeaderMovil(
     onRegisterClick: () -> Unit,
     onMyAccountClick: () -> Unit,
     onLogoutClick: () -> Unit,
-    isSessionActive: Boolean
+    onAdminClick: () -> Unit,
+    isSessionActive: Boolean,
+    isAdmin: Boolean
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         HeaderBrand(esEscritorio = false)
@@ -48,7 +49,9 @@ fun HeaderMovil(
                 onRegisterClick,
                 onMyAccountClick,
                 onLogoutClick,
-                isSessionActive
+                onAdminClick,
+                isSessionActive,
+                isAdmin
             )
         }
     }

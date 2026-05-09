@@ -128,8 +128,9 @@ fun CheckoutContainer(
                         CheckoutStep.SUMMARY -> {
                             SummaryStep(
                                 movie = session.pelicula.nombre,
-                                seats = state.selectedSeats.map {
-                                    "Fila ${it.row + 1} · Butaca ${it.column + 1}"
+                                seats = state.selectedSeats.mapNotNull { seat ->
+                                    val seatNumber = toSeatNumberOrNull(seatMatrix, seat) ?: return@mapNotNull null
+                                    "Fila ${seat.row + 1} · Butaca $seatNumber"
                                 },
                                 tiposEntrada = tiposEntrada,
                                 tickets = tickets,
@@ -195,6 +196,7 @@ fun CheckoutContainer(
                                                 email = if (isAuthenticated) sessionEmail else paymentFormData.email,
                                                 holdToken = holdTokenString,
                                                 session = session,
+                                                seatMatrix = seatMatrix,
                                                 selectedSeats = state.selectedSeats,
                                                 tiposEntrada = tiposEntrada,
                                                 tickets = tickets,
@@ -264,6 +266,7 @@ private fun buildCompraDto(
     email: String,
     holdToken: String,
     session: Sesion,
+    seatMatrix: SeatMatrix,
     selectedSeats: Set<SeatPosition>,
     tiposEntrada: List<TipoEntrada>,
     tickets: TipoEntradaSelection,
@@ -278,6 +281,7 @@ private fun buildCompraDto(
 
     // Entradas
     orderedSeats.zip(selectedTipos).forEach { (seat, tipo) ->
+        val seatNumber = toSeatNumberOrNull(seatMatrix, seat) ?: return@forEach
         lineas.add(
             LineaCompraEntradaDTO(
                 numero = numeroLinea++,
@@ -290,7 +294,7 @@ private fun buildCompraDto(
                         horario = session.horario.toString()
                     ),
                     numFila = seat.row + 1,
-                    numButaca = seat.column + 1,
+                    numButaca = seatNumber,
                     tipo = TipoEntradaDTO(
                         id = tipo.id,
                         nombre = tipo.nombre,

@@ -49,6 +49,14 @@ fun UserProfileScreen(
         }
     }
 
+    LaunchedEffect(state.downloadMessage) {
+        val message = state.downloadMessage
+        if (!message.isNullOrBlank()) {
+            snackbarHostState.showSnackbar(message)
+            presenter.consumeDownloadMessage()
+        }
+    }
+
     Box(
         modifier = Modifier.fillMaxSize()
     ) {

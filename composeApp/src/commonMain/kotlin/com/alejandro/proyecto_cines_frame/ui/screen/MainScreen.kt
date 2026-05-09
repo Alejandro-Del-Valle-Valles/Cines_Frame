@@ -21,6 +21,7 @@ import com.alejandro.proyecto_cines_frame.core.session.SessionManager
 import com.alejandro.proyecto_cines_frame.data.remote.api.*
 import com.alejandro.proyecto_cines_frame.data.remote.client.HttpClientFactory
 import com.alejandro.proyecto_cines_frame.data.repository.*
+import com.alejandro.proyecto_cines_frame.domain.enums.CuentaRol
 import com.alejandro.proyecto_cines_frame.domain.enums.ParticipanteRol
 import com.alejandro.proyecto_cines_frame.domain.model.Pelicula
 import com.alejandro.proyecto_cines_frame.domain.model.Compra
@@ -113,9 +114,10 @@ fun MainScreen(
         )
     }
 
-    val profilePresenter = remember(cuentaRepository, scope) {
+    val profilePresenter = remember(cuentaRepository, comprasRepository, scope) {
         ProfilePresenter(
             cuentaRepo = cuentaRepository,
+            compraRepo = comprasRepository,
             scope = scope
         )
     }
@@ -127,6 +129,7 @@ fun MainScreen(
 
     val authState by SessionManager.state.collectAsState()
     var isRestoringSession by remember { mutableStateOf(true) }
+    val isAdmin = authState.isAuthenticated && authState.cuenta?.rol == CuentaRol.ADMINISTRADOR
 
     LaunchedEffect(authState.cuenta) {
         profilePresenter.setCuenta(authState.cuenta)
@@ -353,6 +356,15 @@ fun MainScreen(
         return
     }
 
+    if (currentScreen == "admin") {
+        MainAdminScreen(
+            onBack = {
+                currentScreen = "main"
+            }
+        )
+        return
+    }
+
     val openCheckoutForSession: (Sesion) -> Unit = { sessionClicked ->
         scope.launch {
             isOpeningCheckout = true
@@ -518,7 +530,12 @@ fun MainScreen(
                     }
                 },
 
-                isSessionActive = authState.isAuthenticated
+                onAdminClick = {
+                    currentScreen = "admin"
+                },
+
+                isSessionActive = authState.isAuthenticated,
+                isAdmin = isAdmin
             )
 
             Box(modifier = Modifier.fillMaxSize()) {

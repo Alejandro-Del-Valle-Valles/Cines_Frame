@@ -2,6 +2,8 @@ package com.alejandro.proyecto_cines_frame.ui.components.checkout
 
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -11,6 +13,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun PaymentFormStep(
     compactLayout: Boolean,
+    modifier: Modifier = Modifier,
     formData: PaymentFormData,
     fieldErrors: Map<String, String>,
     generalError: String?,
@@ -25,9 +28,14 @@ fun PaymentFormStep(
     onBack: () -> Unit,
     onPay: () -> Unit
 ) {
+    val scrollState = rememberScrollState()
+
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
+            .verticalScroll(scrollState)
+            .imePadding()
+            .navigationBarsPadding()
             .padding(if (compactLayout) 16.dp else 28.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
@@ -145,7 +153,7 @@ fun PaymentFormStep(
             }
             Button(
                 onClick = onPay,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Pagar")
             }

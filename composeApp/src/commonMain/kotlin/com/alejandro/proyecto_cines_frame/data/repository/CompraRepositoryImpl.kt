@@ -51,4 +51,18 @@ class CompraRepositoryImpl(
         }
     }
 
+    /**
+     * Obtiene el PDF de una compra específica.
+     * Devuelve los bytes puros para ser guardados en el almacenamiento local.
+     */
+    override suspend fun getCompraPdf(id: String): ApiResult<ByteArray> {
+        return try {
+            val bytes = api.getCompraPdf(id)
+            ApiResult.Success(bytes)
+        } catch (t: Throwable) {
+            println(t.stackTraceToString())
+            ApiResult.Error(t.toAppError())
+        }
+    }
+
 }

@@ -3,7 +3,6 @@ package com.alejandro.proyecto_cines_frame.ui.components.header
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
@@ -21,11 +20,19 @@ fun HeaderActions(
     onRegisterClick: () -> Unit,
     onMyAccountClick: () -> Unit,
     onLogoutClick: () -> Unit,
-    isSessionActive: Boolean
+    onAdminClick: () -> Unit,
+    isSessionActive: Boolean,
+    isAdmin: Boolean
 ) {
     var expanded by remember { mutableStateOf(false) }
 
     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+        if (isAdmin) {
+            HeaderActionButton(
+                texto = "Admin",
+                alClick = onAdminClick
+            )
+        }
         // Dropdown cuenta
         Box {
             HeaderActionButton(

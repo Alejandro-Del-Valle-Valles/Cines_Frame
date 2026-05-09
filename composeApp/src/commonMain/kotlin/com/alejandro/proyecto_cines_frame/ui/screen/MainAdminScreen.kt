@@ -12,11 +12,14 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.alejandro.proyecto_cines_frame.ui.components.admin.MainAdminScreens.MainAdminDesktop
 import com.alejandro.proyecto_cines_frame.ui.components.admin.MainAdminScreens.MainAdminMovile
+import com.alejandro.proyecto_cines_frame.ui.components.common.BackButton
 import com.alejandro.proyecto_cines_frame.ui.components.footer.FooterUtils
 import com.alejandro.proyecto_cines_frame.ui.theme.BackgroundDark
 import com.alejandro.proyecto_cines_frame.ui.theme.ColorFondoHeader
@@ -38,10 +41,19 @@ val txtBtnGestionImagenesBaner = "Gestionar imagenes de baner"
 val txtBtnGestionComprasEntradas = "Gestionar compras de entradas"
 
 @Composable
-fun MainAdminScreen() {
+fun MainAdminScreen(
+    onBack: () -> Unit
+) {
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
+        BackButton(
+            onClick = onBack,
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .zIndex(10f)
+                .padding(16.dp)
+        )
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxWidth()
@@ -90,5 +102,3 @@ fun redireccionDeBotones( textoBoton : String) {
     }
     //O un switch case, pero como aún no existen las pantallas... TODO
 }
-
-

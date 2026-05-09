@@ -355,7 +355,11 @@ fun UserProfileDesktop(
                 }
 
                 compras.forEach {
-                    TicketRow(it, movieTitlesById)
+                    TicketRow(
+                        compra = it,
+                        movieTitlesById = movieTitlesById,
+                        onDownloadClick = { presenter.downloadCompraPdf(it.id) }
+                    )
                 }
             }
         }
@@ -363,7 +367,11 @@ fun UserProfileDesktop(
 }
 
 @Composable
-fun TicketRow(compra: Compra, movieTitlesById: Map<String, String>) {
+fun TicketRow(
+    compra: Compra,
+    movieTitlesById: Map<String, String>,
+    onDownloadClick: () -> Unit
+) {
 
     val primeraEntrada = compra.lineasCompra.firstOrNull { it is LineaCompraEntrada }
     val entradaBase = primeraEntrada as? LineaCompraEntrada
@@ -434,6 +442,15 @@ fun TicketRow(compra: Compra, movieTitlesById: Map<String, String>) {
                 color = TextWhite,
                 modifier = Modifier.weight(0.2f)
             )
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Button(
+                onClick = onDownloadClick,
+                colors = ButtonDefaults.buttonColors(containerColor = OtroRojo)
+            ) {
+                Text("Descargar PDF", color = TextWhite)
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))

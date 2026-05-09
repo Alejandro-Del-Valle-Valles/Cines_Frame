@@ -1,5 +1,6 @@
 package com.alejandro.proyecto_cines_frame.ui.logic.presenter
 
+import com.alejandro.proyecto_cines_frame.core.download.savePdfFile
 import com.alejandro.proyecto_cines_frame.core.error.ApiResult
 import com.alejandro.proyecto_cines_frame.core.session.SessionManager
 import com.alejandro.proyecto_cines_frame.data.remote.dto.CuentaUpdateDTO
@@ -7,6 +8,7 @@ import com.alejandro.proyecto_cines_frame.domain.extension.toFieldErrorMessagesI
 import com.alejandro.proyecto_cines_frame.domain.extension.toFirstUiMessagePerField
 import com.alejandro.proyecto_cines_frame.domain.model.Cuenta
 import com.alejandro.proyecto_cines_frame.domain.repository.CuentaRepository
+import com.alejandro.proyecto_cines_frame.domain.repository.CompraRepository
 import com.alejandro.proyecto_cines_frame.domain.validation.CuentaValidator
 import com.alejandro.proyecto_cines_frame.domain.validation.FieldError
 import com.alejandro.proyecto_cines_frame.domain.validation.FieldErrors
@@ -19,6 +21,7 @@ import kotlinx.coroutines.launch
 
 class ProfilePresenter(
     private val cuentaRepo: CuentaRepository,
+    private val compraRepo: CompraRepository,
     private val scope: CoroutineScope
 ) {
     private val _state = MutableStateFlow(ProfileUiState())
@@ -44,6 +47,32 @@ class ProfilePresenter(
 
     fun consumeNameUpdated() { _state.update { it.copy(nameUpdated = false) } }
     fun consumePasswordUpdated() { _state.update { it.copy(passwordUpdated = false) } }
+    fun consumeDownloadMessage() { _state.update { it.copy(downloadMessage = null) } }
+
+    fun downloadCompraPdf(compraId: String) {
+        scope.launch {
+            when (val res = compraRepo.getCompraPdf(compraId)) {
+                is ApiResult.Success -> {
+                    val saved = runCatching {
+                        val fileName = "compra_${compraId}.pdf"
+                        savePdfFile(fileName, res.data)
+                    }
+                    if (saved.isSuccess) {
+                        _state.update {
+                            it.copy(
+                                downloadMessage = "La descarga se ha completado. Puedes encontrar el PDF en 'Descargas' en tu dispoitivo"
+                            )
+                        }
+                    } else {
+                        _state.update { it.copy(downloadMessage = "La descarga ha fallado") }
+                    }
+                }
+                is ApiResult.Error -> {
+                    _state.update { it.copy(downloadMessage = "La descarga ha fallado") }
+                }
+            }
+        }
+    }
 
     fun validateNameInputs(): Boolean {
         val cuenta = currentCuenta ?: run {

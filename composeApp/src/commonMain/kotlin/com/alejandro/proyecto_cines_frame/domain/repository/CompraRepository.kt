@@ -8,4 +8,5 @@ interface CompraRepository {
     suspend fun getAll() : ApiResult<List<Compra>>
     suspend fun getFuturas() : ApiResult<List<Compra>>
     suspend fun createCompra(compra: CompraDTO) : ApiResult<Compra>
+    suspend fun getCompraPdf(id: String): ApiResult<ByteArray>
 }

@@ -5,6 +5,7 @@ import com.alejandro.proyecto_cines_frame.domain.model.Compra
 
 fun CompraDTO.toDomain() =
     Compra(
+        id= id ?: "",
         usuario = UsuarioMapper.toUsuario(correo),
         lineasCompra = lineasCompra.map { it.toDomain() }.toSet()
     )

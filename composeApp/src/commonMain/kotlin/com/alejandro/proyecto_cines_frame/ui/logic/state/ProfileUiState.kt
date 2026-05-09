@@ -11,6 +11,6 @@ data class ProfileUiState(
     val generalError: String? = null,
     val isLoading: Boolean = false,
     val nameUpdated: Boolean = false,
-    val passwordUpdated: Boolean = false
+    val passwordUpdated: Boolean = false,
+    val downloadMessage: String? = null
 )
-

@@ -13,7 +13,9 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.request.header
 import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 
@@ -51,6 +53,33 @@ class KtorCompraApi(
         return runCatching { response.body<CompraDTO>() }
             .getOrElse { compra }
     }
+
+    /**
+     * Descarga el PDF de la entrada en formato ByteArray.
+     */
+    override suspend fun getCompraPdf(id: String): ByteArray {
+        val response = httpClient.get("$baseUrl/$id/pdf") {
+            header(HttpHeaders.Accept, "application/pdf")
+        }
+        val bytes = response.body<ByteArray>()
+        if (response.status.isSuccess()) return bytes
+
+        val contentType = response.headers[HttpHeaders.ContentType].orEmpty()
+        val contentDisposition = response.headers[HttpHeaders.ContentDisposition].orEmpty()
+        val looksLikePdf = bytes.size >= 4 &&
+            bytes[0] == 0x25.toByte() && // %
+            bytes[1] == 0x50.toByte() && // P
+            bytes[2] == 0x44.toByte() && // D
+            bytes[3] == 0x46.toByte()    // F
+        val isPdfContentType = contentType.contains("application/pdf", ignoreCase = true)
+        val isPdfDisposition = contentDisposition.contains(".pdf", ignoreCase = true)
+        if (looksLikePdf || isPdfContentType || isPdfDisposition) {
+            return bytes
+        }
+
+        throw response.toStatusException()
+    }
+
 }
 
 private fun HttpResponse.toStatusException(): ResponseException {
