@@ -14,9 +14,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.alejandro.proyecto_cines_frame.domain.enums.PeliculaEstado
 import com.alejandro.proyecto_cines_frame.domain.enums.PeliculaGenero
 import com.alejandro.proyecto_cines_frame.domain.model.Pelicula
+import com.alejandro.proyecto_cines_frame.domain.model.Sala
+import com.alejandro.proyecto_cines_frame.ui.components.admin.RoomManagementScreens.RoomManagementDesktop
 import com.alejandro.proyecto_cines_frame.ui.screen.MainAdminScreen
 import com.alejandro.proyecto_cines_frame.ui.screen.MainScreen
 import com.alejandro.proyecto_cines_frame.ui.screen.MovieManagementScreen
+import com.alejandro.proyecto_cines_frame.ui.screen.RoomManagementScreen
 import com.alejandro.proyecto_cines_frame.ui.theme.AppTheme
 import kotlinx.datetime.LocalTime
 
@@ -26,7 +29,7 @@ import kotlinx.datetime.LocalTime
 fun App() {
     AppTheme {
         //MainScreen()
-
+        /*
         val mockMovies = listOf( //TODO: esto debe ser get getPelículas de la API
 
             Pelicula(
@@ -139,5 +142,66 @@ fun App() {
                 }
             )
         }
+
+         */
+
+
+        val mockRooms = listOf(
+
+            Sala(
+                numero = 1,
+                aforo = 100
+            ),
+
+            Sala(
+                numero = 2,
+                aforo = 120
+            ),
+
+            Sala(
+                numero = 3,
+                aforo = 100
+            ),
+
+            Sala(
+                numero = 4,
+                aforo = 140
+            ),
+
+            Sala(
+                numero = 5,
+                aforo = 100
+            ),
+
+            Sala(
+                numero = 6,
+                aforo = 90
+            ),
+
+            Sala(
+                numero = 7,
+                aforo = 150
+            )
+        )
+
+        MaterialTheme {
+
+            RoomManagementScreen(
+                rooms = mockRooms,
+
+                onAddRoom = {
+                    println("Añadir sala")
+                },
+
+                onEditRoom = { room ->
+                    println("Editar sala ${room.numero}")
+                },
+
+                onDeleteRoom = { room ->
+                    println("Eliminar sala ${room.numero}")
+                }
+            )
+        }
+
     }
 }
