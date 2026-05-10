@@ -23,8 +23,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.toLowerCase
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.alejandro.proyecto_cines_frame.domain.model.Pelicula
 import com.alejandro.proyecto_cines_frame.ui.theme.BackgroundDark
 import com.alejandro.proyecto_cines_frame.ui.theme.ColorFondoHeader
@@ -63,14 +66,9 @@ fun MovieManagementDesktop(
                 Text(
                     text = "Gestión de películas",
                     color = TextWhite,
-                    style = MaterialTheme.typography.headlineSmall
-                )
-
-                Divider(
-                    color = TextWhite,
-                    thickness = 1.dp,
-                    modifier = Modifier.width(250.dp)
-                )
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    textDecoration = TextDecoration.Underline                )
             }
 
             Button(
@@ -89,7 +87,7 @@ fun MovieManagementDesktop(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // 🎬 PANEL PELÍCULAS
+        // PANEL PELÍCULAS
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -97,7 +95,7 @@ fun MovieManagementDesktop(
                 .padding(20.dp)
         ) {
 
-            // 🔥 SOLO ESTA ZONA SCROLLEA
+            // SOLO ESTA ZONA SCROLLEA
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -152,7 +150,7 @@ fun MovieRowDesktop(
                 modifier = Modifier.weight(1f)
             )
 
-            // ✏️ BOTÓN MODIFICAR
+            // BOTÓN MODIFICAR
             Button(
                 onClick = onEdit,
                 colors = ButtonDefaults.buttonColors(containerColor = OtroRojo),
