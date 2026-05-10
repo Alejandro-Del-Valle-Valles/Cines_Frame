@@ -42,7 +42,8 @@ val txtBtnGestionComprasEntradas = "Gestionar compras de entradas"
 
 @Composable
 fun MainAdminScreen(
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onManageMovies: () -> Unit
 ) {
     Box(
         modifier = Modifier.fillMaxSize()
@@ -62,11 +63,16 @@ fun MainAdminScreen(
         ) {
 
             val esEscritorio = FooterUtils.esEscritorio(maxWidth)
+            val onAdminButtonClick: (String) -> Unit = { textoBoton ->
+                if (textoBoton == txtBtnGestionPeliculas) {
+                    onManageMovies()
+                }
+            }
 
             if (esEscritorio)
-                MainAdminDesktop()
+                MainAdminDesktop(onButtonClick = onAdminButtonClick)
             else
-                MainAdminMovile()
+                MainAdminMovile(onButtonClick = onAdminButtonClick)
         }
     }
 }
@@ -74,12 +80,13 @@ fun MainAdminScreen(
 @Composable
 fun botonesDesdeLista(
     buttons: List<String>,
-    buttonColor: Color
+    buttonColor: Color,
+    onButtonClick: (String) -> Unit
 ) {
     buttons.forEach { text ->
 
         Button(
-            onClick = { /* TODO navegación */ },  //Usar el metodo creado abajo, hay que completar tam
+            onClick = { onButtonClick(text) },
             colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
             modifier = Modifier
                 .fillMaxWidth(0.99f)

@@ -34,7 +34,9 @@ import com.alejandro.proyecto_cines_frame.ui.theme.OtroRojo
 import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
 
 @Composable
-fun MainAdminDesktop() {
+fun MainAdminDesktop(
+    onButtonClick: (String) -> Unit
+) {
 
     val background = BackgroundDark
     val panelColor = ColorFondoHeader
@@ -69,7 +71,8 @@ fun MainAdminDesktop() {
                         txtBtnGestionSalas,
                         txtBtnGestionProductos
                     ),
-                    buttonColor = buttonColor
+                    buttonColor = buttonColor,
+                    onButtonClick = onButtonClick
                 )
             }
 
@@ -88,7 +91,8 @@ fun MainAdminDesktop() {
                         txtBtnGestionImagenesBaner,
                         txtBtnGestionComprasEntradas
                     ),
-                    buttonColor = buttonColor
+                    buttonColor = buttonColor,
+                    onButtonClick = onButtonClick
                 )
             }
         }
@@ -99,7 +103,8 @@ fun MainAdminDesktop() {
 fun AdminPanel(
     title: String,
     buttons: List<String>,
-    buttonColor: Color
+    buttonColor: Color,
+    onButtonClick: (String) -> Unit
 ) {
     // TÍTULO
     Text(
@@ -122,6 +127,7 @@ fun AdminPanel(
     // BOTONES
     botonesDesdeLista(
         buttons = buttons,
-        buttonColor = buttonColor
+        buttonColor = buttonColor,
+        onButtonClick = onButtonClick
     )
 }
