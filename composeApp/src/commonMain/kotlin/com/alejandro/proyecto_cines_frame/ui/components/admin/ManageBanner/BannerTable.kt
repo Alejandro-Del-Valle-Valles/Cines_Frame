@@ -8,15 +8,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.alejandro.proyecto_cines_frame.data.remote.dto.BanerDTO
 
 @Composable
 fun BannerTable(
 
-    banners: List<BannerUiModel>,
+    banners: List<BanerDTO>,
 
-    onEditBanner: (BannerUiModel) -> Unit,
+    onEditBanner: (BanerDTO) -> Unit,
 
-    onDeleteBanner: (BannerUiModel) -> Unit
+    onDeleteBanner: (BanerDTO) -> Unit
 
 ) {
 

@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class BanerDTO(
+    val id: Int? = null,
     val peliculaId: String,
     val url: String,
     val empieza: String,

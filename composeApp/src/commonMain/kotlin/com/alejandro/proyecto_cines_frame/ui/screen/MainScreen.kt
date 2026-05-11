@@ -26,6 +26,7 @@ import com.alejandro.proyecto_cines_frame.domain.enums.ParticipanteRol
 import com.alejandro.proyecto_cines_frame.domain.model.Pelicula
 import com.alejandro.proyecto_cines_frame.domain.model.Compra
 import com.alejandro.proyecto_cines_frame.domain.model.Sesion
+import com.alejandro.proyecto_cines_frame.domain.model.Sala
 import com.alejandro.proyecto_cines_frame.domain.repository.*
 import com.alejandro.proyecto_cines_frame.ui.components.banner.Banner
 import com.alejandro.proyecto_cines_frame.ui.components.features.movies.MovieSection
@@ -46,6 +47,13 @@ import org.jetbrains.compose.resources.painterResource
 import proyecto_cines_frame.composeapp.generated.resources.Res
 import proyecto_cines_frame.composeapp.generated.resources.calendar
 import kotlinx.coroutines.launch
+import com.alejandro.proyecto_cines_frame.domain.model.input.SalaCreateInput
+import com.alejandro.proyecto_cines_frame.domain.validation.SalaValidator
+import com.alejandro.proyecto_cines_frame.domain.extension.toFirstUiMessagePerField
+import com.alejandro.proyecto_cines_frame.data.remote.dto.SalaDTO
+import com.alejandro.proyecto_cines_frame.ui.screen.management.MovieManagementScreen
+import com.alejandro.proyecto_cines_frame.ui.screen.management.RoomManagementScreen
+import com.alejandro.proyecto_cines_frame.ui.screen.management.ManageBannerScreen
 
 
 @Composable
@@ -165,6 +173,13 @@ fun MainScreen(
     var movieManagementMovies by remember { mutableStateOf<List<Pelicula>>(emptyList()) }
     var isLoadingMovieManagement by remember { mutableStateOf(false) }
     var movieToDelete by remember { mutableStateOf<Pelicula?>(null) }
+
+    var roomManagementRooms by remember { mutableStateOf<List<Sala>>(emptyList()) }
+    var isLoadingRoomManagement by remember { mutableStateOf(false) }
+    var roomDialogMode by remember { mutableStateOf<RoomDialogMode?>(null) }
+    var roomDialogNumero by remember { mutableStateOf("") }
+    var roomDialogAforo by remember { mutableStateOf("") }
+    var roomDialogErrors by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
 
     // Detalle Película
     var selectedMovieDetail by remember { mutableStateOf<Pelicula?>(null) }
@@ -314,9 +329,29 @@ fun MainScreen(
         isLoadingMovieManagement = false
     }
 
+    val fetchRoomManagement: suspend () -> Unit = {
+        isLoadingRoomManagement = true
+
+        when (val result = salasRepository.getAll()) {
+            is ApiResult.Success -> roomManagementRooms = result.data
+            is ApiResult.Error -> {
+                roomManagementRooms = emptyList()
+                snackbarHostState.showSnackbar(
+                    message = toMainScreenErrorMessage(result.error),
+                    duration = SnackbarDuration.Long
+                )
+            }
+        }
+
+        isLoadingRoomManagement = false
+    }
+
     LaunchedEffect(currentScreen) {
         if (currentScreen == "movie_management") {
             fetchMovieManagement()
+        }
+        if (currentScreen == "room_management") {
+            fetchRoomManagement()
         }
     }
 
@@ -565,6 +600,189 @@ fun MainScreen(
         return
     }
 
+    if (currentScreen == "room_management") {
+        Scaffold(
+            snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+            containerColor = BackgroundDark
+        ) { paddingValues ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+            ) {
+                RoomManagementScreen(
+                    rooms = roomManagementRooms,
+                    onAddRoom = {
+                        roomDialogMode = RoomDialogMode.CREATE
+                        roomDialogNumero = ""
+                        roomDialogAforo = ""
+                        roomDialogErrors = emptyMap()
+                    },
+                    onEditRoom = { room ->
+                        roomDialogMode = RoomDialogMode.EDIT
+                        roomDialogNumero = room.numero.toString()
+                        roomDialogAforo = room.aforo.toString()
+                        roomDialogErrors = emptyMap()
+                    },
+                    onDeleteRoom = { room ->
+                        scope.launch {
+                            when (val result = salasRepository.deleteSala(room.numero)) {
+                                is ApiResult.Success -> {
+                                    fetchRoomManagement()
+                                    snackbarHostState.showSnackbar(
+                                        message = "Sala eliminada correctamente",
+                                        duration = SnackbarDuration.Short
+                                    )
+                                }
+
+                                is ApiResult.Error -> {
+                                    snackbarHostState.showSnackbar(
+                                        message = toMainScreenErrorMessage(result.error),
+                                        duration = SnackbarDuration.Long
+                                    )
+                                }
+                            }
+                        }
+                    },
+                    onBack = {
+                        currentScreen = "admin"
+                    }
+                )
+
+                if (roomDialogMode != null) {
+                    AlertDialog(
+                        onDismissRequest = {
+                            roomDialogMode = null
+                            roomDialogErrors = emptyMap()
+                        },
+                        title = {
+                            Text(if (roomDialogMode == RoomDialogMode.CREATE) "Crear sala" else "Modificar sala")
+                        },
+                        text = {
+                            Column {
+                                Text("Numero de sala")
+                                Spacer(Modifier.height(8.dp))
+                                TextField(
+                                    value = roomDialogNumero,
+                                    onValueChange = { roomDialogNumero = it },
+                                    enabled = roomDialogMode == RoomDialogMode.CREATE
+                                )
+                                roomDialogErrors["numero"]?.let { Text(it, color = Color.Red) }
+
+                                Spacer(Modifier.height(12.dp))
+
+                                Text("Aforo")
+                                Spacer(Modifier.height(8.dp))
+                                TextField(
+                                    value = roomDialogAforo,
+                                    onValueChange = { roomDialogAforo = it }
+                                )
+                                roomDialogErrors["aforo"]?.let { Text(it, color = Color.Red) }
+                            }
+                        },
+                        confirmButton = {
+                            Button(
+                                onClick = {
+                                    val numero = roomDialogNumero.toIntOrNull() ?: -1
+                                    val aforo = roomDialogAforo.toIntOrNull() ?: -1
+                                    val errors = SalaValidator
+                                        .validateCreate(SalaCreateInput(numero = numero, aforo = aforo))
+                                        .toFirstUiMessagePerField()
+
+                                    if (errors.isNotEmpty()) {
+                                        roomDialogErrors = errors
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar(
+                                                message = "Revisa los campos",
+                                                duration = SnackbarDuration.Short
+                                            )
+                                        }
+                                        return@Button
+                                    }
+
+                                    roomDialogErrors = emptyMap()
+
+                                    scope.launch {
+                                        val result = if (roomDialogMode == RoomDialogMode.CREATE) {
+                                            salasRepository.createSala(SalaDTO(numero = numero, aforo = aforo))
+                                        } else {
+                                            salasRepository.updateSala(SalaDTO(numero = numero, aforo = aforo))
+                                        }
+
+                                        when (result) {
+                                            is ApiResult.Success -> {
+                                                if (roomDialogMode == RoomDialogMode.EDIT) {
+                                                    roomManagementRooms = roomManagementRooms.map { room ->
+                                                        if (room.numero == numero) {
+                                                            Sala(numero = numero, aforo = aforo)
+                                                        } else {
+                                                            room
+                                                        }
+                                                    }
+                                                }
+                                                fetchRoomManagement()
+                                                snackbarHostState.showSnackbar(
+                                                    message = if (roomDialogMode == RoomDialogMode.CREATE) {
+                                                        "Sala creada correctamente"
+                                                    } else {
+                                                        "Sala actualizada correctamente"
+                                                    },
+                                                    duration = SnackbarDuration.Short
+                                                )
+                                                roomDialogMode = null
+                                            }
+
+                                            is ApiResult.Error -> {
+                                                snackbarHostState.showSnackbar(
+                                                    message = toMainScreenErrorMessage(result.error),
+                                                    duration = SnackbarDuration.Long
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            ) {
+                                Text("Guardar")
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(
+                                onClick = {
+                                    roomDialogMode = null
+                                    roomDialogErrors = emptyMap()
+                                }
+                            ) {
+                                Text("Cancelar")
+                            }
+                        }
+                    )
+                }
+
+                if (isLoadingRoomManagement) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.5f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = TextWhite)
+                    }
+                }
+            }
+        }
+        return
+    }
+
+    if (currentScreen == "banner_management") {
+        ManageBannerScreen(
+            onBack = {
+                currentScreen = "admin"
+            },
+            bannerRepository = banerRepository
+        )
+        return
+    }
+
     if (currentScreen == "admin") {
         MainAdminScreen(
             onBack = {
@@ -572,6 +790,12 @@ fun MainScreen(
             },
             onManageMovies = {
                 currentScreen = "movie_management"
+            },
+            onManageRooms = {
+                currentScreen = "room_management"
+            },
+            onManageBanners = {
+                currentScreen = "banner_management"
             }
         )
         return
@@ -792,6 +1016,11 @@ fun MainScreen(
             }
         }
     }
+}
+
+private enum class RoomDialogMode {
+    CREATE,
+    EDIT
 }
 
 private fun toMainScreenErrorMessage(error: AppError): String {

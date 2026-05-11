@@ -8,6 +8,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.alejandro.proyecto_cines_frame.data.remote.dto.BanerDTO
 import com.alejandro.proyecto_cines_frame.ui.components.admin.ManageBanner.*
 import com.alejandro.proyecto_cines_frame.ui.theme.BackgroundDark
 
@@ -18,9 +19,9 @@ fun ManageBannerMobile(
 
     onAddBanner: () -> Unit,
 
-    onEditBanner: (BannerUiModel) -> Unit,
+    onEditBanner: (BanerDTO) -> Unit,
 
-    onDeleteBanner: (BannerUiModel) -> Unit
+    onDeleteBanner: (BanerDTO) -> Unit
 
 ) {
 

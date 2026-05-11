@@ -43,7 +43,9 @@ val txtBtnGestionComprasEntradas = "Gestionar compras de entradas"
 @Composable
 fun MainAdminScreen(
     onBack: () -> Unit,
-    onManageMovies: () -> Unit
+    onManageMovies: () -> Unit,
+    onManageRooms: () -> Unit,
+    onManageBanners: () -> Unit
 ) {
     Box(
         modifier = Modifier.fillMaxSize()
@@ -66,6 +68,10 @@ fun MainAdminScreen(
             val onAdminButtonClick: (String) -> Unit = { textoBoton ->
                 if (textoBoton == txtBtnGestionPeliculas) {
                     onManageMovies()
+                } else if (textoBoton == txtBtnGestionSalas) {
+                    onManageRooms()
+                } else if (textoBoton == txtBtnGestionImagenesBaner) {
+                    onManageBanners()
                 }
             }
 

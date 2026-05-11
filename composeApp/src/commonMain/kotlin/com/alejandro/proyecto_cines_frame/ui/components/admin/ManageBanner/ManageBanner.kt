@@ -2,6 +2,7 @@ package com.alejandro.proyecto_cines_frame.ui.components.admin.ManageBanner
 
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.runtime.Composable
+import com.alejandro.proyecto_cines_frame.data.remote.dto.BanerDTO
 import com.alejandro.proyecto_cines_frame.ui.components.admin.ManageBanner.Layout.ManageBannerDesktop
 import com.alejandro.proyecto_cines_frame.ui.components.admin.ManageBanner.Layout.ManageBannerMobile
 
@@ -12,9 +13,9 @@ fun ManageBanner(
 
     onAddBanner: () -> Unit,
 
-    onEditBanner: (BannerUiModel) -> Unit,
+    onEditBanner: (BanerDTO) -> Unit,
 
-    onDeleteBanner: (BannerUiModel) -> Unit
+    onDeleteBanner: (BanerDTO) -> Unit
 
 ) {
 

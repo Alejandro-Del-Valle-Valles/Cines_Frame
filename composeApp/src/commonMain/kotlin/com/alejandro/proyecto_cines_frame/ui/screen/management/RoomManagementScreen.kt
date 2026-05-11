@@ -1,4 +1,4 @@
-package com.alejandro.proyecto_cines_frame.ui.screen
+package com.alejandro.proyecto_cines_frame.ui.screen.management
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box

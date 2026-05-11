@@ -10,18 +10,25 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import com.alejandro.proyecto_cines_frame.data.remote.dto.BanerDTO
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
 import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
 
 @Composable
 fun BannerCard(
 
-    banner: BannerUiModel,
+    banner: BanerDTO,
 
-    onEditBanner: (BannerUiModel) -> Unit,
+    onEditBanner: (BanerDTO) -> Unit,
 
-    onDeleteBanner: (BannerUiModel) -> Unit
+    onDeleteBanner: (BanerDTO) -> Unit
 
 ) {
+    val isActive = isBannerActive(banner)
+    val title = if (banner.peliculaId.isBlank()) "Pelicula" else "Pelicula ${banner.peliculaId}"
 
     Card(
 
@@ -41,7 +48,7 @@ fun BannerCard(
         ) {
 
             AsyncImage(
-                model = banner.imageUrl,
+                model = banner.url,
                 contentDescription = null,
 
                 modifier = Modifier
@@ -51,7 +58,7 @@ fun BannerCard(
             )
 
             Text(
-                text = banner.titulo,
+                text = title,
 
                 color = TextWhite,
 
@@ -61,14 +68,14 @@ fun BannerCard(
 
             Text(
                 text =
-                    "Inicio: ${banner.fechaInicio}",
+                    "Inicio: ${banner.empieza}",
 
                 color = TextWhite
             )
 
             Text(
                 text =
-                    "Fin: ${banner.fechaFin}",
+                    "Fin: ${banner.termina}",
 
                 color = TextWhite
             )
@@ -76,7 +83,7 @@ fun BannerCard(
             Box(
                 modifier = Modifier
                     .background(
-                        if (banner.activo)
+                        if (isActive)
                             Color(0xFF22C55E).copy(alpha = 0.15f)
                         else
                             Color(0xFFEF4444).copy(alpha = 0.15f),
@@ -91,13 +98,13 @@ fun BannerCard(
 
                 Text(
                     text =
-                        if (banner.activo)
+                        if (isActive)
                             "Activo"
                         else
                             "Inactivo",
 
                     color =
-                        if (banner.activo)
+                        if (isActive)
                             Color(0xFF22C55E)
                         else
                             Color(0xFFEF4444)
@@ -124,4 +131,13 @@ fun BannerCard(
             }
         }
     }
+}
+
+private fun isBannerActive(banner: BanerDTO): Boolean {
+    val nowDate = Clock.System.now()
+        .toLocalDateTime(TimeZone.currentSystemDefault())
+        .date
+    val startDate = runCatching { LocalDate.parse(banner.empieza) }.getOrNull() ?: return false
+    val endDate = runCatching { LocalDate.parse(banner.termina) }.getOrNull() ?: return false
+    return nowDate >= startDate && nowDate <= endDate
 }
