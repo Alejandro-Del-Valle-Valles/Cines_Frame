@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.alejandro.proyecto_cines_frame.core.error.ApiResult
 import com.alejandro.proyecto_cines_frame.core.session.SessionManager
 import com.alejandro.proyecto_cines_frame.data.remote.dto.*
+import com.alejandro.proyecto_cines_frame.domain.enums.CuentaRol
 import com.alejandro.proyecto_cines_frame.domain.extension.toFirstUiMessagePerField
 import com.alejandro.proyecto_cines_frame.domain.model.Compra
 import com.alejandro.proyecto_cines_frame.domain.model.Sesion
@@ -48,6 +49,7 @@ fun CheckoutContainer(
     val authState by SessionManager.state.collectAsState()
     val sessionEmail = authState.cuenta?.usuario?.correo.orEmpty()
     val isAuthenticated = authState.isAuthenticated && sessionEmail.isNotBlank()
+    val isEmployee = authState.cuenta?.rol == CuentaRol.EMPLEADO
 
     var tickets by remember { mutableStateOf(TipoEntradaSelection()) }
     var paymentFormData by remember { mutableStateOf(PaymentFormData()) }
@@ -139,83 +141,159 @@ fun CheckoutContainer(
                         }
 
                         CheckoutStep.PAYMENT -> {
-                            PaymentFormStep(
-                                compactLayout = compactLayout,
-                                formData = paymentFormData,
-                                fieldErrors = paymentFieldErrors,
-                                generalError = generalPaymentError,
-                                showEmailFields = !isAuthenticated,
-                                sessionEmail = sessionEmail,
-                                onHolderChange = {
-                                    paymentFormData = paymentFormData.copy(holder = it)
-                                    paymentFieldErrors = paymentFieldErrors - "holder"
-                                },
-                                onCardChange = {
-                                    paymentFormData = paymentFormData.copy(cardNumber = it.filter(Char::isDigit))
-                                    paymentFieldErrors = paymentFieldErrors - "cardNumber"
-                                },
-                                onExpiryChange = {
-                                    paymentFormData = paymentFormData.copy(expiry = it)
-                                    paymentFieldErrors = paymentFieldErrors - "expiry"
-                                },
-                                onCvvChange = {
-                                    paymentFormData = paymentFormData.copy(cvv = it.filter(Char::isDigit).take(3))
-                                    paymentFieldErrors = paymentFieldErrors - "cvv"
-                                },
-                                onEmailChange = {
-                                    paymentFormData = paymentFormData.copy(email = it)
-                                    paymentFieldErrors = paymentFieldErrors - "email"
-                                },
-                                onConfirmEmailChange = {
-                                    paymentFormData = paymentFormData.copy(confirmEmail = it)
-                                    paymentFieldErrors = paymentFieldErrors - "confirmEmail"
-                                },
-                                onBack = onPreviousStep,
-                                onPay = {
-                                    val errors = CheckoutPaymentValidator
-                                        .validate(
-                                            holder = paymentFormData.holder,
-                                            cardNumber = paymentFormData.cardNumber,
-                                            expiry = paymentFormData.expiry,
-                                            cvv = paymentFormData.cvv,
-                                            email = if (isAuthenticated) sessionEmail else paymentFormData.email,
-                                            confirmEmail = if (isAuthenticated) sessionEmail else paymentFormData.confirmEmail,
-                                            requireEmail = !isAuthenticated
+                            if (isEmployee) {
+                                // Employee payment form
+                                EmployeePaymentFormStep(
+                                    compactLayout = compactLayout,
+                                    formData = paymentFormData,
+                                    fieldErrors = paymentFieldErrors,
+                                    generalError = generalPaymentError,
+                                    onEmailChange = {
+                                        paymentFormData = paymentFormData.copy(email = it)
+                                        paymentFieldErrors = paymentFieldErrors - "email"
+                                    },
+                                    onConfirmEmailChange = {
+                                        paymentFormData = paymentFormData.copy(confirmEmail = it)
+                                        paymentFieldErrors = paymentFieldErrors - "confirmEmail"
+                                    },
+                                    onBack = onPreviousStep,
+                                    onPayCash = {
+                                        processEmployeePayment(
+                                            formData = paymentFormData,
+                                            scope = scope,
+                                            onFieldErrors = { paymentFieldErrors = it },
+                                            onGeneralError = { generalPaymentError = it },
+                                            onPaying = { isPaying = it },
+                                            buildCompra = {
+                                                buildCompraDto(
+                                                    email = paymentFormData.email,
+                                                    holdToken = holdTokenString,
+                                                    session = session,
+                                                    seatMatrix = seatMatrix,
+                                                    selectedSeats = state.selectedSeats,
+                                                    tiposEntrada = tiposEntrada,
+                                                    tickets = tickets,
+                                                    products = products
+                                                )
+                                            },
+                                            onPaymentResult = { result ->
+                                                when (result) {
+                                                    is ApiResult.Success -> paymentDone = true
+                                                    is ApiResult.Error -> generalPaymentError = "No se ha podido completar la compra. Inténtelo de nuevo."
+                                                }
+                                            },
+                                            onPerformPayment = onPerformPayment
                                         )
-                                        .toFirstUiMessagePerField()
-
-                                    paymentFieldErrors = errors
-
-                                    if (errors.isEmpty()) {
-                                        scope.launch {
-                                            isPaying = true
-                                            generalPaymentError = null
-
-                                            // Construir CompraDTO
-                                            val compraDto = buildCompraDto(
+                                    },
+                                    onPayCard = {
+                                        processEmployeePayment(
+                                            formData = paymentFormData,
+                                            scope = scope,
+                                            onFieldErrors = { paymentFieldErrors = it },
+                                            onGeneralError = { generalPaymentError = it },
+                                            onPaying = { isPaying = it },
+                                            buildCompra = {
+                                                buildCompraDto(
+                                                    email = paymentFormData.email,
+                                                    holdToken = holdTokenString,
+                                                    session = session,
+                                                    seatMatrix = seatMatrix,
+                                                    selectedSeats = state.selectedSeats,
+                                                    tiposEntrada = tiposEntrada,
+                                                    tickets = tickets,
+                                                    products = products
+                                                )
+                                            },
+                                            onPaymentResult = { result ->
+                                                when (result) {
+                                                    is ApiResult.Success -> paymentDone = true
+                                                    is ApiResult.Error -> generalPaymentError = "No se ha podido completar la compra. Inténtelo de nuevo."
+                                                }
+                                            },
+                                            onPerformPayment = onPerformPayment
+                                        )
+                                    }
+                                )
+                            } else {
+                                // ...existing code...
+                                PaymentFormStep(
+                                    compactLayout = compactLayout,
+                                    formData = paymentFormData,
+                                    fieldErrors = paymentFieldErrors,
+                                    generalError = generalPaymentError,
+                                    showEmailFields = !isAuthenticated,
+                                    sessionEmail = sessionEmail,
+                                    onHolderChange = {
+                                        paymentFormData = paymentFormData.copy(holder = it)
+                                        paymentFieldErrors = paymentFieldErrors - "holder"
+                                    },
+                                    onCardChange = {
+                                        paymentFormData = paymentFormData.copy(cardNumber = it.filter(Char::isDigit))
+                                        paymentFieldErrors = paymentFieldErrors - "cardNumber"
+                                    },
+                                    onExpiryChange = {
+                                        paymentFormData = paymentFormData.copy(expiry = it)
+                                        paymentFieldErrors = paymentFieldErrors - "expiry"
+                                    },
+                                    onCvvChange = {
+                                        paymentFormData = paymentFormData.copy(cvv = it.filter(Char::isDigit).take(3))
+                                        paymentFieldErrors = paymentFieldErrors - "cvv"
+                                    },
+                                    onEmailChange = {
+                                        paymentFormData = paymentFormData.copy(email = it)
+                                        paymentFieldErrors = paymentFieldErrors - "email"
+                                    },
+                                    onConfirmEmailChange = {
+                                        paymentFormData = paymentFormData.copy(confirmEmail = it)
+                                        paymentFieldErrors = paymentFieldErrors - "confirmEmail"
+                                    },
+                                    onBack = onPreviousStep,
+                                    onPay = {
+                                        val errors = CheckoutPaymentValidator
+                                            .validate(
+                                                holder = paymentFormData.holder,
+                                                cardNumber = paymentFormData.cardNumber,
+                                                expiry = paymentFormData.expiry,
+                                                cvv = paymentFormData.cvv,
                                                 email = if (isAuthenticated) sessionEmail else paymentFormData.email,
-                                                holdToken = holdTokenString,
-                                                session = session,
-                                                seatMatrix = seatMatrix,
-                                                selectedSeats = state.selectedSeats,
-                                                tiposEntrada = tiposEntrada,
-                                                tickets = tickets,
-                                                products = products
+                                                confirmEmail = if (isAuthenticated) sessionEmail else paymentFormData.confirmEmail,
+                                                requireEmail = !isAuthenticated
                                             )
+                                            .toFirstUiMessagePerField()
 
-                                            when (val result = onPerformPayment(compraDto)) {
-                                                is ApiResult.Success -> {
-                                                    paymentDone = true
+                                        paymentFieldErrors = errors
+
+                                        if (errors.isEmpty()) {
+                                            scope.launch {
+                                                isPaying = true
+                                                generalPaymentError = null
+
+                                                // Construir CompraDTO
+                                                val compraDto = buildCompraDto(
+                                                    email = if (isAuthenticated) sessionEmail else paymentFormData.email,
+                                                    holdToken = holdTokenString,
+                                                    session = session,
+                                                    seatMatrix = seatMatrix,
+                                                    selectedSeats = state.selectedSeats,
+                                                    tiposEntrada = tiposEntrada,
+                                                    tickets = tickets,
+                                                    products = products
+                                                )
+
+                                                when (val result = onPerformPayment(compraDto)) {
+                                                    is ApiResult.Success -> {
+                                                        paymentDone = true
+                                                    }
+                                                    is ApiResult.Error -> {
+                                                        generalPaymentError = "No se ha podido completar la compra. Inténtelo de nuevo."
+                                                    }
                                                 }
-                                                is ApiResult.Error -> {
-                                                    generalPaymentError = "No se ha podido completar la compra. Inténtelo de nuevo."
-                                                }
+                                                isPaying = false
                                             }
-                                            isPaying = false
                                         }
                                     }
-                                }
-                            )
+                                )
+                            }
                         }
                     }
                 }
@@ -324,3 +402,49 @@ private fun buildCompraDto(
         lineasCompra = lineas
     )
 }
+
+private fun processEmployeePayment(
+    formData: PaymentFormData,
+    scope: kotlinx.coroutines.CoroutineScope,
+    onFieldErrors: (Map<String, String>) -> Unit,
+    onGeneralError: (String?) -> Unit,
+    onPaying: (Boolean) -> Unit,
+    buildCompra: () -> CompraDTO,
+    onPaymentResult: (ApiResult<Compra>) -> Unit,
+    onPerformPayment: suspend (CompraDTO) -> ApiResult<Compra>
+) {
+    // Validate emails
+    val errors = mutableMapOf<String, String>()
+    
+    if (formData.email.isBlank()) {
+        errors["email"] = "El correo es requerido"
+    } else if (!isValidEmail(formData.email)) {
+        errors["email"] = "Correo inválido"
+    }
+    
+    if (formData.confirmEmail.isBlank()) {
+        errors["confirmEmail"] = "La confirmación de correo es requerida"
+    } else if (formData.email != formData.confirmEmail) {
+        errors["confirmEmail"] = "Los correos no coinciden"
+    }
+    
+    onFieldErrors(errors)
+    
+    if (errors.isEmpty()) {
+        scope.launch {
+            onPaying(true)
+            onGeneralError(null)
+            
+            val compraDto = buildCompra()
+            val result = onPerformPayment(compraDto)
+            onPaymentResult(result)
+            onPaying(false)
+        }
+    }
+}
+
+private fun isValidEmail(email: String): Boolean {
+    val emailPattern = "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}".toRegex()
+    return emailPattern.matches(email)
+}
+
