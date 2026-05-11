@@ -98,6 +98,7 @@ fun MainScreen(
     var currentScreen by remember { mutableStateOf("main") }
 
     val snackbarHostState = remember { SnackbarHostState() }
+    var logoutSnackbarPending by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
 
@@ -854,10 +855,7 @@ fun MainScreen(
                     scope.launch {
                         cuentaRepository.logout(clearRememberedCredentials = true)
                         SessionManager.clearSession()
-                        snackbarHostState.showSnackbar(
-                            message = "Se ha cerrado sesión correctamente",
-                            duration = SnackbarDuration.Short
-                        )
+                        logoutSnackbarPending = true
                     }
                 },
 
@@ -881,6 +879,23 @@ fun MainScreen(
                 isSessionActive = authState.isAuthenticated,
                 isAdmin = isAdmin
             )
+
+            LaunchedEffect(logoutSnackbarPending, currentScreen) {
+                if (logoutSnackbarPending && currentScreen == "main") {
+                    snackbarHostState.showSnackbar(
+                        message = "Se ha cerrado sesión correctamente",
+                        duration = SnackbarDuration.Short
+                    )
+                    logoutSnackbarPending = false
+                }
+            }
+
+            LaunchedEffect(currentScreen) {
+                if (currentScreen != "main") {
+                    logoutSnackbarPending = false
+                    snackbarHostState.currentSnackbarData?.dismiss()
+                }
+            }
 
             Box(modifier = Modifier.fillMaxSize()) {
                 LazyColumn(
