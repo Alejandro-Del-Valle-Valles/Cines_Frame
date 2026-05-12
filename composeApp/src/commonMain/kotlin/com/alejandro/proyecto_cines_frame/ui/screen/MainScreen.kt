@@ -51,6 +51,7 @@ import com.alejandro.proyecto_cines_frame.domain.model.input.SalaCreateInput
 import com.alejandro.proyecto_cines_frame.domain.validation.SalaValidator
 import com.alejandro.proyecto_cines_frame.domain.extension.toFirstUiMessagePerField
 import com.alejandro.proyecto_cines_frame.data.remote.dto.SalaDTO
+import com.alejandro.proyecto_cines_frame.ui.components.footer.Footer
 import com.alejandro.proyecto_cines_frame.ui.screen.management.MovieManagementScreen
 import com.alejandro.proyecto_cines_frame.ui.screen.management.RoomManagementScreen
 import com.alejandro.proyecto_cines_frame.ui.screen.management.ManageBannerScreen
@@ -1017,6 +1018,10 @@ fun MainScreen(
                                 modifier = Modifier.padding(horizontal = 12.dp)
                             )
                         }
+                    }
+
+                    item {
+                        Footer()
                     }
                 }
 
