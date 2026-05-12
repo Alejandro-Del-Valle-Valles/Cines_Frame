@@ -7,6 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.tooling.preview.Preview
 import com.alejandro.proyecto_cines_frame.ui.components.admin.ManageProducts.ManageProductsScreen
+import com.alejandro.proyecto_cines_frame.ui.screen.MainScreen
 import com.alejandro.proyecto_cines_frame.ui.theme.AppTheme
 
 
@@ -18,8 +19,9 @@ fun App() {
     }
 
     AppTheme {
-        ManageProductsScreen(
+       MainScreen();
+        /* ManageProductsScreen(
             onBack = {}
-        )
+        )*/
     }
 }

@@ -11,6 +11,7 @@ import androidx.compose.ui.unit.dp
 import com.alejandro.proyecto_cines_frame.data.remote.dto.BanerDTO
 import com.alejandro.proyecto_cines_frame.ui.components.admin.ManageBanner.*
 import com.alejandro.proyecto_cines_frame.ui.theme.BackgroundDark
+import com.alejandro.proyecto_cines_frame.ui.theme.OtroRojo
 
 @Composable
 fun ManageBannerMobile(
@@ -30,6 +31,9 @@ fun ManageBannerMobile(
         floatingActionButton = {
 
             FloatingActionButton(
+
+                containerColor = OtroRojo,
+
                 onClick = onAddBanner
             ) {
 
@@ -40,11 +44,17 @@ fun ManageBannerMobile(
     ) { padding ->
 
         LazyColumn(
+
             modifier = Modifier
                 .fillMaxSize()
                 .background(BackgroundDark)
                 .padding(padding)
-                .padding(16.dp),
+                .padding(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = 90.dp,
+                    bottom = 16.dp
+                ),
 
             verticalArrangement =
                 Arrangement.spacedBy(16.dp)

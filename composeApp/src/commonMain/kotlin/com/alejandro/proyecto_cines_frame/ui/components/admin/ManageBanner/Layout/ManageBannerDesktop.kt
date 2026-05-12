@@ -26,16 +26,23 @@ fun ManageBannerDesktop(
 ) {
 
     Column(
+
         modifier = Modifier
             .fillMaxSize()
             .background(BackgroundDark)
-            .padding(24.dp),
+            .padding(
+                start = 24.dp,
+                end = 24.dp,
+                top = 72.dp,
+                bottom = 24.dp
+            ),
 
         verticalArrangement =
             Arrangement.spacedBy(16.dp)
     ) {
 
         Row(
+
             modifier = Modifier.fillMaxWidth(),
 
             horizontalArrangement =
@@ -70,6 +77,7 @@ fun ManageBannerDesktop(
         }
 
         Card(
+
             modifier = Modifier.fillMaxSize(),
 
             colors = CardDefaults.cardColors(

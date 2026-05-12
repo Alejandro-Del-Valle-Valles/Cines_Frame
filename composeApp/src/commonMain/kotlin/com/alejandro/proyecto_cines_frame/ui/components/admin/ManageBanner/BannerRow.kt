@@ -9,6 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.alejandro.proyecto_cines_frame.data.remote.dto.BanerDTO
@@ -27,10 +28,17 @@ fun BannerRow(
     onDeleteBanner: (BanerDTO) -> Unit
 
 ) {
+
     val isActive = isBannerActive(banner)
-    val title = if (banner.peliculaId.isBlank()) "Pelicula" else "Pelicula ${banner.peliculaId}"
+
+    val title =
+        if (banner.peliculaId.isBlank())
+            "Pelicula"
+        else
+            "Pelicula ${banner.peliculaId}"
 
     Row(
+
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 12.dp),
@@ -47,29 +55,40 @@ fun BannerRow(
             contentDescription = null,
 
             modifier = Modifier
-                .width(140.dp)
+                .weight(1.4f)
                 .height(70.dp)
                 .clip(RoundedCornerShape(12.dp))
         )
 
         Text(
+
             text = title,
-            modifier = Modifier.weight(1f)
+
+            modifier = Modifier.weight(2f),
+
+            maxLines = 2,
+
+            overflow = TextOverflow.Ellipsis
         )
 
         Text(
             text = banner.empieza,
-            modifier = Modifier.weight(1f)
+
+            modifier = Modifier.weight(1.1f)
         )
 
         Text(
             text = banner.termina,
-            modifier = Modifier.weight(1f)
+
+            modifier = Modifier.weight(1.1f)
         )
 
         Box(
+
             modifier = Modifier
+                .weight(0.9f)
                 .background(
+
                     if (isActive)
                         Color(0xFF22C55E).copy(alpha = 0.15f)
                     else
@@ -79,11 +98,12 @@ fun BannerRow(
                 )
                 .padding(
                     horizontal = 12.dp,
-                    vertical = 4.dp
+                    vertical = 6.dp
                 )
         ) {
 
             Text(
+
                 text =
                     if (isActive)
                         "Activo"
@@ -98,7 +118,12 @@ fun BannerRow(
             )
         }
 
-        Row {
+        Row(
+            modifier = Modifier.weight(0.8f),
+
+            horizontalArrangement =
+                Arrangement.spacedBy(4.dp)
+        ) {
 
             TextButton(
                 onClick = {
@@ -120,10 +145,25 @@ fun BannerRow(
 }
 
 private fun isBannerActive(banner: BanerDTO): Boolean {
+
     val nowDate = Clock.System.now()
-        .toLocalDateTime(TimeZone.currentSystemDefault())
+        .toLocalDateTime(
+            TimeZone.currentSystemDefault()
+        )
         .date
-    val startDate = runCatching { LocalDate.parse(banner.empieza) }.getOrNull() ?: return false
-    val endDate = runCatching { LocalDate.parse(banner.termina) }.getOrNull() ?: return false
-    return nowDate >= startDate && nowDate <= endDate
+
+    val startDate =
+        runCatching {
+            LocalDate.parse(banner.empieza)
+        }.getOrNull()
+            ?: return false
+
+    val endDate =
+        runCatching {
+            LocalDate.parse(banner.termina)
+        }.getOrNull()
+            ?: return false
+
+    return nowDate >= startDate &&
+            nowDate <= endDate
 }

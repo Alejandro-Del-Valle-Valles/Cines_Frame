@@ -33,32 +33,32 @@ fun BannerTable(
 
             Text(
                 text = "Imagen",
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1.4f)
             )
 
             Text(
                 text = "Título",
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(2f)
             )
 
             Text(
                 text = "Inicio",
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1.1f)
             )
 
             Text(
                 text = "Fin",
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1.1f)
             )
 
             Text(
                 text = "Estado",
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(0.9f)
             )
 
             Text(
                 text = "Acciones",
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(0.8f)
             )
         }
 
