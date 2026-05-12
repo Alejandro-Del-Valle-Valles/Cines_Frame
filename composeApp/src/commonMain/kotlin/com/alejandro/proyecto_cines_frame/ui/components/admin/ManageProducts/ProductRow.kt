@@ -1,0 +1,110 @@
+package com.alejandro.proyecto_cines_frame.ui.components.admin.ManageProducts
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+
+@Composable
+fun ProductRow(
+    product: ProductUiModel,
+    onEdit: (ProductUiModel) -> Unit,
+    onDelete: (ProductUiModel) -> Unit
+) {
+
+    Row(
+
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 10.dp),
+
+        horizontalArrangement =
+            Arrangement.spacedBy(12.dp)
+    ) {
+
+        Column(
+            modifier = Modifier.weight(2f)
+        ) {
+
+            Text(
+                text = product.nombre
+            )
+
+            if (
+                product.descripcion.isNotBlank()
+            ) {
+
+                Text(
+                    text = product.descripcion,
+
+                    style =
+                        MaterialTheme.typography.bodySmall
+                )
+            }
+        }
+
+        Text(
+            text =
+                "€${"%.2f".format(product.precio)}",
+
+            modifier = Modifier.weight(0.9f)
+        )
+
+        Text(
+            text = product.stock.toString(),
+
+            modifier = Modifier.weight(0.7f)
+        )
+
+        FlowRow(
+
+            modifier = Modifier.weight(1.8f),
+
+            horizontalArrangement =
+                Arrangement.spacedBy(6.dp),
+
+            verticalArrangement =
+                Arrangement.spacedBy(6.dp)
+
+        ) {
+
+            if (
+                product.alergenos.isEmpty()
+            ) {
+
+                Text("—")
+
+            } else {
+
+                product.alergenos.forEach {
+
+                    AlergenoChip(
+                        nombre = it
+                    )
+                }
+            }
+        }
+
+        Row(
+            modifier = Modifier.weight(0.8f)
+        ) {
+
+            TextButton(
+                onClick = {
+                    onEdit(product)
+                }
+            ) {
+                Text("✏️")
+            }
+
+            TextButton(
+                onClick = {
+                    onDelete(product)
+                }
+            ) {
+                Text("🗑️")
+            }
+        }
+    }
+}
