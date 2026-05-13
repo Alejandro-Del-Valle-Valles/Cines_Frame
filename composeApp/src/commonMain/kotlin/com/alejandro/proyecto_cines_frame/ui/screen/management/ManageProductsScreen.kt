@@ -10,54 +10,72 @@ import androidx.compose.ui.zIndex
 import androidx.compose.ui.unit.dp
 import com.alejandro.proyecto_cines_frame.ui.components.common.BackButton
 import com.alejandro.proyecto_cines_frame.ui.theme.BackgroundDark
+import kotlinx.coroutines.launch
+import com.alejandro.proyecto_cines_frame.core.error.ApiResult
+import com.alejandro.proyecto_cines_frame.core.error.AppError
+import com.alejandro.proyecto_cines_frame.data.remote.api.KtorAlergenoApi
+import com.alejandro.proyecto_cines_frame.data.remote.api.KtorProductoApi
+import com.alejandro.proyecto_cines_frame.data.remote.client.HttpClientFactory
+import com.alejandro.proyecto_cines_frame.data.remote.dto.AlergenoDTO
+import com.alejandro.proyecto_cines_frame.data.remote.dto.ProductoDTO
+import com.alejandro.proyecto_cines_frame.data.repository.AlergenoRepositoryImpl
+import com.alejandro.proyecto_cines_frame.data.repository.ProductoRepositoryImpl
+import com.alejandro.proyecto_cines_frame.domain.model.Alergeno
 
 @Composable
 fun ManageProductsScreen(
     onBack: () -> Unit
 ) {
     var state by remember {
-        mutableStateOf(
-            ManageProductsUiState(
-                products = listOf(
-                    ProductUiModel(
-                        nombre = "Combo Palomitas Grande",
-                        precio = 15.00f,
-                        stock = 120,
-                        alergenos = listOf("Gluten", "Leche"),
-                        descripcion = "Palomitas grandes + bebida"
-                    ),
-                    ProductUiModel(
-                        nombre = "Gaseosa 1.5L",
-                        precio = 7.00f,
-                        stock = 85,
-                        alergenos = emptyList(),
-                        descripcion = "Gaseosa de cola 1.5 litros"
-                    ),
-                    ProductUiModel(
-                        nombre = "Nachos con Queso",
-                        precio = 8.00f,
-                        stock = 60,
-                        alergenos = listOf("Leche"),
-                        descripcion = "Nachos con salsa de queso"
-                    ),
-                    ProductUiModel(
-                        nombre = "Agua Mineral",
-                        precio = 4.00f,
-                        stock = 200,
-                        alergenos = emptyList(),
-                        descripcion = "Agua mineral sin gas"
-                    )
-                ),
-                alergenos = listOf(
-                    AlergenoUiModel("Gluten"),
-                    AlergenoUiModel("Leche"),
-                    AlergenoUiModel("Huevos"),
-                    AlergenoUiModel("Maní"),
-                    AlergenoUiModel("Soya"),
-                    AlergenoUiModel("Frutos secos")
-                )
-            )
+        mutableStateOf(ManageProductsUiState())
+    }
+    var isLoading by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    val productoRepository = remember {
+        ProductoRepositoryImpl(
+            api = KtorProductoApi(HttpClientFactory.create())
         )
+    }
+
+    val alergenoRepository = remember {
+        AlergenoRepositoryImpl(
+            api = KtorAlergenoApi(HttpClientFactory.create())
+        )
+    }
+
+    suspend fun refreshData() {
+        isLoading = true
+
+        val productosResult = productoRepository.getAll()
+        val alergenosResult = alergenoRepository.getAll()
+
+        if (productosResult is ApiResult.Success) {
+            state = state.copy(products = productosResult.data)
+        } else if (productosResult is ApiResult.Error) {
+            state = state.copy(products = emptyList())
+            snackbarHostState.showSnackbar(
+                message = toManageProductsErrorMessage(productosResult.error),
+                duration = SnackbarDuration.Long
+            )
+        }
+
+        if (alergenosResult is ApiResult.Success) {
+            state = state.copy(alergenos = alergenosResult.data)
+        } else if (alergenosResult is ApiResult.Error) {
+            state = state.copy(alergenos = emptyList())
+            snackbarHostState.showSnackbar(
+                message = toManageProductsErrorMessage(alergenosResult.error),
+                duration = SnackbarDuration.Long
+            )
+        }
+
+        isLoading = false
+    }
+
+    LaunchedEffect(productoRepository, alergenoRepository) {
+        refreshData()
     }
 
     Box(modifier = Modifier.fillMaxSize().background(BackgroundDark)) {
@@ -74,7 +92,6 @@ fun ManageProductsScreen(
 
             state = state,
 
-            onBack = onBack,
 
             onTabChange = { tab ->
 
@@ -84,7 +101,6 @@ fun ManageProductsScreen(
             },
 
             onAddProduct = {
-
                 state = state.copy(
                     isProductDialogVisible = true,
                     editingProduct = null,
@@ -93,12 +109,9 @@ fun ManageProductsScreen(
             },
 
             onEditProduct = { product ->
-
                 state = state.copy(
                     isProductDialogVisible = true,
-
                     editingProduct = product,
-
                     productForm = ProductFormState(
                         nombre = product.nombre,
                         precio = product.precio.toString(),
@@ -106,20 +119,24 @@ fun ManageProductsScreen(
                         alergenosCsv =
                             ManageProductsUtils.alergenosToCsv(
                                 product.alergenos
-                            ),
-                        descripcion = product.descripcion
+                            )
                     )
                 )
             },
 
             onDeleteProduct = { product ->
 
-                state = state.copy(
-                    products =
-                        state.products.filterNot {
-                            it.nombre == product.nombre
-                        }
-                )
+                scope.launch {
+                    val result = productoRepository.deleteProducto(product.nombre)
+                    if (result is ApiResult.Success) {
+                        refreshData()
+                    } else if (result is ApiResult.Error) {
+                        snackbarHostState.showSnackbar(
+                            message = toManageProductsErrorMessage(result.error),
+                            duration = SnackbarDuration.Long
+                        )
+                    }
+                }
             },
 
             onAddAlergeno = {
@@ -146,25 +163,17 @@ fun ManageProductsScreen(
 
             onDeleteAlergeno = { alergeno ->
 
-                state = state.copy(
-
-                    alergenos =
-                        state.alergenos.filterNot {
-                            it.nombre == alergeno.nombre
-                        },
-
-                    products =
-                        state.products.map { product ->
-
-                            product.copy(
-
-                                alergenos =
-                                    product.alergenos.filterNot {
-                                        it == alergeno.nombre
-                                    }
-                            )
-                        }
-                )
+                scope.launch {
+                    val result = alergenoRepository.deleteAlergeno(alergeno.nombre)
+                    if (result is ApiResult.Success) {
+                        refreshData()
+                    } else if (result is ApiResult.Error) {
+                        snackbarHostState.showSnackbar(
+                            message = toManageProductsErrorMessage(result.error),
+                            duration = SnackbarDuration.Long
+                        )
+                    }
+                }
             }
         )
 
@@ -219,48 +228,56 @@ fun ManageProductsScreen(
                             },
                             label = { Text("Alérgenos separados por coma") }
                         )
-
-                        OutlinedTextField(
-                            value = state.productForm.descripcion,
-                            onValueChange = {
-                                state = state.copy(
-                                    productForm = state.productForm.copy(descripcion = it)
-                                )
-                            },
-                            label = { Text("Descripción") }
-                        )
                     }
                 },
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            val precio = state.productForm.precio.toFloatOrNull() ?: 0f
-                            val stock = state.productForm.stock.toIntOrNull() ?: 0
-                            val alergenos = state.productForm.alergenosCsv
-                                .split(",")
-                                .map { it.trim() }
-                                .filter { it.isNotBlank() }
-
-                            val nuevo = ProductUiModel(
-                                nombre = state.productForm.nombre.trim(),
-                                precio = precio,
-                                stock = stock,
-                                alergenos = alergenos,
-                                descripcion = state.productForm.descripcion.trim()
+                            val nombre = state.productForm.nombre.trim()
+                            val precio = state.productForm.precio.toFloatOrNull()
+                            val stock = state.productForm.stock.toIntOrNull()
+                            val alergenos = parseAlergenosCsv(
+                                state.productForm.alergenosCsv
                             )
 
-                            state = if (state.editingProduct == null) {
-                                state.copy(
-                                    products = state.products + nuevo,
-                                    isProductDialogVisible = false
-                                )
-                            } else {
-                                state.copy(
-                                    products = state.products.map {
-                                        if (it.nombre == state.editingProduct?.nombre) nuevo else it
-                                    },
-                                    isProductDialogVisible = false
-                                )
+                            if (nombre.isBlank() || precio == null || stock == null) {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        message = "Revisa los campos",
+                                        duration = SnackbarDuration.Short
+                                    )
+                                }
+                                return@TextButton
+                            }
+
+                            val dto = ProductoDTO(
+                                nombre = nombre,
+                                precio = precio,
+                                stock = stock,
+                                alergenos = alergenos.map { AlergenoDTO(it.nombre) }
+                            )
+
+                            val antiguoNombre = state.editingProduct?.nombre
+                            scope.launch {
+                                val result = if (antiguoNombre == null) {
+                                    productoRepository.createProducto(dto)
+                                } else {
+                                    productoRepository.updateProducto(antiguoNombre, dto)
+                                }
+
+                                if (result is ApiResult.Success) {
+                                    state = state.copy(
+                                        isProductDialogVisible = false,
+                                        editingProduct = null,
+                                        productForm = ProductFormState()
+                                    )
+                                    refreshData()
+                                } else if (result is ApiResult.Error) {
+                                    snackbarHostState.showSnackbar(
+                                        message = toManageProductsErrorMessage(result.error),
+                                        duration = SnackbarDuration.Long
+                                    )
+                                }
                             }
                         }
                     ) {
@@ -303,20 +320,40 @@ fun ManageProductsScreen(
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            val nuevo = AlergenoUiModel(state.alergenoForm.nombre.trim())
+                            val nombre = state.alergenoForm.nombre.trim()
+                            if (nombre.isBlank()) {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        message = "Revisa los campos",
+                                        duration = SnackbarDuration.Short
+                                    )
+                                }
+                                return@TextButton
+                            }
 
-                            state = if (state.editingAlergeno == null) {
-                                state.copy(
-                                    alergenos = state.alergenos + nuevo,
-                                    isAlergenoDialogVisible = false
-                                )
-                            } else {
-                                state.copy(
-                                    alergenos = state.alergenos.map {
-                                        if (it.nombre == state.editingAlergeno?.nombre) nuevo else it
-                                    },
-                                    isAlergenoDialogVisible = false
-                                )
+                            val dto = AlergenoDTO(nombre = nombre)
+                            val antiguoNombre = state.editingAlergeno?.nombre
+
+                            scope.launch {
+                                val result = if (antiguoNombre == null) {
+                                    alergenoRepository.createAlergeno(dto)
+                                } else {
+                                    alergenoRepository.updateAlergeno(antiguoNombre, dto)
+                                }
+
+                                if (result is ApiResult.Success) {
+                                    state = state.copy(
+                                        isAlergenoDialogVisible = false,
+                                        editingAlergeno = null,
+                                        alergenoForm = AlergenoFormState()
+                                    )
+                                    refreshData()
+                                } else if (result is ApiResult.Error) {
+                                    snackbarHostState.showSnackbar(
+                                        message = toManageProductsErrorMessage(result.error),
+                                        duration = SnackbarDuration.Long
+                                    )
+                                }
                             }
                         }
                     ) {
@@ -334,5 +371,41 @@ fun ManageProductsScreen(
                 }
             )
         }
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(16.dp)
+        )
+
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(BackgroundDark.copy(alpha = 0.6f)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+    }
+}
+
+private fun parseAlergenosCsv(csv: String): Set<Alergeno> {
+    return csv
+        .split(",")
+        .map { it.trim() }
+        .filter { it.isNotBlank() }
+        .map { Alergeno(it) }
+        .toSet()
+}
+
+private fun toManageProductsErrorMessage(error: AppError): String {
+    return when (error) {
+        is AppError.Network -> "Error de red. Comprueba tu conexión."
+        is AppError.Server -> "Error del servidor. Inténtalo más tarde."
+        is AppError.Unauthorized -> "No autorizado."
+        else -> "Ha ocurrido un error inesperado."
     }
 }

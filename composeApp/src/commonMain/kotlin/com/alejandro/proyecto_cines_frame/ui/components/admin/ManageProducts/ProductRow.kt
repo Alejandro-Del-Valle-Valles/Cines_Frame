@@ -5,12 +5,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.alejandro.proyecto_cines_frame.domain.model.Producto
 
 @Composable
 fun ProductRow(
-    product: ProductUiModel,
-    onEdit: (ProductUiModel) -> Unit,
-    onDelete: (ProductUiModel) -> Unit
+    product: Producto,
+    onEdit: (Producto) -> Unit,
+    onDelete: (Producto) -> Unit
 ) {
 
     Row(
@@ -30,18 +31,6 @@ fun ProductRow(
             Text(
                 text = product.nombre
             )
-
-            if (
-                product.descripcion.isNotBlank()
-            ) {
-
-                Text(
-                    text = product.descripcion,
-
-                    style =
-                        MaterialTheme.typography.bodySmall
-                )
-            }
         }
 
         Text(
@@ -80,7 +69,7 @@ fun ProductRow(
                 product.alergenos.forEach {
 
                     AlergenoChip(
-                        nombre = it
+                        nombre = it.nombre
                     )
                 }
             }

@@ -49,22 +49,11 @@ fun MainAdminMovile(
         AdminPanelMobile(
             title = "Gestión del cine",
             buttons = listOf(
+                txtBtnGestionImagenesBaner,
                 txtBtnGestionPeliculas,
                 txtBtnGestionSesiones,
                 txtBtnGestionSalas,
                 txtBtnGestionProductos
-            ),
-            buttonColor = buttonColor,
-            panelColor = panelColor,
-            onButtonClick = onButtonClick
-        )
-
-        AdminPanelMobile(
-            title = "Gestión de datos\nde la aplicación",
-            buttons = listOf(
-                txtBtnGestionCuentas,
-                txtBtnGestionImagenesBaner,
-                txtBtnGestionComprasEntradas
             ),
             buttonColor = buttonColor,
             panelColor = panelColor,

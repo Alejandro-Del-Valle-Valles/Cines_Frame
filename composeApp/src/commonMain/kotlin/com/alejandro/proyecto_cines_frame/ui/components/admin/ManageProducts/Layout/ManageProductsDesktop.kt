@@ -6,6 +6,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.alejandro.proyecto_cines_frame.domain.model.Alergeno
+import com.alejandro.proyecto_cines_frame.domain.model.Producto
 import com.alejandro.proyecto_cines_frame.ui.components.admin.ManageProducts.*
 import com.alejandro.proyecto_cines_frame.ui.theme.BackgroundDark
 import com.alejandro.proyecto_cines_frame.ui.theme.ColorFondoHeader
@@ -13,20 +15,14 @@ import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
 
 @Composable
 fun ManageProductsDesktop(
-
     state: ManageProductsUiState,
-
-    onBack: () -> Unit,
-
     onTabChange: (ManageProductsTab) -> Unit,
-
     onAddProduct: () -> Unit,
-    onEditProduct: (ProductUiModel) -> Unit,
-    onDeleteProduct: (ProductUiModel) -> Unit,
-
+    onEditProduct: (Producto) -> Unit,
+    onDeleteProduct: (Producto) -> Unit,
     onAddAlergeno: () -> Unit,
-    onEditAlergeno: (AlergenoUiModel) -> Unit,
-    onDeleteAlergeno: (AlergenoUiModel) -> Unit
+    onEditAlergeno: (Alergeno) -> Unit,
+    onDeleteAlergeno: (Alergeno) -> Unit
 
 ) {
 
@@ -82,7 +78,6 @@ fun ManageProductsDesktop(
             Button(
                 onClick = onAddProduct
             ) {
-
                 Text("+  Nuevo producto")
             }
         }

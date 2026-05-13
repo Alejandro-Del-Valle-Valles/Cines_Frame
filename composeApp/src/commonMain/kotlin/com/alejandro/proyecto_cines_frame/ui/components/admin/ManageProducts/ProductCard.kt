@@ -1,18 +1,17 @@
 package com.alejandro.proyecto_cines_frame.ui.components.admin.ManageProducts
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.alejandro.proyecto_cines_frame.domain.model.Producto
 
 @Composable
 fun ProductCard(
-    product: ProductUiModel,
-    onEdit: (ProductUiModel) -> Unit,
-    onDelete: (ProductUiModel) -> Unit
+    product: Producto,
+    onEdit: (Producto) -> Unit,
+    onDelete: (Producto) -> Unit
 ) {
     Card(
         colors = CardDefaults.cardColors(
@@ -24,9 +23,6 @@ fun ProductCard(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(product.nombre, style = MaterialTheme.typography.titleMedium)
-            if (product.descripcion.isNotBlank()) {
-                Text(product.descripcion, style = MaterialTheme.typography.bodySmall)
-            }
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text("€${"%.2f".format(product.precio)}")
@@ -34,14 +30,15 @@ fun ProductCard(
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                if (product.alergenos.isEmpty()) {
+                val alergenos = product.alergenos.toList()
+                if (alergenos.isEmpty()) {
                     Text("—")
                 } else {
-                    product.alergenos.take(3).forEach {
-                        AlergenoChip(nombre = it)
+                    alergenos.take(3).forEach {
+                        AlergenoChip(nombre = it.nombre)
                     }
-                    if (product.alergenos.size > 3) {
-                        AlergenoChip(nombre = "+${product.alergenos.size - 3}")
+                    if (alergenos.size > 3) {
+                        AlergenoChip(nombre = "+${alergenos.size - 3}")
                     }
                 }
             }

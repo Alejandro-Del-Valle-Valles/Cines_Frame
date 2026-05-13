@@ -7,13 +7,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.alejandro.proyecto_cines_frame.domain.model.Alergeno
 
 @Composable
 fun AlergenosList(
-    alergenos: List<AlergenoUiModel>,
+    alergenos: List<Alergeno>,
     onAddAlergeno: () -> Unit,
-    onEditAlergeno: (AlergenoUiModel) -> Unit,
-    onDeleteAlergeno: (AlergenoUiModel) -> Unit
+    onEditAlergeno: (Alergeno) -> Unit,
+    onDeleteAlergeno: (Alergeno) -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(

@@ -16,24 +16,11 @@ enum class ProductFilter {
     SIN_STOCK
 }
 
-data class ProductUiModel(
-    val nombre: String,
-    val precio: Float,
-    val stock: Int,
-    val alergenos: List<String>,
-    val descripcion: String = ""
-)
-
-data class AlergenoUiModel(
-    val nombre: String
-)
-
 data class ProductFormState(
     val nombre: String = "",
     val precio: String = "",
     val stock: String = "",
-    val alergenosCsv: String = "",
-    val descripcion: String = ""
+    val alergenosCsv: String = ""
 )
 
 data class AlergenoFormState(
@@ -45,15 +32,15 @@ data class ManageProductsUiState(
     val search: String = "",
     val selectedFilter: ProductFilter = ProductFilter.TODOS,
 
-    val products: List<ProductUiModel> = emptyList(),
-    val alergenos: List<AlergenoUiModel> = emptyList(),
+    val products: List<Producto> = emptyList(),
+    val alergenos: List<Alergeno> = emptyList(),
 
     val isProductDialogVisible: Boolean = false,
-    val editingProduct: ProductUiModel? = null,
+    val editingProduct: Producto? = null,
     val productForm: ProductFormState = ProductFormState(),
 
     val isAlergenoDialogVisible: Boolean = false,
-    val editingAlergeno: AlergenoUiModel? = null,
+    val editingAlergeno: Alergeno? = null,
     val alergenoForm: AlergenoFormState = AlergenoFormState()
 )
 
@@ -65,32 +52,18 @@ object ManageProductsUtils {
         return maxWidth >= PuntoCorteEscritorio
     }
 
-    fun Producto.toUiModel(): ProductUiModel {
-        return ProductUiModel(
-            nombre = nombre,
-            precio = precio,
-            stock = stock,
-            alergenos = alergenos.map { it.nombre },
-            descripcion = ""
-        )
-    }
-
-    fun Alergeno.toUiModel(): AlergenoUiModel {
-        return AlergenoUiModel(nombre = nombre)
-    }
-
     fun filterProducts(
-        products: List<ProductUiModel>,
+        products: List<Producto>,
         search: String,
         filter: ProductFilter
-    ): List<ProductUiModel> {
+    ): List<Producto> {
         val query = search.trim().lowercase()
 
         return products.filter { product ->
             val matchesSearch =
                 query.isBlank() ||
                         product.nombre.lowercase().contains(query) ||
-                        product.alergenos.any { it.lowercase().contains(query) }
+                        product.alergenos.any { it.nombre.lowercase().contains(query) }
 
             val matchesFilter = when (filter) {
                 ProductFilter.TODOS -> true
@@ -102,16 +75,8 @@ object ManageProductsUtils {
         }
     }
 
-    fun parseAlergenosCsv(csv: String): Set<Alergeno> {
-        return csv
-            .split(",")
-            .map { it.trim() }
-            .filter { it.isNotBlank() }
-            .map { Alergeno(it) }
-            .toSet()
-    }
 
-    fun alergenosToCsv(alergenos: List<String>): String {
-        return alergenos.joinToString(", ")
+    fun alergenosToCsv(alergenos: Iterable<Alergeno>): String {
+        return alergenos.joinToString(", ") { it.nombre }
     }
 }

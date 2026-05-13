@@ -55,6 +55,7 @@ import com.alejandro.proyecto_cines_frame.ui.components.footer.Footer
 import com.alejandro.proyecto_cines_frame.ui.screen.management.MovieManagementScreen
 import com.alejandro.proyecto_cines_frame.ui.screen.management.RoomManagementScreen
 import com.alejandro.proyecto_cines_frame.ui.screen.management.ManageBannerScreen
+import com.alejandro.proyecto_cines_frame.ui.components.admin.ManageProducts.ManageProductsScreen
 
 
 @Composable
@@ -139,7 +140,9 @@ fun MainScreen(
 
     val authState by SessionManager.state.collectAsState()
     var isRestoringSession by remember { mutableStateOf(true) }
-    val isAdmin = authState.isAuthenticated && authState.cuenta?.rol == CuentaRol.ADMINISTRADOR
+    val canAccessAdmin = authState.isAuthenticated && (
+        authState.cuenta?.rol == CuentaRol.ADMINISTRADOR || authState.cuenta?.rol == CuentaRol.EMPLEADO
+    )
 
     LaunchedEffect(authState.cuenta) {
         profilePresenter.setCuenta(authState.cuenta)
@@ -785,6 +788,16 @@ fun MainScreen(
         return
     }
 
+    if (currentScreen == "product_management") {
+        val isEmployee = authState.cuenta?.rol == CuentaRol.EMPLEADO
+        ManageProductsScreen(
+            onBack = {
+                currentScreen = if (isEmployee) "main" else "admin"
+            }
+        )
+        return
+    }
+
     if (currentScreen == "admin") {
         MainAdminScreen(
             onBack = {
@@ -798,6 +811,9 @@ fun MainScreen(
             },
             onManageBanners = {
                 currentScreen = "banner_management"
+            },
+            onManageProducts = {
+                currentScreen = "product_management"
             }
         )
         return
@@ -874,11 +890,16 @@ fun MainScreen(
                 },
 
                 onAdminClick = {
-                    currentScreen = "admin"
+                    val rol = authState.cuenta?.rol
+                    currentScreen = if (rol == CuentaRol.EMPLEADO) {
+                        "product_management"
+                    } else {
+                        "admin"
+                    }
                 },
 
                 isSessionActive = authState.isAuthenticated,
-                isAdmin = isAdmin
+                isAdmin = canAccessAdmin
             )
 
             LaunchedEffect(logoutSnackbarPending, currentScreen) {

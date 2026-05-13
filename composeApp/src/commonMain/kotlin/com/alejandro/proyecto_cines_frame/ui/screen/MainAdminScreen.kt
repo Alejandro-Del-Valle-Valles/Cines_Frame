@@ -45,7 +45,8 @@ fun MainAdminScreen(
     onBack: () -> Unit,
     onManageMovies: () -> Unit,
     onManageRooms: () -> Unit,
-    onManageBanners: () -> Unit
+    onManageBanners: () -> Unit,
+    onManageProducts: () -> Unit
 ) {
     Box(
         modifier = Modifier.fillMaxSize()
@@ -72,6 +73,8 @@ fun MainAdminScreen(
                     onManageRooms()
                 } else if (textoBoton == txtBtnGestionImagenesBaner) {
                     onManageBanners()
+                } else if (textoBoton == txtBtnGestionProductos) {
+                    onManageProducts()
                 }
             }
 
@@ -103,15 +106,4 @@ fun botonesDesdeLista(
 
         Spacer(modifier = Modifier.height(15.dp))
     }
-}
-
-@Composable
-fun redireccionDeBotones( textoBoton : String) {
-    if (textoBoton == txtBtnGestionPeliculas) {
-
-    }
-    else if (textoBoton == txtBtnGestionSesiones) {
-
-    }
-    //O un switch case, pero como aún no existen las pantallas... TODO
 }

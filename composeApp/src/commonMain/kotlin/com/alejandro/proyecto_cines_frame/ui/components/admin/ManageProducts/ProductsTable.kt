@@ -8,12 +8,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.alejandro.proyecto_cines_frame.domain.model.Producto
 
 @Composable
 fun ProductsTable(
-    products: List<ProductUiModel>,
-    onEdit: (ProductUiModel) -> Unit,
-    onDelete: (ProductUiModel) -> Unit
+    products: List<Producto>,
+    onEdit: (Producto) -> Unit,
+    onDelete: (Producto) -> Unit
 ) {
 
     Column(
