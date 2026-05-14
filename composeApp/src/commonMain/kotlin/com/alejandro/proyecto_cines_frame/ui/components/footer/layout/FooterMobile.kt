@@ -4,49 +4,121 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.alejandro.proyecto_cines_frame.ui.components.common.HeaderBrand
+import com.alejandro.proyecto_cines_frame.ui.components.footer.FooterInfoDialog
 import com.alejandro.proyecto_cines_frame.ui.components.footer.FooterLink
 import com.alejandro.proyecto_cines_frame.ui.components.footer.FooterSocialIcon
-import com.alejandro.proyecto_cines_frame.ui.components.common.HeaderBrand
 import org.jetbrains.compose.resources.painterResource
-import proyecto_cines_frame.composeapp.generated.resources.Res
-import proyecto_cines_frame.composeapp.generated.resources.facebook
-import proyecto_cines_frame.composeapp.generated.resources.instagram
-import proyecto_cines_frame.composeapp.generated.resources.x
-//Footer para Móvil
+import proyecto_cines_frame.composeapp.generated.resources.*
+
 @Composable
 fun FooterMobile() {
 
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+    var dialogTitle by remember {
+        mutableStateOf<String?>(null)
+    }
+
+    var dialogContent by remember {
+        mutableStateOf("")
+    }
+
+    fun openDialog(
+        title: String,
+        content: String
     ) {
-        HeaderBrand(esEscritorio = false)
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+        dialogTitle = title
+        dialogContent = content
+    }
+
+    Column(
+
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment =
+            Alignment.CenterHorizontally,
+        verticalArrangement =
+            Arrangement.spacedBy(12.dp)
+    ) {
+
+        HeaderBrand(
+            esEscritorio = false
+        )
+        Row(
+            horizontalArrangement =
+                Arrangement.spacedBy(16.dp)
+        ) {
             FooterSocialIcon(
-                painterResource(Res.drawable.facebook),
+                painterResource(
+                    Res.drawable.facebook
+                ),
                 "Facebook",
                 "https://www.facebook.com"
             )
+
             FooterSocialIcon(
-                painterResource(Res.drawable.instagram),
+                painterResource(
+                    Res.drawable.instagram
+                ),
                 "Instagram",
                 "https://www.instagram.com"
             )
+
             FooterSocialIcon(
-                painterResource(Res.drawable.x),
+                painterResource(
+                    Res.drawable.x
+                ),
                 "X",
                 "https://www.x.com"
             )
         }
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            FooterLink("Centro de ayuda")
-            FooterLink("Política de privacidad")
-            FooterLink("Cookies")
+
+        Column(
+            horizontalAlignment =
+                Alignment.CenterHorizontally
+        ) {
+            FooterLink(
+                text = "Centro de ayuda",
+                onClick = {
+                    openDialog(
+                        "Centro de ayuda",
+                        "Si necesitas ayuda con compras, sesiones o problemas técnicos puedes contactar con soporte."
+                    )
+                }
+            )
+
+            FooterLink(
+                text = "Política de privacidad",
+                onClick = {
+                    openDialog(
+                        "Política de privacidad",
+                        "Tus datos se usan únicamente para la gestión de la aplicación y compras."
+                    )
+                }
+            )
+
+            FooterLink(
+                text = "Cookies",
+                onClick = {
+                    openDialog(
+                        "Cookies",
+                        "Usamos cookies técnicas necesarias para el funcionamiento de la aplicación."
+                    )
+                }
+            )
         }
+    }
+
+    if (dialogTitle != null) {
+
+        FooterInfoDialog(
+            title = dialogTitle!!,
+            content = dialogContent,
+            onDismiss = {
+                dialogTitle = null
+            }
+        )
     }
 }

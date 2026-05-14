@@ -33,7 +33,9 @@ import com.alejandro.proyecto_cines_frame.ui.screen.txtBtnGestionSesiones
 import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
 
 @Composable
-fun MainAdminMovile() {
+fun MainAdminMovile(
+    onButtonClick: (String) -> Unit
+) {
 
     Column (
         modifier = Modifier
@@ -47,24 +49,15 @@ fun MainAdminMovile() {
         AdminPanelMobile(
             title = "Gestión del cine",
             buttons = listOf(
+                txtBtnGestionImagenesBaner,
                 txtBtnGestionPeliculas,
                 txtBtnGestionSesiones,
                 txtBtnGestionSalas,
                 txtBtnGestionProductos
             ),
             buttonColor = buttonColor,
-            panelColor = panelColor
-        )
-
-        AdminPanelMobile(
-            title = "Gestión de datos\nde la aplicación",
-            buttons = listOf(
-                txtBtnGestionCuentas,
-                txtBtnGestionImagenesBaner,
-                txtBtnGestionComprasEntradas
-            ),
-            buttonColor = buttonColor,
-            panelColor = panelColor
+            panelColor = panelColor,
+            onButtonClick = onButtonClick
         )
     }
 }
@@ -74,7 +67,8 @@ fun AdminPanelMobile(
     title: String,
     buttons: List<String>,
     buttonColor: Color,
-    panelColor: Color
+    panelColor: Color,
+    onButtonClick: (String) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -105,7 +99,8 @@ fun AdminPanelMobile(
         // BOTONES
         botonesDesdeLista(
             buttons = buttons,
-            buttonColor = buttonColor
+            buttonColor = buttonColor,
+            onButtonClick = onButtonClick
         )
     }
 }

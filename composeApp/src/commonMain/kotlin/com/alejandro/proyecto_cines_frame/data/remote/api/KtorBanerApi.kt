@@ -26,6 +26,13 @@ class KtorBanerApi(
         httpClient.get(baseUrl).body()
 
     /**
+     * Devuelve todos los banners
+     */
+    override suspend fun getAll(): List<BanerDTO> =
+        httpClient.get("$baseUrl/all").body()
+
+
+    /**
      * Crea un nuevo baner
      */
     override suspend fun createBaner(baner: BanerDTO): BanerDTO =
@@ -37,17 +44,20 @@ class KtorBanerApi(
     /**
      * Actualiza un baner en base a la url de su imagen
      */
-    override suspend fun updateBaner(url: String, baner: BanerDTO): BanerDTO =
-        httpClient.put("$baseUrl/$url"){
+    override suspend fun updateBaner(baner: BanerDTO): BanerDTO =
+        httpClient.put(baseUrl){
             contentType(ContentType.Application.Json)
             setBody(baner)
         }.body()
 
+
     /**
      * Elimina un baner en base a la url de su imagen
      */
-    override suspend fun deleteBaner(url: String): BanerDTO =
-        httpClient.delete("$baseUrl/$url"){
+    override suspend fun deleteBaner(id: Int): BanerDTO {
+        return httpClient.delete("$baseUrl/$id") {
             contentType(ContentType.Application.Json)
         }.body()
+    }
+
 }

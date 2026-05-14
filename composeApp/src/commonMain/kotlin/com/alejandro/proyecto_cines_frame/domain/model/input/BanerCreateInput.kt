@@ -3,6 +3,7 @@ package com.alejandro.proyecto_cines_frame.domain.model.input
 import kotlinx.datetime.LocalDate
 
 data class BanerCreateInput(
+    val id: Int? = null,
     val peliculaId: String,
     val antiguaUrl: String? = null,
     val url: String,

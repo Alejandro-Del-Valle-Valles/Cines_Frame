@@ -42,7 +42,11 @@ val txtBtnGestionComprasEntradas = "Gestionar compras de entradas"
 
 @Composable
 fun MainAdminScreen(
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onManageMovies: () -> Unit,
+    onManageRooms: () -> Unit,
+    onManageBanners: () -> Unit,
+    onManageProducts: () -> Unit
 ) {
     Box(
         modifier = Modifier.fillMaxSize()
@@ -62,11 +66,22 @@ fun MainAdminScreen(
         ) {
 
             val esEscritorio = FooterUtils.esEscritorio(maxWidth)
+            val onAdminButtonClick: (String) -> Unit = { textoBoton ->
+                if (textoBoton == txtBtnGestionPeliculas) {
+                    onManageMovies()
+                } else if (textoBoton == txtBtnGestionSalas) {
+                    onManageRooms()
+                } else if (textoBoton == txtBtnGestionImagenesBaner) {
+                    onManageBanners()
+                } else if (textoBoton == txtBtnGestionProductos) {
+                    onManageProducts()
+                }
+            }
 
             if (esEscritorio)
-                MainAdminDesktop()
+                MainAdminDesktop(onButtonClick = onAdminButtonClick)
             else
-                MainAdminMovile()
+                MainAdminMovile(onButtonClick = onAdminButtonClick)
         }
     }
 }
@@ -74,12 +89,13 @@ fun MainAdminScreen(
 @Composable
 fun botonesDesdeLista(
     buttons: List<String>,
-    buttonColor: Color
+    buttonColor: Color,
+    onButtonClick: (String) -> Unit
 ) {
     buttons.forEach { text ->
 
         Button(
-            onClick = { /* TODO navegación */ },  //Usar el metodo creado abajo, hay que completar tam
+            onClick = { onButtonClick(text) },
             colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
             modifier = Modifier
                 .fillMaxWidth(0.99f)
@@ -90,15 +106,4 @@ fun botonesDesdeLista(
 
         Spacer(modifier = Modifier.height(15.dp))
     }
-}
-
-@Composable
-fun redireccionDeBotones( textoBoton : String) {
-    if (textoBoton == txtBtnGestionPeliculas) {
-
-    }
-    else if (textoBoton == txtBtnGestionSesiones) {
-
-    }
-    //O un switch case, pero como aún no existen las pantallas... TODO
 }

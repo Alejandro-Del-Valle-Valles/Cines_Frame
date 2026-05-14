@@ -34,7 +34,9 @@ import com.alejandro.proyecto_cines_frame.ui.theme.OtroRojo
 import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
 
 @Composable
-fun MainAdminDesktop() {
+fun MainAdminDesktop(
+    onButtonClick: (String) -> Unit
+) {
 
     val background = BackgroundDark
     val panelColor = ColorFondoHeader
@@ -64,31 +66,14 @@ fun MainAdminDesktop() {
                 AdminPanel(
                     title = "Gestión del cine",
                     buttons = listOf(
+                        txtBtnGestionImagenesBaner,
                         txtBtnGestionPeliculas,
                         txtBtnGestionSesiones,
                         txtBtnGestionSalas,
                         txtBtnGestionProductos
                     ),
-                    buttonColor = buttonColor
-                )
-            }
-
-            // ⚙️ PANEL DERECHA
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .background(panelColor)
-                    .padding(vertical = 32.dp, horizontal = 24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                AdminPanel(
-                    title = "Gestión de datos\nde la aplicación",
-                    buttons = listOf(
-                        txtBtnGestionCuentas,
-                        txtBtnGestionImagenesBaner,
-                        txtBtnGestionComprasEntradas
-                    ),
-                    buttonColor = buttonColor
+                    buttonColor = buttonColor,
+                    onButtonClick = onButtonClick
                 )
             }
         }
@@ -99,7 +84,8 @@ fun MainAdminDesktop() {
 fun AdminPanel(
     title: String,
     buttons: List<String>,
-    buttonColor: Color
+    buttonColor: Color,
+    onButtonClick: (String) -> Unit
 ) {
     // TÍTULO
     Text(
@@ -122,6 +108,7 @@ fun AdminPanel(
     // BOTONES
     botonesDesdeLista(
         buttons = buttons,
-        buttonColor = buttonColor
+        buttonColor = buttonColor,
+        onButtonClick = onButtonClick
     )
 }

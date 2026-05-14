@@ -25,6 +25,18 @@ class BanerRepositoryImpl(
     }
 
     /**
+     * Devuelve todos los baners
+     */
+    override suspend fun getAll(): ApiResult<List<Baner>> {
+        return try {
+            val dtos = api.getAll()
+            ApiResult.Success(dtos.map { it.toDomain() })
+        } catch (t: Throwable) {
+            ApiResult.Error(t.toAppError())
+        }
+    }
+
+    /**
      * Crea un nuevo baner
      */
     override suspend fun createBaner(baner: BanerDTO): ApiResult<Baner> {
@@ -39,9 +51,9 @@ class BanerRepositoryImpl(
     /**
      * Actualiza un baner
      */
-    override suspend fun updateBaner(url: String,  baner: BanerDTO): ApiResult<Baner> {
+    override suspend fun updateBaner(baner: BanerDTO): ApiResult<Baner> {
         return try {
-            val dto = api.updateBaner(url, baner)
+            val dto = api.updateBaner(baner)
             ApiResult.Success(dto.toDomain())
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
@@ -51,9 +63,9 @@ class BanerRepositoryImpl(
     /**
      * Elimina un baner por la url de su imagen
      */
-    override suspend fun deleteBaner(url: String): ApiResult<Baner> {
+    override suspend fun deleteBaner(id: Int): ApiResult<Baner> {
         return try {
-            val dto = api.deleteBaner(url)
+            val dto = api.deleteBaner(id)
             ApiResult.Success(dto.toDomain())
         } catch (t: Throwable) {
             ApiResult.Error(t.toAppError())
