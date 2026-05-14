@@ -1,11 +1,8 @@
 package com.alejandro.proyecto_cines_frame.ui.components.checkout
 
-import androidx.compose.foundation.HorizontalScrollbar
-import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -77,28 +74,6 @@ fun CheckoutSeatSection(
                     )
                 }
             }
-
-            VerticalScrollbar(
-
-                adapter =
-                    rememberScrollbarAdapter(verticalState),
-
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .fillMaxHeight()
-                    .width(10.dp)
-            )
-
-            HorizontalScrollbar(
-
-                adapter =
-                    rememberScrollbarAdapter(horizontalState),
-
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .fillMaxWidth()
-                    .height(10.dp)
-            )
         }
     }
 }
