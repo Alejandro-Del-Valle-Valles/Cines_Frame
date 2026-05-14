@@ -55,6 +55,7 @@ import com.alejandro.proyecto_cines_frame.ui.components.footer.Footer
 import com.alejandro.proyecto_cines_frame.ui.screen.management.MovieManagementScreen
 import com.alejandro.proyecto_cines_frame.ui.screen.management.RoomManagementScreen
 import com.alejandro.proyecto_cines_frame.ui.screen.management.ManageBannerScreen
+import com.alejandro.proyecto_cines_frame.ui.screen.management.ManageSessionsScreen
 import com.alejandro.proyecto_cines_frame.ui.components.admin.ManageProducts.ManageProductsScreen
 
 
@@ -778,6 +779,15 @@ fun MainScreen(
         return
     }
 
+    if (currentScreen == "session_management") {
+        ManageSessionsScreen(
+            onBack = {
+                currentScreen = "admin"
+            }
+        )
+        return
+    }
+
     if (currentScreen == "banner_management") {
         ManageBannerScreen(
             onBack = {
@@ -805,6 +815,9 @@ fun MainScreen(
             },
             onManageMovies = {
                 currentScreen = "movie_management"
+            },
+            onManageSessions = {
+                currentScreen = "session_management"
             },
             onManageRooms = {
                 currentScreen = "room_management"

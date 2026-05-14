@@ -7,8 +7,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.alejandro.proyecto_cines_frame.ui.components.admin.ManageSessions.SessionTable
-import com.alejandro.proyecto_cines_frame.ui.components.admin.ManageSessions.SessionUiModel
 import com.alejandro.proyecto_cines_frame.ui.components.admin.ManageSessions.SessionUiState
+import com.alejandro.proyecto_cines_frame.domain.model.Sesion
 import com.alejandro.proyecto_cines_frame.ui.theme.BackgroundDark
 import com.alejandro.proyecto_cines_frame.ui.theme.ColorFondoHeader
 import com.alejandro.proyecto_cines_frame.ui.theme.OtroRojo
@@ -18,8 +18,7 @@ import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
 fun ManageSessionsDesktop(
     state: SessionUiState,
     onAddSession: () -> Unit,
-    onEditSession: (SessionUiModel) -> Unit,
-    onDeleteSession: (SessionUiModel) -> Unit
+    onDeleteSession: (Sesion) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -64,7 +63,6 @@ fun ManageSessionsDesktop(
         ) {
             SessionTable(
                 sessions = state.sessions,
-                onEditSession = onEditSession,
                 onDeleteSession = onDeleteSession
             )
         }

@@ -23,8 +23,6 @@ import com.alejandro.proyecto_cines_frame.ui.screen.background
 import com.alejandro.proyecto_cines_frame.ui.screen.botonesDesdeLista
 import com.alejandro.proyecto_cines_frame.ui.screen.buttonColor
 import com.alejandro.proyecto_cines_frame.ui.screen.panelColor
-import com.alejandro.proyecto_cines_frame.ui.screen.txtBtnGestionComprasEntradas
-import com.alejandro.proyecto_cines_frame.ui.screen.txtBtnGestionCuentas
 import com.alejandro.proyecto_cines_frame.ui.screen.txtBtnGestionImagenesBaner
 import com.alejandro.proyecto_cines_frame.ui.screen.txtBtnGestionPeliculas
 import com.alejandro.proyecto_cines_frame.ui.screen.txtBtnGestionProductos

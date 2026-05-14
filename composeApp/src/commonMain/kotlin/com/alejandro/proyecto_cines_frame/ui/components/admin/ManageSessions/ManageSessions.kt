@@ -2,6 +2,7 @@ package com.alejandro.proyecto_cines_frame.ui.components.admin.ManageSessions
 
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.runtime.Composable
+import com.alejandro.proyecto_cines_frame.domain.model.Sesion
 import com.alejandro.proyecto_cines_frame.ui.components.admin.ManageSessions.Layout.ManageSessionsDesktop
 import com.alejandro.proyecto_cines_frame.ui.components.admin.ManageSessions.Layout.ManageSessionsMobile
 
@@ -9,22 +10,19 @@ import com.alejandro.proyecto_cines_frame.ui.components.admin.ManageSessions.Lay
 fun ManageSessions(
     state: SessionUiState,
     onAddSession: () -> Unit,
-    onEditSession: (SessionUiModel) -> Unit,
-    onDeleteSession: (SessionUiModel) -> Unit
+    onDeleteSession: (Sesion) -> Unit
 ) {
     BoxWithConstraints {
         if (ManageSessionsUtils.esEscritorio(maxWidth)) {
             ManageSessionsDesktop(
                 state = state,
                 onAddSession = onAddSession,
-                onEditSession = onEditSession,
                 onDeleteSession = onDeleteSession
             )
         } else {
             ManageSessionsMobile(
                 state = state,
                 onAddSession = onAddSession,
-                onEditSession = onEditSession,
                 onDeleteSession = onDeleteSession
             )
         }

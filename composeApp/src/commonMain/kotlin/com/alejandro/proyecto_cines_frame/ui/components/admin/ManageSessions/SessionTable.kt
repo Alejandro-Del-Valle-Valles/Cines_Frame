@@ -8,13 +8,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.alejandro.proyecto_cines_frame.domain.model.Sesion
 import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
 
 @Composable
 fun SessionTable(
-    sessions: List<SessionUiModel>,
-    onEditSession: (SessionUiModel) -> Unit,
-    onDeleteSession: (SessionUiModel) -> Unit
+    sessions: List<Sesion>,
+    onDeleteSession: (Sesion) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -42,7 +42,6 @@ fun SessionTable(
             items(sessions) { session ->
                 SessionRow(
                     session = session,
-                    onEditSession = onEditSession,
                     onDeleteSession = onDeleteSession
                 )
             }

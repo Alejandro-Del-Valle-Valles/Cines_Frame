@@ -2,6 +2,10 @@ package com.alejandro.proyecto_cines_frame.ui.components.admin.ManageSessions
 
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.alejandro.proyecto_cines_frame.domain.enums.PeliculaEstado
+import com.alejandro.proyecto_cines_frame.domain.enums.PeliculaGenero
+import com.alejandro.proyecto_cines_frame.domain.model.Pelicula
+import com.alejandro.proyecto_cines_frame.domain.model.Sesion
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
@@ -14,10 +18,10 @@ object ManageSessionsUtils {
         return maxWidth >= PuntoCorteEscritorio
     }
 
-    fun SessionUiModel.toFormState(): SessionFormState {
+    fun Sesion.toFormState(): SessionFormState {
         return SessionFormState(
-            peliculaId = peliculaId,
-            peliculaNombre = peliculaNombre,
+            peliculaId = pelicula.id,
+            peliculaNombre = pelicula.nombre,
             numSala = numSala.toString(),
             fecha = horario.date.toString(),
             hora = "%02d:%02d".format(horario.time.hour, horario.time.minute),
@@ -44,12 +48,11 @@ object ManageSessionsUtils {
         return LocalDateTime(date, time)
     }
 
-    fun sampleSessions(): List<SessionUiModel> {
+    fun sampleSessions(): List<Sesion> {
         return listOf(
-            SessionUiModel(
-                peliculaId = "bc891edf-062f-44ce-9811-bdda18e0687c",
-                peliculaNombre = "Dune: Parte Dos",
+            Sesion(
                 numSala = 1,
+                pelicula = samplePelicula("bc891edf-062f-44ce-9811-bdda18e0687c", "Dune: Parte Dos"),
                 horario = LocalDateTime(
                     date = LocalDate(2026, 5, 9),
                     time = LocalTime(17, 45)
@@ -57,39 +60,28 @@ object ManageSessionsUtils {
                 tresD = true,
                 vose = true
             ),
-            SessionUiModel(
-                peliculaId = "0b030685-18e3-4da5-a08e-fdc3fd10e733",
-                peliculaNombre = "Godzilla y Kong",
+            Sesion(
                 numSala = 2,
+                pelicula = samplePelicula("0b030685-18e3-4da5-a08e-fdc3fd10e733", "Godzilla y Kong"),
                 horario = LocalDateTime(
                     date = LocalDate(2026, 5, 9),
                     time = LocalTime(20, 30)
                 ),
                 tresD = false,
                 vose = true
-            ),
-            SessionUiModel(
-                peliculaId = "b4bbbeee-4cc1-4ba6-b44c-cdbb5d37ffe8",
-                peliculaNombre = "Kung Fu Panda 4",
-                numSala = 3,
-                horario = LocalDateTime(
-                    date = LocalDate(2026, 5, 12),
-                    time = LocalTime(15, 30)
-                ),
-                tresD = true,
-                vose = false
-            ),
-            SessionUiModel(
-                peliculaId = "000fe352-0b03-4a6b-bd21-e410a1fcea2e",
-                peliculaNombre = "Bad Boys 4",
-                numSala = 4,
-                horario = LocalDateTime(
-                    date = LocalDate(2026, 5, 12),
-                    time = LocalTime(18, 0)
-                ),
-                tresD = false,
-                vose = false
             )
+        )
+    }
+
+    private fun samplePelicula(id: String, nombre: String): Pelicula {
+        return Pelicula(
+            id = id,
+            nombre = nombre,
+            descripcion = "",
+            estado = PeliculaEstado.CARTELERA,
+            portada = null,
+            duracion = LocalTime(1, 30),
+            genero = PeliculaGenero.ACCION
         )
     }
 }

@@ -9,13 +9,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.alejandro.proyecto_cines_frame.domain.model.Sesion
 import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
 
 @Composable
 fun SessionRow(
-    session: SessionUiModel,
-    onEditSession: (SessionUiModel) -> Unit,
-    onDeleteSession: (SessionUiModel) -> Unit
+    session: Sesion,
+    onDeleteSession: (Sesion) -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -26,7 +26,7 @@ fun SessionRow(
     ) {
 
         Text(
-            text = session.peliculaNombre,
+            text = session.pelicula.nombre,
             modifier = Modifier.weight(2f),
             color = TextWhite,
             maxLines = 2,
@@ -62,9 +62,6 @@ fun SessionRow(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            TextButton(onClick = { onEditSession(session) }) {
-                Text("✏️")
-            }
             TextButton(onClick = { onDeleteSession(session) }) {
                 Text("🗑️")
             }

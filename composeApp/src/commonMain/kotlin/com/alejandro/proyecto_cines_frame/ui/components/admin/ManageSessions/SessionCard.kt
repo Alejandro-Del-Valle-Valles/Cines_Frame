@@ -8,13 +8,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.alejandro.proyecto_cines_frame.domain.model.Sesion
 import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
 
 @Composable
 fun SessionCard(
-    session: SessionUiModel,
-    onEditSession: (SessionUiModel) -> Unit,
-    onDeleteSession: (SessionUiModel) -> Unit
+    session: Sesion,
+    onDeleteSession: (Sesion) -> Unit
 ) {
     Card(
         colors = CardDefaults.cardColors(
@@ -28,7 +28,7 @@ fun SessionCard(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Text(
-                text = session.peliculaNombre,
+                text = session.pelicula.nombre,
                 color = TextWhite,
                 style = MaterialTheme.typography.titleMedium
             )
@@ -45,9 +45,6 @@ fun SessionCard(
             }
 
             Row {
-                TextButton(onClick = { onEditSession(session) }) {
-                    Text("✏️")
-                }
                 TextButton(onClick = { onDeleteSession(session) }) {
                     Text("🗑️")
                 }

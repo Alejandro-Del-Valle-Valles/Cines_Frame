@@ -1,14 +1,11 @@
 package com.alejandro.proyecto_cines_frame.ui.screen.management
 
-import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.rememberScrollbarAdapter
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
@@ -16,38 +13,66 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import com.alejandro.proyecto_cines_frame.core.error.ApiResult
+import com.alejandro.proyecto_cines_frame.data.remote.api.KtorSesionApi
+import com.alejandro.proyecto_cines_frame.data.remote.client.HttpClientFactory
+import com.alejandro.proyecto_cines_frame.data.remote.dto.SesionCrudDTO
+import com.alejandro.proyecto_cines_frame.data.repository.SesionRepositoryImpl
+import com.alejandro.proyecto_cines_frame.domain.model.Sesion
+import com.alejandro.proyecto_cines_frame.domain.repository.SesionRepository
 import com.alejandro.proyecto_cines_frame.ui.components.admin.ManageSessions.*
 import com.alejandro.proyecto_cines_frame.ui.components.common.BackButton
 import com.alejandro.proyecto_cines_frame.ui.theme.BackgroundDark
+import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
+import kotlinx.coroutines.launch
 
 @Composable
 fun ManageSessionsScreen(
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    sesionRepository: SesionRepository? = null
 ) {
-
-    var state by remember {
-
-        mutableStateOf(
-
-            SessionUiState(
-
-                sessions =
-                    ManageSessionsUtils.sampleSessions()
-            )
+    val repository = sesionRepository ?: remember {
+        SesionRepositoryImpl(
+            api = KtorSesionApi(HttpClientFactory.create())
         )
     }
 
-    Box(
+    var state by remember {
+        mutableStateOf(
+            SessionUiState()
+        )
+    }
+    var isLoading by remember { mutableStateOf(true) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var sessionToDelete by remember { mutableStateOf<Sesion?>(null) }
 
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(repository) {
+        isLoading = true
+        errorMessage = null
+
+        when (val result = repository.getAll()) {
+            is ApiResult.Success -> {
+                state = state.copy(sessions = result.data)
+            }
+
+            is ApiResult.Error -> {
+                state = state.copy(sessions = emptyList())
+                errorMessage = "Error al cargar sesiones"
+            }
+        }
+
+        isLoading = false
+    }
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(BackgroundDark)
     ) {
-
         BackButton(
-
             onClick = onBack,
-
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .zIndex(100f)
@@ -55,498 +80,92 @@ fun ManageSessionsScreen(
         )
 
         ManageSessions(
-
             state = state,
-
-            onAddSession = {
-
-                state = state.copy(
-
-                    isDialogVisible = true,
-
-                    editingSession = null,
-
-                    errors = SessionFormErrors(),
-
-                    form = SessionFormState(
-
-                        peliculaId = "",
-
-                        peliculaNombre = "",
-
-                        numSala = "",
-
-                        fecha = "2026-05-13",
-
-                        hora = "17:45",
-
-                        tresD = false,
-
-                        vose = false
-                    )
-                )
-            },
-
-            onEditSession = { session ->
-
-                state = state.copy(
-
-                    isDialogVisible = true,
-
-                    editingSession = session,
-
-                    errors = SessionFormErrors(),
-
-                    form =
-                        ManageSessionsUtils.run {
-                            session.toFormState()
-                        }
-                )
-            },
-
+            onAddSession = {},
             onDeleteSession = { session ->
-
-                state = state.copy(
-
-                    sessions = state.sessions.filterNot {
-
-                        it.peliculaId == session.peliculaId &&
-                                it.numSala == session.numSala &&
-                                it.horario == session.horario
-                    }
-                )
+                sessionToDelete = session
             }
         )
+
+        if (errorMessage != null) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 72.dp)
+            ) {
+                Text(errorMessage ?: "", color = TextWhite)
+            }
+        }
+
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(BackgroundDark.copy(alpha = 0.6f)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = TextWhite)
+            }
+        }
     }
 
-    if (state.isDialogVisible) {
 
+    if (sessionToDelete != null) {
         AlertDialog(
-
             onDismissRequest = {
-
-                state = state.copy(
-                    isDialogVisible = false
-                )
+                sessionToDelete = null
             },
-
             title = {
-
-                Text(
-
-                    if (state.editingSession == null)
-                        "Nueva sesión"
-                    else
-                        "Editar sesión"
-                )
+                Text("Confirmar borrado")
             },
-
             text = {
-
-                val scrollState =
-                    rememberScrollState()
-
-                Box {
-
-                    Column(
-
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(max = 500.dp)
-                            .verticalScroll(scrollState)
-                            .padding(end = 12.dp),
-
-                        verticalArrangement =
-                            Arrangement.spacedBy(12.dp)
-                    ) {
-
-                        OutlinedTextField(
-
-                            value = state.form.peliculaId,
-
-                            onValueChange = {
-
-                                state = state.copy(
-
-                                    form = state.form.copy(
-                                        peliculaId = it
-                                    ),
-
-                                    errors = state.errors.copy(
-                                        peliculaId = null
-                                    )
-                                )
-                            },
-
-                            label = {
-                                Text("Película ID")
-                            },
-
-                            isError =
-                                state.errors.peliculaId != null,
-
-                            supportingText = {
-
-                                state.errors.peliculaId?.let {
-                                    Text(it)
-                                }
-                            }
-                        )
-
-                        OutlinedTextField(
-
-                            value = state.form.peliculaNombre,
-
-                            onValueChange = {
-
-                                state = state.copy(
-
-                                    form = state.form.copy(
-                                        peliculaNombre = it
-                                    ),
-
-                                    errors = state.errors.copy(
-                                        peliculaNombre = null
-                                    )
-                                )
-                            },
-
-                            label = {
-                                Text("Nombre de la película")
-                            },
-
-                            isError =
-                                state.errors.peliculaNombre != null,
-
-                            supportingText = {
-
-                                state.errors.peliculaNombre?.let {
-                                    Text(it)
-                                }
-                            }
-                        )
-
-                        OutlinedTextField(
-
-                            value = state.form.numSala,
-
-                            onValueChange = {
-
-                                state = state.copy(
-
-                                    form = state.form.copy(
-                                        numSala = it
-                                    ),
-
-                                    errors = state.errors.copy(
-                                        numSala = null
-                                    )
-                                )
-                            },
-
-                            label = {
-                                Text("Sala")
-                            },
-
-                            isError =
-                                state.errors.numSala != null,
-
-                            supportingText = {
-
-                                state.errors.numSala?.let {
-                                    Text(it)
-                                }
-                            }
-                        )
-
-                        OutlinedTextField(
-
-                            value = state.form.fecha,
-
-                            onValueChange = {
-
-                                state = state.copy(
-
-                                    form = state.form.copy(
-                                        fecha = it
-                                    ),
-
-                                    errors = state.errors.copy(
-                                        fecha = null
-                                    )
-                                )
-                            },
-
-                            label = {
-                                Text("Fecha (YYYY-MM-DD)")
-                            },
-
-                            isError =
-                                state.errors.fecha != null,
-
-                            supportingText = {
-
-                                state.errors.fecha?.let {
-                                    Text(it)
-                                }
-                            }
-                        )
-
-                        OutlinedTextField(
-
-                            value = state.form.hora,
-
-                            onValueChange = {
-
-                                state = state.copy(
-
-                                    form = state.form.copy(
-                                        hora = it
-                                    ),
-
-                                    errors = state.errors.copy(
-                                        hora = null
-                                    )
-                                )
-                            },
-
-                            label = {
-                                Text("Hora (HH:mm)")
-                            },
-
-                            isError =
-                                state.errors.hora != null,
-
-                            supportingText = {
-
-                                state.errors.hora?.let {
-                                    Text(it)
-                                }
-                            }
-                        )
-
-                        Row(
-                            verticalAlignment =
-                                Alignment.CenterVertically
-                        ) {
-
-                            Checkbox(
-
-                                checked = state.form.tresD,
-
-                                onCheckedChange = {
-
-                                    state = state.copy(
-
-                                        form = state.form.copy(
-                                            tresD = it
-                                        )
-                                    )
-                                }
-                            )
-
-                            Text("3D")
-                        }
-
-                        Row(
-                            verticalAlignment =
-                                Alignment.CenterVertically
-                        ) {
-
-                            Checkbox(
-
-                                checked = state.form.vose,
-
-                                onCheckedChange = {
-
-                                    state = state.copy(
-
-                                        form = state.form.copy(
-                                            vose = it
-                                        )
-                                    )
-                                }
-                            )
-
-                            Text("VOSE")
-                        }
-
-                        Spacer(
-                            modifier = Modifier.height(12.dp)
-                        )
-                    }
-
-                    VerticalScrollbar(
-
-                        adapter =
-                            rememberScrollbarAdapter(
-                                scrollState
-                            ),
-
-                        modifier = Modifier
-                            .align(Alignment.CenterEnd)
-                            .fillMaxHeight()
-                    )
-                }
+                Text("¿Seguro que quieres eliminar la sesión?")
             },
-
             confirmButton = {
-
                 TextButton(
-
                     onClick = {
-
-                        val errors = SessionFormErrors(
-
-                            peliculaId =
-                                if (state.form.peliculaId.isBlank())
-                                    "Campo obligatorio"
-                                else
-                                    null,
-
-                            peliculaNombre =
-                                if (state.form.peliculaNombre.isBlank())
-                                    "Campo obligatorio"
-                                else
-                                    null,
-
-                            numSala =
-                                if (state.form.numSala.toIntOrNull() == null)
-                                    "Sala inválida"
-                                else
-                                    null,
-
-                            fecha =
-                                if (
-                                    !state.form.fecha.matches(
-                                        Regex("\\d{4}-\\d{2}-\\d{2}")
+                        val session = sessionToDelete
+                        sessionToDelete = null
+                        if (session != null) {
+                            scope.launch {
+                                when (
+                                    val result = repository.deleteSesion(
+                                        SesionCrudDTO(
+                                            numSala = session.numSala,
+                                            tresD = session.tresD,
+                                            vose = session.vose,
+                                            peliculaId = session.pelicula.id,
+                                            horario = session.horario.toString()
+                                        )
                                     )
-                                )
-                                    "Formato inválido"
-                                else
-                                    null,
+                                ) {
+                                    is ApiResult.Success -> {
+                                        state = state.copy(
+                                            sessions = state.sessions.filterNot {
+                                                it.numSala == session.numSala &&
+                                                    it.pelicula.id == session.pelicula.id &&
+                                                    it.horario == session.horario
+                                            }
+                                        )
+                                    }
 
-                            hora =
-                                if (
-                                    !state.form.hora.matches(
-                                        Regex("\\d{2}:\\d{2}")
-                                    )
-                                )
-                                    "Formato inválido"
-                                else
-                                    null
-                        )
-
-                        if (
-
-                            listOf(
-
-                                errors.peliculaId,
-                                errors.peliculaNombre,
-                                errors.numSala,
-                                errors.fecha,
-                                errors.hora
-
-                            ).any { it != null }
-
-                        ) {
-
-                            state = state.copy(
-                                errors = errors
-                            )
-
-                            return@TextButton
-                        }
-
-                        val sala =
-                            state.form.numSala.toInt()
-
-                        val horario =
-                            ManageSessionsUtils.parseFormDateTime(
-
-                                fecha = state.form.fecha,
-
-                                hora = state.form.hora
-                            ) ?: return@TextButton
-
-                        val newSession = SessionUiModel(
-
-                            peliculaId =
-                                state.form.peliculaId.trim(),
-
-                            peliculaNombre =
-                                state.form.peliculaNombre.trim(),
-
-                            numSala = sala,
-
-                            horario = horario,
-
-                            tresD =
-                                state.form.tresD,
-
-                            vose =
-                                state.form.vose
-                        )
-
-                        state =
-                            if (state.editingSession == null) {
-
-                                state.copy(
-
-                                    sessions =
-                                        state.sessions + newSession,
-
-                                    isDialogVisible = false
-                                )
-
-                            } else {
-
-                                state.copy(
-
-                                    sessions =
-                                        state.sessions.map {
-
-                                            if (
-
-                                                it.peliculaId ==
-                                                state.editingSession?.peliculaId &&
-
-                                                it.numSala ==
-                                                state.editingSession?.numSala &&
-
-                                                it.horario ==
-                                                state.editingSession?.horario
-
-                                            )
-
-                                                newSession
-
-                                            else
-                                                it
-                                        },
-
-                                    isDialogVisible = false
-                                )
+                                    is ApiResult.Error -> {
+                                        errorMessage = "Error al borrar sesión"
+                                    }
+                                }
                             }
+                        }
                     }
                 ) {
-
-                    Text("Guardar")
+                    Text("Eliminar")
                 }
             },
-
             dismissButton = {
-
                 TextButton(
-
                     onClick = {
-
-                        state = state.copy(
-                            isDialogVisible = false
-                        )
+                        sessionToDelete = null
                     }
                 ) {
-
                     Text("Cancelar")
                 }
             }

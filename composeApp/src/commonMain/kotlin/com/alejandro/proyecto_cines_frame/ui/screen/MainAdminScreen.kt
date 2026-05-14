@@ -35,15 +35,13 @@ val txtBtnGestionPeliculas = "Gestionar películas"
 val txtBtnGestionSesiones = "Gestionar sesiones"
 val txtBtnGestionSalas = "Gestionar salas"
 val txtBtnGestionProductos = "Gestionar productos"
-//Gestión de datos de la aplicación
-val txtBtnGestionCuentas = "Gestionar cuentas"
 val txtBtnGestionImagenesBaner = "Gestionar imagenes de baner"
-val txtBtnGestionComprasEntradas = "Gestionar compras de entradas"
 
 @Composable
 fun MainAdminScreen(
     onBack: () -> Unit,
     onManageMovies: () -> Unit,
+    onManageSessions: () -> Unit,
     onManageRooms: () -> Unit,
     onManageBanners: () -> Unit,
     onManageProducts: () -> Unit
@@ -69,6 +67,8 @@ fun MainAdminScreen(
             val onAdminButtonClick: (String) -> Unit = { textoBoton ->
                 if (textoBoton == txtBtnGestionPeliculas) {
                     onManageMovies()
+                } else if (textoBoton == txtBtnGestionSesiones) {
+                    onManageSessions()
                 } else if (textoBoton == txtBtnGestionSalas) {
                     onManageRooms()
                 } else if (textoBoton == txtBtnGestionImagenesBaner) {

@@ -1,16 +1,22 @@
 package com.alejandro.proyecto_cines_frame.ui.components.admin.ManageSessions.Layout
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.*
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.alejandro.proyecto_cines_frame.ui.components.admin.ManageSessions.SessionCard
-import com.alejandro.proyecto_cines_frame.ui.components.admin.ManageSessions.SessionUiModel
 import com.alejandro.proyecto_cines_frame.ui.components.admin.ManageSessions.SessionUiState
+import com.alejandro.proyecto_cines_frame.domain.model.Sesion
 import com.alejandro.proyecto_cines_frame.ui.theme.BackgroundDark
 import com.alejandro.proyecto_cines_frame.ui.theme.OtroRojo
 import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
@@ -19,8 +25,7 @@ import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
 fun ManageSessionsMobile(
     state: SessionUiState,
     onAddSession: () -> Unit,
-    onEditSession: (SessionUiModel) -> Unit,
-    onDeleteSession: (SessionUiModel) -> Unit
+    onDeleteSession: (Sesion) -> Unit
 ) {
     Scaffold(
         floatingActionButton = {
@@ -65,7 +70,6 @@ fun ManageSessionsMobile(
                 items(state.sessions) { session ->
                     SessionCard(
                         session = session,
-                        onEditSession = onEditSession,
                         onDeleteSession = onDeleteSession
                     )
                 }
