@@ -553,7 +553,6 @@ fun MainScreen(
                                     currentScreen = "movie_editor"
                                 }
                                 is ApiResult.Error -> {
-                                    println(result.error)
                                     snackbarHostState.showSnackbar(
                                         message = toMainScreenErrorMessage(result.error),
                                         duration = SnackbarDuration.Long

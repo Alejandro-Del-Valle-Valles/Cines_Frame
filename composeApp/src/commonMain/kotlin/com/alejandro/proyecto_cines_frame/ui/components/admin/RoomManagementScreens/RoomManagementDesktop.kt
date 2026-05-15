@@ -202,18 +202,13 @@ fun RoomManagementDesktop(
 
                 Button(
                     onClick = {
-
-                        println("Eliminar sala: ${roomToDelete!!.numero}")
-
                         onDeleteRoom(roomToDelete!!)
-
                         roomToDelete = null
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = OtroRojo
                     )
                 ) {
-
                     Text("Eliminar")
                 }
             },
