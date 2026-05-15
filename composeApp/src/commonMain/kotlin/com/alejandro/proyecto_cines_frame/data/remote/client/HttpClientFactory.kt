@@ -22,7 +22,7 @@ object HttpClientFactory {
      */
     fun create(): HttpClient =
         createPlatformHttpClient().config {
-            expectSuccess = false
+            expectSuccess = true
 
             install(ContentNegotiation) {
                 json(
