@@ -57,6 +57,7 @@ import com.alejandro.proyecto_cines_frame.ui.screen.management.RoomManagementScr
 import com.alejandro.proyecto_cines_frame.ui.screen.management.ManageBannerScreen
 import com.alejandro.proyecto_cines_frame.ui.screen.management.ManageSessionsScreen
 import com.alejandro.proyecto_cines_frame.ui.components.admin.ManageProducts.ManageProductsScreen
+import com.alejandro.proyecto_cines_frame.ui.components.admin.MovieManagementScreens.AddEditMovie.AddEditMovieScreen
 
 
 @Composable
@@ -179,6 +180,8 @@ fun MainScreen(
     var movieManagementMovies by remember { mutableStateOf<List<Pelicula>>(emptyList()) }
     var isLoadingMovieManagement by remember { mutableStateOf(false) }
     var movieToDelete by remember { mutableStateOf<Pelicula?>(null) }
+    var movieEditorTarget by remember { mutableStateOf<Pelicula?>(null) }
+    var isLoadingMovieEditor by remember { mutableStateOf(false) }
 
     var roomManagementRooms by remember { mutableStateOf<List<Sala>>(emptyList()) }
     var isLoadingRoomManagement by remember { mutableStateOf(false) }
@@ -528,8 +531,28 @@ fun MainScreen(
             ) {
                 MovieManagementScreen(
                     movies = movieManagementMovies,
-                    onAddMovie = {},
-                    onEditMovie = {},
+                    onAddMovie = {
+                        movieEditorTarget = null
+                        currentScreen = "movie_editor"
+                    },
+                    onEditMovie = { movie ->
+                        scope.launch {
+                            isLoadingMovieEditor = true
+                            when (val result = pelisRepository.getById(movie.id)) {
+                                is ApiResult.Success -> {
+                                    movieEditorTarget = result.data
+                                    currentScreen = "movie_editor"
+                                }
+                                is ApiResult.Error -> {
+                                    snackbarHostState.showSnackbar(
+                                        message = toMainScreenErrorMessage(result.error),
+                                        duration = SnackbarDuration.Long
+                                    )
+                                }
+                            }
+                            isLoadingMovieEditor = false
+                        }
+                    },
                     onDeleteMovie = { movie ->
                         movieToDelete = movie
                     },
@@ -587,6 +610,7 @@ fun MainScreen(
                             ) {
                                 Text("Cancelar")
                             }
+
                         }
                     )
                 }
@@ -601,6 +625,80 @@ fun MainScreen(
                         CircularProgressIndicator(color = TextWhite)
                     }
                 }
+
+                if (isLoadingMovieEditor) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.5f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = TextWhite)
+                    }
+                }
+            }
+        }
+        return
+    }
+
+    if (currentScreen == "movie_editor") {
+        Scaffold(
+            snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+            containerColor = BackgroundDark
+        ) { paddingValues ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+            ) {
+                AddEditMovieScreen(
+                    movie = movieEditorTarget,
+                    onSave = { dto ->
+                        scope.launch {
+                            val isCreate = movieEditorTarget == null
+                            val targetId = movieEditorTarget?.id
+                            if (!isCreate && targetId == null) {
+                                snackbarHostState.showSnackbar(
+                                    message = "No se pudo cargar la película para editar",
+                                    duration = SnackbarDuration.Long
+                                )
+                                return@launch
+                            }
+                            val result = if (isCreate) {
+                                pelisRepository.createPelicula(dto)
+                            } else {
+                                pelisRepository.updatePelicula(targetId ?: "", dto)
+                            }
+
+                            when (result) {
+                                is ApiResult.Success -> {
+                                    fetchMovieManagement()
+                                    movieEditorTarget = null
+                                    currentScreen = "movie_management"
+                                    snackbarHostState.showSnackbar(
+                                        message = if (isCreate) {
+                                            "Película creada correctamente"
+                                        } else {
+                                            "Película actualizada correctamente"
+                                        },
+                                        duration = SnackbarDuration.Short
+                                    )
+                                }
+
+                                is ApiResult.Error -> {
+                                    snackbarHostState.showSnackbar(
+                                        message = toMainScreenErrorMessage(result.error),
+                                        duration = SnackbarDuration.Long
+                                    )
+                                }
+                            }
+                        }
+                    },
+                    onBack = {
+                        movieEditorTarget = null
+                        currentScreen = "movie_management"
+                    }
+                )
             }
         }
         return

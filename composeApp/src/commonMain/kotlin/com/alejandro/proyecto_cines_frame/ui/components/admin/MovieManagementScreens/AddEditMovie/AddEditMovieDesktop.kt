@@ -5,23 +5,19 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -33,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -40,16 +37,26 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.alejandro.proyecto_cines_frame.core.error.ApiResult
+import com.alejandro.proyecto_cines_frame.data.remote.api.KtorParticipanteApi
+import com.alejandro.proyecto_cines_frame.data.remote.client.HttpClientFactory
+import com.alejandro.proyecto_cines_frame.data.remote.dto.ParticipanteCreateDTO
+import com.alejandro.proyecto_cines_frame.data.repository.ParticipanteRepositoryImpl
+import com.alejandro.proyecto_cines_frame.domain.model.Participante
+import com.alejandro.proyecto_cines_frame.data.remote.dto.PeliculaCreateDTO
 import com.alejandro.proyecto_cines_frame.domain.enums.ParticipanteRol
 import com.alejandro.proyecto_cines_frame.domain.enums.PeliculaEstado
 import com.alejandro.proyecto_cines_frame.domain.enums.PeliculaGenero
 import com.alejandro.proyecto_cines_frame.domain.model.Pelicula
-import com.alejandro.proyecto_cines_frame.ui.screen.panelColor
+import com.alejandro.proyecto_cines_frame.domain.extension.toFirstUiMessagePerField
+import com.alejandro.proyecto_cines_frame.domain.model.input.PeliculaCreateInput
+import com.alejandro.proyecto_cines_frame.domain.validation.PeliculaValidator
 import com.alejandro.proyecto_cines_frame.ui.theme.BackgroundDark
 import com.alejandro.proyecto_cines_frame.ui.theme.ColorFondoHeader
 import com.alejandro.proyecto_cines_frame.ui.theme.OtroRojo
@@ -58,10 +65,8 @@ import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEditMovieDesktop(
-    movie: Pelicula?, // 🔥 null = añadir | con datos = modificar
-    onSave: (Pelicula) -> Unit,
-    onDeleteGenre: (PeliculaGenero) -> Unit,
-    onSelectImage: () -> Unit
+    movie: Pelicula?,
+    onSave: (PeliculaCreateDTO) -> Unit
 ) {
 
     val background = BackgroundDark
@@ -86,13 +91,13 @@ fun AddEditMovieDesktop(
 
     var duracionHoras by remember {
         mutableStateOf(
-            movie?.duracion?.hour?.toString() ?: ""
+            movie?.duracion?.hour?.toString()?.padStart(2, '0') ?: ""
         )
     }
 
     var duracionMinutos by remember {
         mutableStateOf(
-            movie?.duracion?.minute?.toString() ?: ""
+            movie?.duracion?.minute?.toString()?.padStart(2, '0') ?: ""
         )
     }
 
@@ -102,26 +107,16 @@ fun AddEditMovieDesktop(
         )
     }
 
-    var enCartelera by remember {
-        mutableStateOf(
-            movie?.estado == PeliculaEstado.CARTELERA
-        )
+    var estado by remember {
+        mutableStateOf(movie?.estado ?: PeliculaEstado.INACTIVA)
     }
 
-    // =========================================================
-    // GÉNERO
-    // =========================================================
+    var genero by remember {
+        mutableStateOf(movie?.genero ?: PeliculaGenero.COMEDIA)
+    }
 
-    var generos by remember {
-
-        mutableStateOf(
-
-            mutableListOf(
-                GeneroUi(
-                    genero = movie?.genero ?: PeliculaGenero.COMEDIA
-                )
-            )
-        )
+    var fieldErrors by remember {
+        mutableStateOf<Map<String, String>>(emptyMap())
     }
 
     // =========================================================
@@ -129,26 +124,60 @@ fun AddEditMovieDesktop(
     // =========================================================
 
     data class ParticipanteUi(
+        var id: Int,
         var nombre: String,
         var rol: ParticipanteRol
     )
 
-    var participantes by remember {
-        mutableStateOf(
-            mutableListOf(
-                ParticipanteUi(
-                    nombre = "Manolo Apellidini",
-                    rol = ParticipanteRol.DIRECTOR
-                ),
-                ParticipanteUi(
-                    nombre = "Manolini Apellidito",
-                    rol = ParticipanteRol.ACTOR
-                )
-            )
+    val participantes = remember {
+        mutableStateListOf<ParticipanteUi>().apply {
+            movie?.creditos?.forEach { credito ->
+                val roles = credito.roles
+                if (roles.isEmpty()) {
+                    add(
+                        ParticipanteUi(
+                            id = credito.participante.id,
+                            nombre = credito.participante.nombre,
+                            rol = ParticipanteRol.ACTOR
+                        )
+                    )
+                } else {
+                    roles.forEach { rol ->
+                        add(
+                            ParticipanteUi(
+                                id = credito.participante.id,
+                                nombre = credito.participante.nombre,
+                                rol = rol
+                            )
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    val participanteRepository = remember {
+        ParticipanteRepositoryImpl(
+            api = KtorParticipanteApi(HttpClientFactory.create())
         )
     }
 
-    // Para añadir participantes:
+    var participantesDisponibles by remember {
+        mutableStateOf<List<Participante>>(emptyList())
+    }
+
+    var participantesError by remember {
+        mutableStateOf<String?>(null)
+    }
+
+    LaunchedEffect(participanteRepository) {
+        participantesError = null
+        when (val result = participanteRepository.getAll()) {
+            is ApiResult.Success -> participantesDisponibles = result.data
+            is ApiResult.Error -> participantesError = "Error al cargar participantes"
+        }
+    }
+
     var showAddParticipantDialog by remember {
         mutableStateOf(false)
     }
@@ -157,17 +186,8 @@ fun AddEditMovieDesktop(
         mutableStateOf("")
     }
 
-    val mockNames = remember {
-        mutableStateListOf(
-            "Robert Downey Jr",
-            "Scarlett Johansson",
-            "Leonardo DiCaprio",
-            "Brad Pitt",
-            "Christopher Nolan",
-            "Quentin Tarantino",
-            "Anne Hathaway",
-            "Morgan Freeman"
-        )
+    var selectedParticipant by remember {
+        mutableStateOf<Participante?>(null)
     }
 
     // =========================================================
@@ -250,40 +270,25 @@ fun AddEditMovieDesktop(
             Spacer(modifier = Modifier.height(20.dp))
 
             // =================================================
-            // PORTADA
+            // PORTADA (URL)
             // =================================================
 
-            FormLabel("Portada:")
+            FormLabel("Portada (URL):")
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            TextField(
+                value = portada,
+                onValueChange = {
+                    portada = it
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = movieTextFieldColors()
+            )
 
-                TextField(
-                    value = portada,
-                    onValueChange = {},
-                    readOnly = true,
-                    modifier = Modifier.weight(1f),
-                    colors = movieTextFieldColors()
-                )
-
-                Spacer(modifier = Modifier.width(10.dp))
-
-                Button(
-                    onClick = onSelectImage,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = OtroRojo
-                    ),
-                    shape = RectangleShape
-                ) {
-
-                    Text(
-                        "Examinar",
-                        color = TextWhite
-                    )
-                }
+            fieldErrors["url"]?.let {
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(it, color = Color.Red)
             }
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -307,10 +312,8 @@ fun AddEditMovieDesktop(
 
                         TextField(
                             value = duracionHoras,
-                            onValueChange = {
-                                    nuevoValor ->
-                                // Sólo números y :
-                                if (nuevoValor.all { it.isDigit() || it == ':' }) {
+                            onValueChange = { nuevoValor ->
+                                if (nuevoValor.all { it.isDigit() } && nuevoValor.length <= 2) {
                                     duracionHoras = nuevoValor
                                 }
                             },
@@ -333,10 +336,8 @@ fun AddEditMovieDesktop(
 
                         TextField(
                             value = duracionMinutos,
-                            onValueChange = {
-                                    nuevoValor ->
-                                // Sólo números y :
-                                if (nuevoValor.all { it.isDigit() || it == ':' }) {
+                            onValueChange = { nuevoValor ->
+                                if (nuevoValor.all { it.isDigit() } && nuevoValor.length <= 2) {
                                     duracionMinutos = nuevoValor
                                 }
                             },
@@ -345,6 +346,11 @@ fun AddEditMovieDesktop(
                                 keyboardType = KeyboardType.Number
                             )
                         )
+                    }
+
+                    fieldErrors["duracion"]?.let {
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(it, color = Color.Red)
                     }
                 }
 
@@ -357,9 +363,7 @@ fun AddEditMovieDesktop(
 
                     TextField(
                         value = clasificacionEdad,
-                        onValueChange = {
-                                nuevoValor ->
-                            // Sólo números
+                        onValueChange = { nuevoValor ->
                             if (nuevoValor.all { it.isDigit() }) {
                                 clasificacionEdad = nuevoValor
                             }
@@ -369,165 +373,158 @@ fun AddEditMovieDesktop(
                             keyboardType = KeyboardType.Number
                         )
                     )
+
+                    fieldErrors["edad"]?.let {
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(it, color = Color.Red)
+                    }
                 }
 
                 // 🎬 CARTELERA
                 Column {
 
-                    FormLabel("En cartelera:")
+                    FormLabel("Estado:")
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    Checkbox(
-                        checked = enCartelera,
-                        onCheckedChange = {
-                            enCartelera = it
+                    var expandedEstado by remember { mutableStateOf(false) }
+
+                    ExposedDropdownMenuBox(
+                        expanded = expandedEstado,
+                        onExpandedChange = { expandedEstado = !expandedEstado }
+                    ) {
+
+                        OutlinedTextField(
+                            value = estado.name,
+                            onValueChange = {},
+                            readOnly = true,
+                            modifier = Modifier.menuAnchor().width(200.dp),
+                            trailingIcon = {
+                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedEstado)
+                            }
+                        )
+
+                        ExposedDropdownMenu(
+                            expanded = expandedEstado,
+                            onDismissRequest = { expandedEstado = false }
+                        ) {
+
+                            PeliculaEstado.entries.forEach { opcion ->
+                                DropdownMenuItem(
+                                    text = { Text(opcion.name) },
+                                    onClick = {
+                                        estado = opcion
+                                        expandedEstado = false
+                                    }
+                                )
+                            }
                         }
-                    )
+                    }
                 }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
             // =================================================
-            // GÉNEROS
+            // GÉNERO
             // =================================================
 
-            FormLabel("Géneros:")
+            FormLabel("Género:")
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+            var expandedGenero by remember { mutableStateOf(false) }
+
+            ExposedDropdownMenuBox(
+                expanded = expandedGenero,
+                onExpandedChange = { expandedGenero = !expandedGenero }
             ) {
 
-                generos.forEachIndexed { index, generoUi ->
-
-                    var expandedGenero by remember {
-                        mutableStateOf(false)
+                OutlinedTextField(
+                    value = genero.label,
+                    onValueChange = {},
+                    readOnly = true,
+                    modifier = Modifier.menuAnchor().width(250.dp),
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedGenero)
                     }
+                )
 
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-
-                        // =========================================
-                        // DROPDOWN GÉNERO
-                        // =========================================
-
-                        ExposedDropdownMenuBox(
-                            expanded = expandedGenero,
-                            onExpandedChange = {
-                                expandedGenero = !expandedGenero
-                            }
-                        ) {
-
-                            OutlinedTextField(
-                                value = generoUi.genero.label,
-                                onValueChange = {},
-                                readOnly = true,
-
-                                modifier = Modifier
-                                    .menuAnchor()
-                                    .width(250.dp),
-
-                                trailingIcon = {
-                                    ExposedDropdownMenuDefaults.TrailingIcon(
-                                        expanded = expandedGenero
-                                    )
-                                }
-                            )
-
-                            ExposedDropdownMenu(
-                                expanded = expandedGenero,
-                                onDismissRequest = {
-                                    expandedGenero = false
-                                }
-                            ) {
-
-                                PeliculaGenero.entries.forEach { genero ->
-
-                                    DropdownMenuItem(
-                                        text = {
-                                            Text(genero.label)
-                                        },
-
-                                        onClick = {
-
-                                            generos[index] =
-                                                generoUi.copy(
-                                                    genero = genero
-                                                )
-
-                                            expandedGenero = false
-                                        }
-                                    )
-                                }
-                            }
-                        }
-
-                        // =========================================
-                        // BOTÓN ELIMINAR
-                        // =========================================
-
-                        Button(
-                            onClick = {
-
-                                if (generos.size > 1) {
-                                    generos.removeAt(index)
-                                }
-                            },
-
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = OtroRojo
-                            ),
-
-                            shape = RectangleShape,
-
-                            modifier = Modifier.size(40.dp),
-
-                            contentPadding = PaddingValues(0.dp)
-                        ) {
-
-                            Text(
-                                "🗑",
-                                color = TextWhite
-                            )
-                        }
-                    }
-                }
-
-                // =============================================
-                // BOTÓN AÑADIR GÉNERO
-                // =============================================
-
-                Button(
-                    onClick = {
-
-                        generos.add(
-                            GeneroUi(
-                                genero = PeliculaGenero.COMEDIA
-                            )
-                        )
-                    },
-
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = panelColor
-                    ),
-
-                    shape = RectangleShape,
-
-                    modifier = Modifier.size(35.dp),
-
-                    contentPadding = PaddingValues(0.dp)
+                ExposedDropdownMenu(
+                    expanded = expandedGenero,
+                    onDismissRequest = { expandedGenero = false }
                 ) {
 
-                    Text(
-                        "+",
-                        color = TextWhite
-                    )
+                    PeliculaGenero.entries.forEach { opcion ->
+                        DropdownMenuItem(
+                            text = { Text(opcion.label) },
+                            onClick = {
+                                genero = opcion
+                                expandedGenero = false
+                            }
+                        )
+                    }
                 }
+            }
+
+            fieldErrors["genero"]?.let {
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(it, color = Color.Red)
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Button(
+                onClick = {
+                    val duracionValue = "${duracionHoras.trim()}:${duracionMinutos.trim()}"
+                    val enCarteleraValue = when (estado) {
+                        PeliculaEstado.CARTELERA -> true
+                        PeliculaEstado.ESTRENO -> false
+                        PeliculaEstado.INACTIVA -> null
+                    }
+
+                    val input = PeliculaCreateInput(
+                        nombre = titulo,
+                        descripcion = descripcion.takeIf { it.isNotBlank() },
+                        genero = genero,
+                        url = portada.takeIf { it.isNotBlank() },
+                        duracion = duracionValue,
+                        edad = clasificacionEdad.toIntOrNull(),
+                        enCartelera = enCarteleraValue,
+                        participantes = emptyList()
+                    )
+
+                    val errors = PeliculaValidator.validateCreate(input).toFirstUiMessagePerField()
+                    if (errors.isNotEmpty()) {
+                        fieldErrors = errors
+                        return@Button
+                    }
+
+                    fieldErrors = emptyMap()
+
+                    onSave(
+                        PeliculaCreateDTO(
+                            nombre = input.nombre.trim(),
+                            descripcion = input.descripcion?.trim(),
+                            genero = genero,
+                            url = input.url?.trim(),
+                            duracion = input.duracion.trim(),
+                            edad = input.edad,
+                            enCartelera = input.enCartelera,
+                            participantes = participantes.map { participante ->
+                                ParticipanteCreateDTO(
+                                    id = participante.id,
+                                    roles = listOf(participante.rol)
+                                )
+                            }
+                        )
+                    )
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = OtroRojo),
+                shape = RectangleShape
+            ) {
+
+                Text("Guardar", color = TextWhite)
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -571,8 +568,8 @@ fun AddEditMovieDesktop(
 
             if (showAddParticipantDialog) {
 
-                val filteredNames = mockNames.filter {
-                    it.contains(participantSearch, ignoreCase = true)
+                val filteredNames = participantesDisponibles.filter {
+                    it.nombre.contains(participantSearch, ignoreCase = true)
                 }
 
                 AlertDialog(
@@ -619,19 +616,25 @@ fun AddEditMovieDesktop(
                                 verticalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
 
-                                filteredNames.take(5).forEach { name ->
+                                filteredNames.take(5).forEach { participante ->
 
                                     Text(
-                                        text = name,
+                                        text = participante.nombre,
                                         color = TextWhite,
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .clickable {
-                                                participantSearch = name
+                                                participantSearch = participante.nombre
+                                                selectedParticipant = participante
                                             }
                                             .padding(8.dp)
                                     )
                                 }
+                            }
+
+                            if (participantesError != null) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(participantesError ?: "", color = Color.Red)
                             }
                         }
                     },
@@ -641,21 +644,22 @@ fun AddEditMovieDesktop(
                         Button(
                             onClick = {
 
-                                if (participantSearch.isNotBlank()) {
-
-                                    // Si no existe, lo añadimos a mock
-                                    if (!mockNames.contains(participantSearch)) {
-                                        mockNames.add(participantSearch)
+                                val match = selectedParticipant
+                                    ?: participantesDisponibles.firstOrNull {
+                                        it.nombre.equals(participantSearch.trim(), ignoreCase = true)
                                     }
 
+                                if (match != null) {
                                     participantes.add(
                                         ParticipanteUi(
-                                            nombre = participantSearch,
+                                            id = match.id,
+                                            nombre = match.nombre,
                                             rol = ParticipanteRol.ACTOR
                                         )
                                     )
 
                                     participantSearch = ""
+                                    selectedParticipant = null
                                     showAddParticipantDialog = false
                                 }
                             },
@@ -680,6 +684,7 @@ fun AddEditMovieDesktop(
                             onClick = {
                                 showAddParticipantDialog = false
                                 participantSearch = ""
+                                selectedParticipant = null
                             },
 
                             colors = ButtonDefaults.buttonColors(
@@ -793,6 +798,20 @@ fun AddEditMovieDesktop(
                                     }
                                 }
                             }
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Button(
+                                onClick = {
+                                    participantes.removeAt(index)
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = OtroRojo
+                                ),
+                                shape = RectangleShape
+                            ) {
+                                Text("Eliminar", color = TextWhite)
+                            }
                         }
                     }
 
@@ -821,59 +840,6 @@ fun FormLabel(text: String) {
 }
 
 @Composable
-fun ParticipantRow(
-    name: String,
-    role: String
-) {
-
-    Column {
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-
-            Text(
-                text = name,
-                color = TextWhite,
-                modifier = Modifier.weight(1f),
-                fontSize = 18.sp
-            )
-
-            Box(
-                modifier = Modifier
-                    .width(150.dp)
-                    .background(panelColor)
-                    .padding(10.dp)
-            ) {
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-
-                    Text(
-                        text = role,
-                        color = TextWhite
-                    )
-
-                    Text(
-                        text = "▼",
-                        color = TextWhite
-                    )
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        HorizontalDivider(
-            color = TextWhite
-        )
-    }
-}
-
-@Composable
 fun movieTextFieldColors() = TextFieldDefaults.colors(
 
     focusedContainerColor = ColorFondoHeader,
@@ -883,6 +849,3 @@ fun movieTextFieldColors() = TextFieldDefaults.colors(
     unfocusedTextColor = TextWhite
 )
 
-data class GeneroUi(
-    var genero: PeliculaGenero
-)
