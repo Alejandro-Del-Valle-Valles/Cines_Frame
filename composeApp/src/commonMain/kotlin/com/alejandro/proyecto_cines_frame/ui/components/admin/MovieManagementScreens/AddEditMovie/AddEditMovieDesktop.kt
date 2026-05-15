@@ -212,20 +212,6 @@ fun AddEditMovieDesktop(
             modifier = Modifier.weight(1f)
         ) {
 
-            // 🔥 TÍTULO DINÁMICO
-            Text(
-                text =
-                    if (movie == null)
-                        "Añadir película"
-                    else
-                        "Modificar película",
-
-                color = TextWhite,
-                fontSize = 30.sp,
-                fontWeight = FontWeight.Bold,
-                textDecoration = TextDecoration.Underline
-            )
-
             Spacer(modifier = Modifier.height(28.dp))
 
             // =================================================

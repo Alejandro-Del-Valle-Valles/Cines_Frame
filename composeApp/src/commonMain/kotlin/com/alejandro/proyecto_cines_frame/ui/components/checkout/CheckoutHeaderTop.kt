@@ -41,9 +41,16 @@ fun CheckoutHeaderTop(
 
                     IconButton(
                         onClick = onBack,
-                        modifier = Modifier.size(40.dp)
+
+                        modifier = Modifier
+                            .padding(top = 10.dp)
+                            .size(52.dp)
                     ) {
-                        Text("<", color = TextWhite)
+                        Text(
+                            text = "<",
+                            color = TextWhite,
+                            style = MaterialTheme.typography.headlineSmall
+                        )
                     }
 
                     Spacer(Modifier.width(12.dp))

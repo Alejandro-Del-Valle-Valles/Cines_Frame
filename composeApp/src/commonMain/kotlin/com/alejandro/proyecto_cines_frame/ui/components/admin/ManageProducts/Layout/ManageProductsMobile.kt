@@ -25,53 +25,75 @@ fun ManageProductsMobile(
     onEditAlergeno: (Alergeno) -> Unit,
     onDeleteAlergeno: (Alergeno) -> Unit
 ) {
+
     val productsFiltered =
         ManageProductsUtils.filterProducts(
             products = state.products,
             search = state.search,
             filter = state.selectedFilter
         )
+
     Scaffold(
+
         floatingActionButton = {
+
             FloatingActionButton(
+
                 containerColor = OtroRojo,
+
                 onClick = {
+
                     if (
                         state.selectedTab ==
                         ManageProductsTab.PRODUCTOS
                     ) {
+
                         onAddProduct()
+
                     } else {
+
                         onAddAlergeno()
                     }
                 }
             ) {
+
                 Text("+")
             }
         }
+
     ) { padding ->
+
         Column(
+
             modifier = Modifier
                 .fillMaxSize()
                 .background(BackgroundDark)
                 .padding(padding)
                 .padding(
+
                     start = 16.dp,
                     end = 16.dp,
-                    top = 90.dp,
+
+                    // más espacio arriba para móviles pequeños
+                    top = 120.dp,
+
                     bottom = 16.dp
                 ),
+
             verticalArrangement =
                 Arrangement.spacedBy(16.dp)
         ) {
+
             Text(
                 text = "Gestionar productos",
 
                 style =
                     MaterialTheme.typography.headlineSmall
             )
+
             Text(
                 text = "Administra los productos que se venden en el cine.",
+
                 style =
                     MaterialTheme.typography.bodyMedium
             )
@@ -88,16 +110,21 @@ fun ManageProductsMobile(
 
                 ProductsToolbar(
                     search = state.search,
+
                     selectedFilter =
                         state.selectedFilter,
+
                     onSearchChange = {},
+
                     onFilterChange = {}
                 )
+
                 LazyColumn(
 
                     verticalArrangement =
                         Arrangement.spacedBy(12.dp)
                 ) {
+
                     items(productsFiltered) { product ->
 
                         ProductCard(
@@ -107,12 +134,17 @@ fun ManageProductsMobile(
                         )
                     }
                 }
+
             } else {
+
                 LazyColumn(
+
                     verticalArrangement =
                         Arrangement.spacedBy(12.dp)
                 ) {
+
                     items(state.alergenos) { alergeno ->
+
                         AlergenoCard(
                             alergeno = alergeno,
                             onEdit = onEditAlergeno,

@@ -9,8 +9,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.zIndex
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.alejandro.proyecto_cines_frame.domain.model.Sala
 import com.alejandro.proyecto_cines_frame.ui.components.admin.RoomManagementScreens.RoomManagementDesktop
 import com.alejandro.proyecto_cines_frame.ui.components.admin.RoomManagementScreens.RoomManagementMovile
@@ -26,29 +26,75 @@ fun RoomManagementScreen(
     onDeleteRoom: (Sala) -> Unit,
     onBack: () -> Unit
 ) {
-    Box(
+
+    BoxWithConstraints(
         modifier = Modifier.fillMaxSize()
     ) {
-        BackButton(
-            onClick = onBack,
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .zIndex(10f)
-                .padding(16.dp)
-        )
-        BoxWithConstraints (
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(ColorFondoHeader)
-                .padding(16.dp)
-        ) {
 
-            val esEscritorio = FooterUtils.esEscritorio(maxWidth)
+        val esEscritorio =
+            FooterUtils.esEscritorio(maxWidth)
 
-            if (esEscritorio) {
-                RoomManagementDesktop(rooms, onAddRoom, onEditRoom, onDeleteRoom)
-            } else {
-                RoomManagementMovile(rooms, onAddRoom, onEditRoom, onDeleteRoom)
+        Box {
+
+            BackButton(
+                onClick = onBack,
+
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .zIndex(10f)
+
+                    // más abajo en móvil
+                    .padding(
+
+                        start = 16.dp,
+
+                        top =
+                            if (esEscritorio)
+                                16.dp
+                            else
+                                32.dp
+                    )
+            )
+
+            Box(
+
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(ColorFondoHeader)
+
+                    // espacio para el botón
+                    .padding(
+
+                        start = 16.dp,
+                        end = 16.dp,
+                        bottom = 16.dp,
+
+                        top =
+                            if (esEscritorio)
+                                16.dp
+                            else
+                                90.dp
+                    )
+            ) {
+
+                if (esEscritorio) {
+
+                    RoomManagementDesktop(
+                        rooms,
+                        onAddRoom,
+                        onEditRoom,
+                        onDeleteRoom
+                    )
+
+                } else {
+
+                    RoomManagementMovile(
+                        rooms,
+                        onAddRoom,
+                        onEditRoom,
+                        onDeleteRoom
+                    )
+                }
             }
         }
     }

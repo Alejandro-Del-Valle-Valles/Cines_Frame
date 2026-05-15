@@ -231,24 +231,6 @@ fun AddEditMovieMovile(
     ) {
 
         // =====================================================
-        // TÍTULO
-        // =====================================================
-
-        Text(
-            text = if (movie == null)
-                "Añadir película"
-            else
-                "Modificar película",
-
-            color = TextWhite,
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            textDecoration = TextDecoration.Underline
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // =====================================================
         // TÍTULO INPUT
         // =====================================================
 
