@@ -18,6 +18,7 @@ import com.alejandro.proyecto_cines_frame.ui.components.common.BackButton
 import com.alejandro.proyecto_cines_frame.ui.components.footer.FooterUtils
 import com.alejandro.proyecto_cines_frame.ui.theme.ColorFondoHeader
 
+@Suppress("UnusedBoxWithConstraintsScope")
 @Composable
 fun MovieManagementScreen(
     movies: List<Pelicula>,
