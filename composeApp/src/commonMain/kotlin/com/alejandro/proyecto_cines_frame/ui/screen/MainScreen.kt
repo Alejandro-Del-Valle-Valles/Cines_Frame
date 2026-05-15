@@ -163,9 +163,10 @@ fun MainScreen(
 
     val calendarDays = remember { buildCalendarDays() }
 
-    var isApiBlocked by remember {
-        mutableStateOf(false)
-    }
+    var mainReloadKey by remember { mutableStateOf(0) }
+    var isSessionsApiBlocked by remember { mutableStateOf(false) }
+    var isBannersApiBlocked by remember { mutableStateOf(false) }
+    val isApiBlocked = isSessionsApiBlocked || isBannersApiBlocked
 
     var checkoutSession by remember { mutableStateOf<Sesion?>(null) }
     var checkoutSalaCapacity by remember { mutableStateOf(0) }
@@ -225,7 +226,7 @@ fun MainScreen(
         isRestoringSession = false
     }
 
-    LaunchedEffect(moviesRepository, fetchRange) {
+    LaunchedEffect(moviesRepository, fetchRange, mainReloadKey) {
         if (fetchRange == null) {
             sessionState = MainSessionsUiState(
                 isLoading = false,
@@ -234,6 +235,7 @@ fun MainScreen(
             return@LaunchedEffect
         }
 
+        isSessionsApiBlocked = false
         sessionState = MainSessionsUiState(isLoading = true)
 
         when (val result = moviesRepository.getByRangoHorario(fetchRange.first, fetchRange.second)) {
@@ -246,7 +248,7 @@ fun MainScreen(
             }
 
             is ApiResult.Error -> {
-                isApiBlocked =
+                isSessionsApiBlocked =
                     result.error is AppError.Network ||
                             result.error is AppError.Server ||
                             result.error is AppError.Unauthorized
@@ -260,7 +262,8 @@ fun MainScreen(
         }
     }
 
-    LaunchedEffect(banerRepository) {
+    LaunchedEffect(banerRepository, mainReloadKey) {
+        isBannersApiBlocked = false
         bannerState = BannersUiState(isLoading = true)
 
         when (val result = banerRepository.getBanersToday()) {
@@ -273,7 +276,7 @@ fun MainScreen(
             }
 
             is ApiResult.Error -> {
-                isApiBlocked =
+                isBannersApiBlocked =
                     result.error is AppError.Network ||
                             result.error is AppError.Server ||
                             result.error is AppError.Unauthorized
@@ -284,6 +287,12 @@ fun MainScreen(
                     errorMessage = toMainScreenErrorMessage(result.error)
                 )
             }
+        }
+    }
+
+    LaunchedEffect(isApiBlocked, currentScreen) {
+        if (isApiBlocked && currentScreen == "main") {
+            currentScreen = "main_error"
         }
     }
 
@@ -930,6 +939,18 @@ fun MainScreen(
         return
     }
 
+    if (currentScreen == "main_error") {
+        MainScreenError(
+            onRetry = {
+                isSessionsApiBlocked = false
+                isBannersApiBlocked = false
+                mainReloadKey += 1
+                currentScreen = "main"
+            }
+        )
+        return
+    }
+
     if (isRestoringSession) {
         Box(
             modifier = Modifier
@@ -952,6 +973,8 @@ fun MainScreen(
                 .padding(paddingValues)
                 .background(BackgroundDark)
         ) {
+
+
 
             //HEADER
             Header(
