@@ -1,6 +1,8 @@
 package com.alejandro.proyecto_cines_frame.ui.components.admin.MovieManagementScreens.AddEditMovie
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,7 +27,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -58,9 +59,7 @@ import com.alejandro.proyecto_cines_frame.ui.theme.TextWhite
 @Composable
 fun AddEditMovieDesktop(
     movie: Pelicula?, // 🔥 null = añadir | con datos = modificar
-
     onSave: (Pelicula) -> Unit,
-    onAddParticipant: () -> Unit,
     onDeleteGenre: (PeliculaGenero) -> Unit,
     onSelectImage: () -> Unit
 ) {
@@ -309,10 +308,17 @@ fun AddEditMovieDesktop(
                         TextField(
                             value = duracionHoras,
                             onValueChange = {
-                                duracionHoras = it
+                                    nuevoValor ->
+                                // Sólo números y :
+                                if (nuevoValor.all { it.isDigit() || it == ':' }) {
+                                    duracionHoras = nuevoValor
+                                }
                             },
                             modifier = Modifier.width(70.dp),
-                            colors = movieTextFieldColors()
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Number
+                            )
+
                         )
 
                         Spacer(modifier = Modifier.width(8.dp))
@@ -328,10 +334,16 @@ fun AddEditMovieDesktop(
                         TextField(
                             value = duracionMinutos,
                             onValueChange = {
-                                duracionMinutos = it
+                                    nuevoValor ->
+                                // Sólo números y :
+                                if (nuevoValor.all { it.isDigit() || it == ':' }) {
+                                    duracionMinutos = nuevoValor
+                                }
                             },
                             modifier = Modifier.width(70.dp),
-                            colors = movieTextFieldColors()
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Number
+                            )
                         )
                     }
                 }
@@ -346,10 +358,16 @@ fun AddEditMovieDesktop(
                     TextField(
                         value = clasificacionEdad,
                         onValueChange = {
-                            clasificacionEdad = it
+                                nuevoValor ->
+                            // Sólo números
+                            if (nuevoValor.all { it.isDigit() }) {
+                                clasificacionEdad = nuevoValor
+                            }
                         },
                         modifier = Modifier.width(180.dp),
-                        colors = movieTextFieldColors()
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Number
+                        )
                     )
                 }
 
