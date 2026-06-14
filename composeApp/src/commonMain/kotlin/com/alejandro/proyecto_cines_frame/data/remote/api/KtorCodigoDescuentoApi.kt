@@ -8,6 +8,7 @@ import com.alejandro.proyecto_cines_frame.data.remote.dto.CodigoDescuentoDTO
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
+import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
@@ -17,7 +18,7 @@ class KtorCodigoDescuentoApi(
     private val httpClient: HttpClient
 ) : CodigoDescuentoApi {
 
-    private val baseUrl: String = getUrl().url + "/descuento"
+    private val baseUrl: String = getUrl().url + "/codigo-descuento"
 
     /**
      * Obtiene todos los codigos de descuento
@@ -38,7 +39,7 @@ class KtorCodigoDescuentoApi(
      * Crea un nuevo codigo de descuento
      */
     override suspend fun createCodigoDescuento(codigoDescuento: CodigoDescuentoCreateDTO): CodigoDescuentoDTO =
-        httpClient.put(baseUrl) {
+        httpClient.post(baseUrl) {
             contentType(ContentType.Application.Json)
             setBody(codigoDescuento)
         }.body()
