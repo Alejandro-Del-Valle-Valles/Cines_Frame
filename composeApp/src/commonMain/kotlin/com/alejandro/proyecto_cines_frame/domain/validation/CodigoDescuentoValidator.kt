@@ -32,14 +32,14 @@ object CodigoDescuentoValidator {
         // porcentaje
         val porcentajeErrors = mutableListOf<FieldError>()
 
-        if (input.porcentaje < 1)
+        if (input.porcentajeDescuento < 1)
             porcentajeErrors.add(
                 FieldError.Custom(
                     "El porcentaje debe ser mayor que 0."
                 )
             )
 
-        if (input.porcentaje > 100)
+        if (input.porcentajeDescuento > 100)
             porcentajeErrors.add(
                 FieldError.Custom(
                     "El porcentaje no puede ser superior a 100."

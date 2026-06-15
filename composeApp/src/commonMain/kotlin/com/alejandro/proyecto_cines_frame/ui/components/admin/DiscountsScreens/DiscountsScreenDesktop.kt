@@ -37,8 +37,7 @@ import androidx.compose.foundation.lazy.items
 fun DiscountsScreenDesktop (
     discounts: List<CodigoDescuento>,
     onAddDiscount: () -> Unit,
-    //onEditDiscount: (DiscountCode) -> Unit
-    onEditDiscount: () -> Unit,
+    onEditDiscount: (CodigoDescuento) -> Unit,
     onBackClick: () -> Unit
 ) {
     Column (
@@ -105,9 +104,8 @@ private fun Header(
 
 @Composable
 private fun DiscountsList(
-
     discounts: List<CodigoDescuento>,
-    onEditDiscount: () -> Unit
+    onEditDiscount: (CodigoDescuento) -> Unit
 ) {
 
     Box(
@@ -141,7 +139,7 @@ private fun DiscountsList(
 @Composable
 private fun DiscountRow(
     discount: CodigoDescuento,
-    onEditDiscount: () -> Unit
+    onEditDiscount: (CodigoDescuento) -> Unit
 ) {
 
     Row(
@@ -158,7 +156,7 @@ private fun DiscountRow(
         )
 
         Text(
-            text = "Porcentaje: ${discount.porcentaje}%",
+            text = "Porcentaje: ${discount.porcentajeDescuento}%",
             color = TextWhite,
             modifier = Modifier.weight(2f)
         )
@@ -177,7 +175,7 @@ private fun DiscountRow(
         ) {
             Button(
                 onClick = {
-                    onEditDiscount()
+                    onEditDiscount(discount)
                 },
                 modifier = Modifier
                     .width(145.dp)

@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.alejandro.proyecto_cines_frame.ui.screen.botonesDesdeLista
+import com.alejandro.proyecto_cines_frame.ui.screen.txtBtnGestionDescuentos
 import com.alejandro.proyecto_cines_frame.ui.screen.txtBtnGestionImagenesBaner
 import com.alejandro.proyecto_cines_frame.ui.screen.txtBtnGestionPeliculas
 import com.alejandro.proyecto_cines_frame.ui.screen.txtBtnGestionProductos
@@ -68,7 +69,8 @@ fun MainAdminDesktop(
                         txtBtnGestionPeliculas,
                         txtBtnGestionSesiones,
                         txtBtnGestionSalas,
-                        txtBtnGestionProductos
+                        txtBtnGestionProductos,
+                        txtBtnGestionDescuentos
                     ),
                     buttonColor = buttonColor,
                     onButtonClick = onButtonClick

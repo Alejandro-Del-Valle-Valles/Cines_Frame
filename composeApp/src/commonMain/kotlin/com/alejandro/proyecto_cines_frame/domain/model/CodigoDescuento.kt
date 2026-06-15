@@ -9,7 +9,7 @@ class CodigoDescuento (
     val id: Int = 0 ,
     val codigo: String,
     val condicion: DescuentoCondicion,
-    val porcentaje: Int,
+    val porcentajeDescuento: Int,
     val activo: Boolean
 ) {
     override fun equals(other: Any?): Boolean {

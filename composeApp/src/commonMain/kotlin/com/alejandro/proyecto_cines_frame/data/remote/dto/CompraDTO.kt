@@ -7,5 +7,6 @@ data class CompraDTO(
     val id: String? = null,
     val correo: String = "",
     val holdToken: String = "",
-    val lineasCompra: List<LineaCompraDTO> = emptyList()
+    val lineasCompra: List<LineaCompraDTO> = emptyList(),
+    val codigoDescuento: String? = null
 )

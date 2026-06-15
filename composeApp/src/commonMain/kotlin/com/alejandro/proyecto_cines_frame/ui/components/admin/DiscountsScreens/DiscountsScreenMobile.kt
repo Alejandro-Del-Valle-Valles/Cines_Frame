@@ -34,8 +34,8 @@ import androidx.compose.foundation.lazy.items
 fun DiscountsScreenMobile  (
     discounts: List<CodigoDescuento>,
     onAddDiscount: () -> Unit,
-    //onEditDiscount: (DiscountCode) -> Unit
-    onEditDiscount: () -> Unit,
+    onEditDiscount: (CodigoDescuento) -> Unit,
+    //onEditDiscount: () -> Unit,
     onBackClick: () -> Unit
 ) {
     Column (
@@ -101,7 +101,7 @@ private fun HeaderMobile(
 @Composable
 private fun DiscountsListMobile(
     discounts: List<CodigoDescuento>,
-    onEditDiscount: () -> Unit
+    onEditDiscount: (CodigoDescuento) -> Unit,
 ) {
 
     Box(
@@ -134,7 +134,7 @@ private fun DiscountsListMobile(
 @Composable
 private fun DiscountRowMobile(
     discount: CodigoDescuento,
-    onEditDiscount: () -> Unit
+    onEditDiscount: (CodigoDescuento) -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -152,7 +152,7 @@ private fun DiscountRowMobile(
         )
 
         Text(
-            text = "${discount.porcentaje}%",
+            text = "${discount.porcentajeDescuento}%",
             color = TextWhite,
             fontSize = 10.sp,
             modifier = Modifier.weight(1.4f)
@@ -167,7 +167,7 @@ private fun DiscountRowMobile(
 
         Button(
             onClick = {
-                onEditDiscount()
+                onEditDiscount(discount)
             },
             modifier = Modifier
                 .height(22.dp)

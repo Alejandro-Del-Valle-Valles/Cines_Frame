@@ -36,6 +36,7 @@ val txtBtnGestionSesiones = "Gestionar sesiones"
 val txtBtnGestionSalas = "Gestionar salas"
 val txtBtnGestionProductos = "Gestionar productos"
 val txtBtnGestionImagenesBaner = "Gestionar imagenes de baner"
+val txtBtnGestionDescuentos = "Gestionar codigos de descuento"
 
 @Composable
 fun MainAdminScreen(
@@ -44,7 +45,8 @@ fun MainAdminScreen(
     onManageSessions: () -> Unit,
     onManageRooms: () -> Unit,
     onManageBanners: () -> Unit,
-    onManageProducts: () -> Unit
+    onManageProducts: () -> Unit,
+    onManageDiscounts: () -> Unit
 ) {
     Box(
         modifier = Modifier.fillMaxSize()
@@ -75,6 +77,8 @@ fun MainAdminScreen(
                     onManageBanners()
                 } else if (textoBoton == txtBtnGestionProductos) {
                     onManageProducts()
+                } else if (textoBoton == txtBtnGestionDescuentos) {
+                    onManageDiscounts()
                 }
             }
 

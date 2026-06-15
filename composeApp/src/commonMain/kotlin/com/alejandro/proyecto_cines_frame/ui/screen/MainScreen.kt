@@ -58,6 +58,7 @@ import com.alejandro.proyecto_cines_frame.ui.screen.management.ManageBannerScree
 import com.alejandro.proyecto_cines_frame.ui.screen.management.ManageSessionsScreen
 import com.alejandro.proyecto_cines_frame.ui.components.admin.ManageProducts.ManageProductsScreen
 import com.alejandro.proyecto_cines_frame.ui.components.admin.MovieManagementScreens.AddEditMovie.AddEditMovieScreen
+import com.alejandro.proyecto_cines_frame.ui.screen.management.DiscountsScreen
 
 
 @Composable
@@ -894,6 +895,15 @@ fun MainScreen(
         return
     }
 
+    if (currentScreen == "discount_management") {
+        DiscountsScreen(
+            onBack = {
+                currentScreen = "admin"
+            }
+        )
+        return
+    }
+
     if (currentScreen == "banner_management") {
         ManageBannerScreen(
             onBack = {
@@ -933,6 +943,9 @@ fun MainScreen(
             },
             onManageProducts = {
                 currentScreen = "product_management"
+            },
+            onManageDiscounts = {
+                currentScreen = "discount_management"
             }
         )
         return

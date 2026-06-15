@@ -8,7 +8,7 @@ fun CodigoDescuentoDTO.toDomain(): CodigoDescuento =
         id = id,
         codigo = codigo,
         condicion = condicion,
-        porcentaje = porcentaje,
+        porcentajeDescuento = porcentajeDescuento,
         activo = activo
     )
 
@@ -17,6 +17,6 @@ fun CodigoDescuento.toDto(): CodigoDescuentoDTO =
         id = id,
         codigo = codigo,
         condicion = condicion,
-        porcentaje = porcentaje,
+        porcentajeDescuento = porcentajeDescuento,
         activo = activo
     )

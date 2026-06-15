@@ -6,6 +6,6 @@ import com.alejandro.proyecto_cines_frame.domain.enums.PeliculaGenero
 data class CodigoDescuentoCreateInput (
     val codigo: String,
     val condicion: DescuentoCondicion,//? = DescuentoCondicion.TODOS,
-    val porcentaje: Int,
+    val porcentajeDescuento: Int,
     val activo: Boolean
 )

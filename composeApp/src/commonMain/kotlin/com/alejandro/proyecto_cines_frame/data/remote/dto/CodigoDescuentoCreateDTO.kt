@@ -7,6 +7,6 @@ import kotlinx.serialization.Serializable
 data class CodigoDescuentoCreateDTO (
     val codigo: String,
     val condicion: DescuentoCondicion,
-    val porcentaje: Int,
+    val porcentajeDescuento: Int,
     val activo: Boolean
 )

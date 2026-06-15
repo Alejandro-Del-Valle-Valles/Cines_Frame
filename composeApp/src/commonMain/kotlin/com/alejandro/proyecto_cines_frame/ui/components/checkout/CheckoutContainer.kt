@@ -18,9 +18,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.alejandro.proyecto_cines_frame.core.error.ApiResult
 import com.alejandro.proyecto_cines_frame.core.session.SessionManager
+import com.alejandro.proyecto_cines_frame.data.remote.api.KtorCodigoDescuentoApi
+import com.alejandro.proyecto_cines_frame.data.remote.client.HttpClientFactory
 import com.alejandro.proyecto_cines_frame.data.remote.dto.*
+import com.alejandro.proyecto_cines_frame.data.repository.CodigoDescuentoRepositoryImpl
 import com.alejandro.proyecto_cines_frame.domain.enums.CuentaRol
 import com.alejandro.proyecto_cines_frame.domain.extension.toFirstUiMessagePerField
+import com.alejandro.proyecto_cines_frame.domain.model.CodigoDescuento
 import com.alejandro.proyecto_cines_frame.domain.model.Compra
 import com.alejandro.proyecto_cines_frame.domain.model.Sesion
 import com.alejandro.proyecto_cines_frame.domain.model.TipoEntrada
@@ -54,10 +58,20 @@ fun CheckoutContainer(
     var tickets by remember { mutableStateOf(TipoEntradaSelection()) }
     var paymentFormData by remember { mutableStateOf(PaymentFormData()) }
     var paymentFieldErrors by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
+    var discountCode by remember { mutableStateOf("") }
+    var appliedDiscount by remember { mutableStateOf<CodigoDescuento?>(null) }
+    var discountFieldError by remember { mutableStateOf<String?>(null) }
+    var isApplyingDiscount by remember { mutableStateOf(false) }
 
     var paymentDone by remember { mutableStateOf(false) }
     var isPaying by remember { mutableStateOf(false) }
     var generalPaymentError by remember { mutableStateOf<String?>(null) }
+
+    val codigoDescuentoRepository = remember {
+        CodigoDescuentoRepositoryImpl(
+            api = KtorCodigoDescuentoApi(HttpClientFactory.create())
+        )
+    }
 
     val scope = rememberCoroutineScope()
 
@@ -68,6 +82,13 @@ fun CheckoutContainer(
                 confirmEmail = sessionEmail
             )
         }
+    }
+
+    LaunchedEffect(session.numSala, session.pelicula.id, session.horario) {
+        discountCode = ""
+        appliedDiscount = null
+        discountFieldError = null
+        isApplyingDiscount = false
     }
 
     BoxWithConstraints(
@@ -136,7 +157,58 @@ fun CheckoutContainer(
                                 },
                                 tiposEntrada = tiposEntrada,
                                 tickets = tickets,
-                                products = products
+                                products = products,
+                                discountCode = discountCode,
+                                appliedDiscount = appliedDiscount,
+                                discountError = discountFieldError,
+                                isApplyingDiscount = isApplyingDiscount,
+                                onDiscountCodeChange = {
+                                    discountCode = it
+                                    discountFieldError = null
+                                },
+                                onApplyDiscount = onApplyDiscount@{
+                                    val trimmedCode = discountCode.trim()
+
+                                    if (trimmedCode.isBlank()) {
+                                        appliedDiscount = null
+                                        discountCode = ""
+                                        discountFieldError = null
+                                        return@onApplyDiscount
+                                    }
+
+                                    scope.launch {
+                                        isApplyingDiscount = true
+                                        discountFieldError = null
+
+                                        when (val result = codigoDescuentoRepository.getByCodigo(trimmedCode)) {
+                                            is ApiResult.Success -> {
+                                                val discount = result.data
+
+                                                if (!discount.activo) {
+                                                    discountFieldError = "El código de descuento está desactivado."
+                                                } else {
+                                                    appliedDiscount = discount
+                                                    discountCode = discount.codigo
+                                                }
+                                            }
+
+                                            is ApiResult.Error -> {
+                                                discountFieldError = when (result.error) {
+                                                    is com.alejandro.proyecto_cines_frame.core.error.AppError.NotFound -> "El código de descuento no existe."
+                                                    is com.alejandro.proyecto_cines_frame.core.error.AppError.Conflict -> "El código de descuento no está disponible."
+                                                    is com.alejandro.proyecto_cines_frame.core.error.AppError.Network -> "Error de conexión."
+                                                    is com.alejandro.proyecto_cines_frame.core.error.AppError.Server -> "Error del servidor."
+                                                    is com.alejandro.proyecto_cines_frame.core.error.AppError.Unauthorized -> "No autorizado."
+                                                    is com.alejandro.proyecto_cines_frame.core.error.AppError.Forbidden -> "No tienes permisos para usar este código."
+                                                    is com.alejandro.proyecto_cines_frame.core.error.AppError.Validation -> "El código de descuento no es válido."
+                                                    else -> "Ha ocurrido un error inesperado."
+                                                }
+                                            }
+                                        }
+
+                                        isApplyingDiscount = false
+                                    }
+                                }
                             )
                         }
 
@@ -173,7 +245,8 @@ fun CheckoutContainer(
                                                     selectedSeats = state.selectedSeats,
                                                     tiposEntrada = tiposEntrada,
                                                     tickets = tickets,
-                                                    products = products
+                                                    products = products,
+                                                    codigoDescuento = appliedDiscount?.codigo
                                                 )
                                             },
                                             onPaymentResult = { result ->
@@ -201,7 +274,8 @@ fun CheckoutContainer(
                                                     selectedSeats = state.selectedSeats,
                                                     tiposEntrada = tiposEntrada,
                                                     tickets = tickets,
-                                                    products = products
+                                                    products = products,
+                                                    codigoDescuento = appliedDiscount?.codigo
                                                 )
                                             },
                                             onPaymentResult = { result ->
@@ -277,10 +351,11 @@ fun CheckoutContainer(
                                                     selectedSeats = state.selectedSeats,
                                                     tiposEntrada = tiposEntrada,
                                                     tickets = tickets,
-                                                    products = products
+                                                    products = products,
+                                                    codigoDescuento = appliedDiscount?.codigo
                                                 )
 
-                                                when (val result = onPerformPayment(compraDto)) {
+                                                when (onPerformPayment(compraDto)) {
                                                     is ApiResult.Success -> {
                                                         paymentDone = true
                                                     }
@@ -309,12 +384,11 @@ fun CheckoutContainer(
                             CheckoutStep.SEATS -> state.selectedSeats.isNotEmpty()
                             CheckoutStep.TICKETS -> {
                                 tickets.total() == state.selectedSeats.size &&
-                                    state.selectedSeats.isNotEmpty() &&
-                                    tiposEntrada.isNotEmpty()
+                                        state.selectedSeats.isNotEmpty() &&
+                                        tiposEntrada.isNotEmpty()
                             }
                             CheckoutStep.BAR -> true
                             CheckoutStep.SUMMARY -> true
-                            else -> true
                         }
                     )
                 }
@@ -348,7 +422,8 @@ private fun buildCompraDto(
     selectedSeats: Set<SeatPosition>,
     tiposEntrada: List<TipoEntrada>,
     tickets: TipoEntradaSelection,
-    products: List<CartProduct>
+    products: List<CartProduct>,
+    codigoDescuento: String? = null
 ): CompraDTO {
     val lineas = mutableListOf<LineaCompraDTO>()
     var numeroLinea = 1
@@ -399,7 +474,8 @@ private fun buildCompraDto(
     return CompraDTO(
         correo = email,
         holdToken = holdToken,
-        lineasCompra = lineas
+        lineasCompra = lineas,
+        codigoDescuento = codigoDescuento
     )
 }
 
@@ -415,26 +491,26 @@ private fun processEmployeePayment(
 ) {
     // Validate emails
     val errors = mutableMapOf<String, String>()
-    
+
     if (formData.email.isBlank()) {
         errors["email"] = "El correo es requerido"
     } else if (!isValidEmail(formData.email)) {
         errors["email"] = "Correo inválido"
     }
-    
+
     if (formData.confirmEmail.isBlank()) {
         errors["confirmEmail"] = "La confirmación de correo es requerida"
     } else if (formData.email != formData.confirmEmail) {
         errors["confirmEmail"] = "Los correos no coinciden"
     }
-    
+
     onFieldErrors(errors)
-    
+
     if (errors.isEmpty()) {
         scope.launch {
             onPaying(true)
             onGeneralError(null)
-            
+
             val compraDto = buildCompra()
             val result = onPerformPayment(compraDto)
             onPaymentResult(result)
@@ -447,4 +523,3 @@ private fun isValidEmail(email: String): Boolean {
     val emailPattern = "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}".toRegex()
     return emailPattern.matches(email)
 }
-
