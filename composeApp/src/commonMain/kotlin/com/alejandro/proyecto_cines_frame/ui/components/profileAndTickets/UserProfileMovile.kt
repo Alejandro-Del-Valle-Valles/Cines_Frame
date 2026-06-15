@@ -379,6 +379,15 @@ fun UserProfileMovile(
                     movieTitlesById = movieTitlesById,
                     onDownloadClick = { presenter.downloadCompraPdf(it.id) }
                 )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                CompraQrCard(
+                    compra = it,
+                    movieTitlesById = movieTitlesById
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
             }
         }
     }

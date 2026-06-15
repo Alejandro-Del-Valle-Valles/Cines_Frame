@@ -34,6 +34,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import com.alejandro.proyecto_cines_frame.domain.model.Compra
 import com.alejandro.proyecto_cines_frame.domain.model.LineaCompraEntrada
 import com.alejandro.proyecto_cines_frame.domain.model.LineaCompraProducto
+import com.alejandro.proyecto_cines_frame.ui.components.profileAndTickets.CompraQrCard
 import com.alejandro.proyecto_cines_frame.ui.components.common.HeaderBrand
 import com.alejandro.proyecto_cines_frame.ui.logic.presenter.ProfilePresenter
 import com.alejandro.proyecto_cines_frame.ui.theme.BackgroundDark
@@ -360,6 +361,15 @@ fun UserProfileDesktop(
                         movieTitlesById = movieTitlesById,
                         onDownloadClick = { presenter.downloadCompraPdf(it.id) }
                     )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    CompraQrCard(
+                        compra = it,
+                        movieTitlesById = movieTitlesById
+                    )
+
+                    Spacer(modifier = Modifier.height(20.dp))
                 }
             }
         }
@@ -425,7 +435,7 @@ fun TicketRow(
                         fontSize = MaterialTheme.typography.bodyMedium.fontSize
                     )
                 }
-                
+
                 lineasProductos.forEach { (nombre, lineas) ->
                     val cantidad = lineas.size
                     val precioUnidad = lineas.first().producto.precio

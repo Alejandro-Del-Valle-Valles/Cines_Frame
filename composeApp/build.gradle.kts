@@ -16,9 +16,9 @@ kotlin {
             jvmTarget.set(JvmTarget.JVM_11)
         }
     }
-    
+
     jvm()
-    
+
     sourceSets {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
@@ -39,6 +39,7 @@ kotlin {
             implementation(libs.ktor.client.auth)
             implementation(libs.coil.compose)
             implementation(libs.coil.network.ktor)
+            implementation(libs.qrcode.kotlin)
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
             implementation("io.ktor:ktor-client-core:3.4.2")
             implementation("io.ktor:ktor-client-content-negotiation:3.4.2")

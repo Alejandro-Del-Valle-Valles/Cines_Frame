@@ -12,8 +12,8 @@ import com.alejandro.proyecto_cines_frame.ui.theme.AppTheme
 @Preview
 fun App() {
     AppTheme {
-        //MainScreen()
-        val discounts = listOf(
+        MainScreen()
+        /*val discounts = listOf(
             CodigoDescuento(1,"DESCUENTO10", DescuentoCondicion.TODOS, 10, true),
             CodigoDescuento(2,"PELICULA05", DescuentoCondicion.TODOS, 5, true),
             CodigoDescuento(3,"ENEROLOCO", DescuentoCondicion.TODOS, 15, false),
@@ -26,6 +26,6 @@ fun App() {
             onAddDiscount = {},
             onEditDiscount = {},
             onBackClick = {}
-        )
+        )*/
     }
 }
